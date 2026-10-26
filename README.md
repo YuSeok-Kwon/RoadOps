@@ -67,6 +67,16 @@ python 07_scripts/20261026_roadops_validate_live_link_compatibility_v0_1.py \
   --reference-links 02_outputs/interim/molit_nodelink_jeju_20261014/jeju_links.csv \
   --input path/to/jeju_its_response.json \
   --output 02_outputs/data/jeju_its_link_compatibility.json
+
+# TAAS와 제주 기준 도로망의 층화 표본 결합 감사 / stratified TAAS coverage audit
+python 07_scripts/20261026_roadops_audit_taas_coverage_v0_1.py \
+  --sample-size 200 \
+  --request-delay 0.1
+
+# TAAS 감사 분석 노트북 생성 / build the TAAS audit notebook
+python 07_scripts/20261026_roadops_build_taas_audit_notebook_v0_1.py
+jupyter nbconvert --execute --to notebook --inplace \
+  03_notebooks/20261026_taas_link_risk_audit_v0_1.ipynb
 ```
 
 C-ITS·ITS 문서의 운영 주소는 HTTP이므로 인증키가 평문으로 전송될 수 있습니다. 실시간 호출은 기본 차단되며, 기존 JSON 응답을 입력하는 방식은 키 없이 검증할 수 있습니다.
@@ -78,6 +88,8 @@ The documented C-ITS/ITS operational URLs use HTTP and may transmit API keys in 
 - [프로젝트 정의 / Project brief](./PROJECT_BRIEF.md)
 - [콘텐츠 가이드 / Content guide](./CONTENT_GUIDE.md)
 - [데이터 실현 가능성 점검 / Data feasibility spike](./04_docs/data_feasibility/20261026_roadops_data_feasibility_v0_1.md)
+- [TAAS 링크 위험지수 품질 감사 / TAAS link-risk quality audit](./04_docs/data_quality/20261026_taas_link_risk_audit_v0_1.md)
+- [TAAS 감사 노트북 / TAAS audit notebook](./03_notebooks/20261026_taas_link_risk_audit_v0_1.ipynb)
 - [실제 제주 도로망 품질 검증 / Real Jeju road-network quality validation](./04_docs/data_feasibility/20261026_roadops_real_road_network_quality_v0_2.md)
 - [실시간 링크 호환성 검증 / Live-link compatibility validation](./04_docs/data_feasibility/20261026_roadops_live_link_compatibility_v0_3.md)
 - [Velog 1부 초안 / Velog Part 1 draft](./04_docs/content/20261026_roadops_part_1_velog_draft_v0_1.md)
