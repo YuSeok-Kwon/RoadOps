@@ -3,6 +3,8 @@
 작성일 / Date: 2026-10-26
 원본 버전 / Source release: 2026-10-14
 
+> 후속 검증 / Follow-up: [실시간 링크 호환성 검증 v0.3](./20261026_roadops_live_link_compatibility_v0_3.md)에서 실시간 응답 품질 게이트와 전송 보안 정책을 구현했다. The follow-up implements live-response quality gates and the transport-security policy.
+
 ## 결론 / Decision
 
 국토교통부 전국표준 노드링크에서 추출한 **노드 27,656개와 링크 37,087개**는 RoadOps의 1차 기준 도로망으로 사용한다. ID, 중복, 좌표, 노드 참조, 링크 형상, 차로 수, 제한속도, 연결성을 포함한 14개 게이트를 모두 통과했다.

@@ -49,7 +49,11 @@
       },
       "join_key": "link_id",
       "coordinate_system": "EPSG:4326",
-      "expected_fields": ["ocrr_id", "latitude", "longitude", "heading", "link_id", "code"]
+      "expected_fields": ["ocrr_id", "latitude", "longitude", "heading", "link_id", "code"],
+      "quality_contract": {
+        "record_key": ["ocrr_id", "link_id"],
+        "source_timezone": "Asia/Seoul"
+      }
     },
     {
       "id": "jeju_cits_road_close",
@@ -73,7 +77,11 @@
         "whole_lane",
         "block_lane",
         "text"
-      ]
+      ],
+      "quality_contract": {
+        "record_key": ["ocrr_id", "link_id"],
+        "source_timezone": "Asia/Seoul"
+      }
     },
     {
       "id": "jeju_cits_road_work",
@@ -97,7 +105,11 @@
         "whole_lane",
         "block_lane",
         "text"
-      ]
+      ],
+      "quality_contract": {
+        "record_key": ["ocrr_id", "link_id"],
+        "source_timezone": "Asia/Seoul"
+      }
     },
     {
       "id": "jeju_cits_road_weather",
@@ -123,7 +135,11 @@
         "water_film",
         "friction",
         "code"
-      ]
+      ],
+      "quality_contract": {
+        "record_key": ["link_id"],
+        "source_timezone": "Asia/Seoul"
+      }
     },
     {
       "id": "jeju_its_realtime_traffic",
@@ -139,7 +155,13 @@
       "default_params": {"type": "L"},
       "join_key": "link_id",
       "coordinate_system": null,
-      "expected_fields": ["link_id", "prcn_dt", "tfvl", "sped", "ocpy_rate", "trvl_hh"]
+      "expected_fields": ["link_id", "prcn_dt", "tfvl", "sped", "ocpy_rate", "trvl_hh"],
+      "quality_contract": {
+        "record_key": ["link_id", "prcn_dt"],
+        "timestamp_field": "prcn_dt",
+        "source_timezone": "Asia/Seoul",
+        "freshness_max_minutes": 30
+      }
     },
     {
       "id": "kma_ultra_short_forecast",

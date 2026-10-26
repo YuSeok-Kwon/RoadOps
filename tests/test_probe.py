@@ -3,7 +3,14 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from roadops.probe import extract_records, load_source_specs, missing_expected_fields
+import httpx
+
+from roadops.probe import (
+    _live_probe,
+    extract_records,
+    load_source_specs,
+    missing_expected_fields,
+)
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -31,6 +38,38 @@ def test_source_registry_loads_source_definition(tmp_path):
     assert len(specs) == 1
     assert specs[0].source_id == "sample"
     assert specs[0].expected_fields == ("link_id",)
+    assert specs[0].record_key == ()
+    assert specs[0].source_timezone == "Asia/Seoul"
+
+
+def test_source_registry_loads_quality_contract(tmp_path):
+    registry = {
+        "schema_version": 1,
+        "sources": [
+            {
+                "id": "traffic",
+                "name": "Traffic",
+                "name_ko": "교통",
+                "documentation_url": "https://example.com/docs",
+                "kind": "json_api",
+                "expected_fields": ["link_id", "observed_at"],
+                "quality_contract": {
+                    "record_key": ["link_id", "observed_at"],
+                    "timestamp_field": "observed_at",
+                    "source_timezone": "Asia/Seoul",
+                    "freshness_max_minutes": 30,
+                },
+            }
+        ],
+    }
+    path = tmp_path / "sources.json"
+    path.write_text(json.dumps(registry), encoding="utf-8")
+
+    spec = load_source_specs(path)[0]
+
+    assert spec.record_key == ("link_id", "observed_at")
+    assert spec.timestamp_field == "observed_at"
+    assert spec.freshness_max_minutes == 30
 
 
 def test_project_registry_has_unique_expected_sources():
@@ -67,3 +106,38 @@ def test_missing_expected_fields_reports_schema_gap():
     assert missing_expected_fields(records, ["link_id", "latitude", "longitude"]) == [
         "longitude"
     ]
+
+
+def test_live_probe_blocks_plaintext_endpoint_before_reading_credentials(tmp_path):
+    registry = {
+        "schema_version": 1,
+        "sources": [
+            {
+                "id": "traffic",
+                "name": "Traffic",
+                "name_ko": "교통",
+                "documentation_url": "https://example.com/docs",
+                "endpoint_url": "http://api.example.com/traffic",
+                "kind": "json_api",
+                "authentication": {
+                    "environment_variable": "UNSET_TEST_TRAFFIC_KEY",
+                    "query_parameter": "code",
+                },
+            }
+        ],
+    }
+    path = tmp_path / "sources.json"
+    path.write_text(json.dumps(registry), encoding="utf-8")
+    spec = load_source_specs(path)[0]
+    calls = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        calls += 1
+        return httpx.Response(200, json={"Info": []})
+
+    with httpx.Client(transport=httpx.MockTransport(handler)) as client:
+        result = _live_probe(client, spec)
+
+    assert result["status"] == "insecure_transport_blocked"
+    assert calls == 0

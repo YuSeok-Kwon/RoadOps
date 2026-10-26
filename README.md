@@ -60,7 +60,18 @@ python 07_scripts/20261026_roadops_profile_road_network_v0_1.py \
 # 국가표준 노드링크에서 제주 추출 / extract Jeju from the national node-link archive
 python 07_scripts/20261026_roadops_extract_jeju_nodelink_v0_1.py \
   --archive 01_raw_data/external/molit_nodelink_20261014/NODELINKDATA_20261014.zip
+
+# 저장된 ITS 응답을 기준망과 검증 / validate a saved ITS response
+python 07_scripts/20261026_roadops_validate_live_link_compatibility_v0_1.py \
+  --source-id jeju_its_realtime_traffic \
+  --reference-links 02_outputs/interim/molit_nodelink_jeju_20261014/jeju_links.csv \
+  --input path/to/jeju_its_response.json \
+  --output 02_outputs/data/jeju_its_link_compatibility.json
 ```
+
+C-ITS·ITS 문서의 운영 주소는 HTTP이므로 인증키가 평문으로 전송될 수 있습니다. 실시간 호출은 기본 차단되며, 기존 JSON 응답을 입력하는 방식은 키 없이 검증할 수 있습니다.
+
+The documented C-ITS/ITS operational URLs use HTTP and may transmit API keys in plaintext. Live calls are blocked by default; saved JSON responses can be validated without a key.
 
 ## 문서 / Documentation
 
@@ -68,6 +79,7 @@ python 07_scripts/20261026_roadops_extract_jeju_nodelink_v0_1.py \
 - [콘텐츠 가이드 / Content guide](./CONTENT_GUIDE.md)
 - [데이터 실현 가능성 점검 / Data feasibility spike](./04_docs/data_feasibility/20261026_roadops_data_feasibility_v0_1.md)
 - [실제 제주 도로망 품질 검증 / Real Jeju road-network quality validation](./04_docs/data_feasibility/20261026_roadops_real_road_network_quality_v0_2.md)
+- [실시간 링크 호환성 검증 / Live-link compatibility validation](./04_docs/data_feasibility/20261026_roadops_live_link_compatibility_v0_3.md)
 - [Velog 1부 초안 / Velog Part 1 draft](./04_docs/content/20261026_roadops_part_1_velog_draft_v0_1.md)
 - [LinkedIn 첫 기록 초안 / LinkedIn first update draft](./04_docs/content/20261026_roadops_part_1_linkedin_draft_v0_1.md)
 

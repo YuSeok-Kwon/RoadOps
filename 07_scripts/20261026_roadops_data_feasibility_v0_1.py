@@ -37,13 +37,22 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Call operational endpoints when their API-key environment variables exist.",
     )
+    parser.add_argument(
+        "--allow-insecure-http",
+        action="store_true",
+        help="Allow API keys over plaintext HTTP only after explicit risk acceptance.",
+    )
     return parser.parse_args()
 
 
 def main() -> int:
     args = parse_args()
     specs = load_source_specs(args.config)
-    report = probe_sources(specs, live=args.live)
+    report = probe_sources(
+        specs,
+        live=args.live,
+        allow_insecure_http=args.allow_insecure_http,
+    )
     serialized = json.dumps(report, ensure_ascii=False, indent=2)
     if args.output is not None:
         args.output.parent.mkdir(parents=True, exist_ok=True)

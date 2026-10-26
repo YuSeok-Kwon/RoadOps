@@ -33,6 +33,10 @@ class SourceSpec:
     join_key: str | None
     coordinate_system: str | None
     expected_fields: tuple[str, ...]
+    record_key: tuple[str, ...]
+    timestamp_field: str | None
+    source_timezone: str
+    freshness_max_minutes: float | None
 
 
 def load_source_specs(path: str | Path) -> list[SourceSpec]:
@@ -44,6 +48,7 @@ def load_source_specs(path: str | Path) -> list[SourceSpec]:
 
     specs: list[SourceSpec] = []
     for source in payload.get("sources", []):
+        quality_contract = source.get("quality_contract", {})
         specs.append(
             SourceSpec(
                 source_id=source["id"],
@@ -59,6 +64,10 @@ def load_source_specs(path: str | Path) -> list[SourceSpec]:
                 join_key=source.get("join_key"),
                 coordinate_system=source.get("coordinate_system"),
                 expected_fields=tuple(source.get("expected_fields", [])),
+                record_key=tuple(quality_contract.get("record_key", [])),
+                timestamp_field=quality_contract.get("timestamp_field"),
+                source_timezone=quality_contract.get("source_timezone", "Asia/Seoul"),
+                freshness_max_minutes=quality_contract.get("freshness_max_minutes"),
             )
         )
     return specs
@@ -132,11 +141,21 @@ def _documentation_probe(client: httpx.Client, url: str) -> dict[str, Any]:
         return {"status": "network_error", "error_type": type(exc).__name__}
 
 
-def _live_probe(client: httpx.Client, spec: SourceSpec) -> dict[str, Any]:
+def _live_probe(
+    client: httpx.Client,
+    spec: SourceSpec,
+    *,
+    allow_insecure_http: bool = False,
+) -> dict[str, Any]:
     """Call one operational endpoint only when its key is available."""
 
     if spec.endpoint_url is None:
         return {"status": "not_applicable"}
+    if spec.endpoint_url.startswith("http://") and not allow_insecure_http:
+        return {
+            "status": "insecure_transport_blocked",
+            "required_action": "Confirm provider transport or explicitly allow HTTP.",
+        }
     if spec.authentication is None:
         return {"status": "authentication_not_configured"}
 
@@ -184,6 +203,7 @@ def probe_sources(
     specs: Iterable[SourceSpec],
     *,
     live: bool = False,
+    allow_insecure_http: bool = False,
     timeout_seconds: float = 15.0,
 ) -> dict[str, Any]:
     """Probe documentation and optionally authenticated operational endpoints."""
@@ -221,13 +241,22 @@ def probe_sources(
                     if spec.endpoint_url
                     else None
                 ),
-                "live": _live_probe(client, spec) if live else {"status": "not_requested"},
+                "live": (
+                    _live_probe(
+                        client,
+                        spec,
+                        allow_insecure_http=allow_insecure_http,
+                    )
+                    if live
+                    else {"status": "not_requested"}
+                ),
             }
             rows.append(row)
 
     return {
         "generated_at": datetime.now(tz=ZoneInfo("Asia/Seoul")).isoformat(),
         "live_probe_requested": live,
+        "insecure_http_allowed": allow_insecure_http,
         "source_count": len(rows),
         "sources": rows,
     }
