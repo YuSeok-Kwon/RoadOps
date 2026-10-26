@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Iterable, Mapping
+from urllib.parse import unquote
 from zoneinfo import ZoneInfo
 
 import httpx
@@ -115,6 +116,38 @@ def missing_expected_fields(
     return sorted(set(expected_fields) - observed)
 
 
+def _normalize_api_key(api_key: str) -> str:
+    """Accept either a raw key or a key already encoded for use in a URL."""
+
+    return unquote(api_key.strip())
+
+
+def _provider_error(payload: Mapping[str, Any]) -> dict[str, str] | None:
+    """Extract provider errors that are returned inside a successful HTTP response."""
+
+    envelopes: list[Mapping[str, Any]] = [payload]
+    response = payload.get("response")
+    if isinstance(response, Mapping):
+        header = response.get("header")
+        if isinstance(header, Mapping):
+            envelopes.append(header)
+
+    success_codes = {"0", "00", "SUCCESS", "NORMAL_CODE"}
+    for envelope in envelopes:
+        code = envelope.get("resultCode")
+        if code is None:
+            continue
+        normalized_code = str(code).strip().upper()
+        if normalized_code in success_codes:
+            continue
+        message = envelope.get("resultMsg")
+        return {
+            "provider_result_code": str(code),
+            "provider_result_message": "" if message is None else str(message),
+        }
+    return None
+
+
 def _kma_runtime_params(now: datetime | None = None) -> dict[str, str]:
     """Choose the latest safely available hourly base time in Korea."""
 
@@ -165,7 +198,7 @@ def _live_probe(
         return {"status": "credential_missing", "required_environment_variable": env_name}
 
     params = dict(spec.default_params)
-    params[spec.authentication["query_parameter"]] = api_key
+    params[spec.authentication["query_parameter"]] = _normalize_api_key(api_key)
     if spec.runtime_params == "kma_ultra_short_now":
         params.update(_kma_runtime_params())
 
@@ -181,6 +214,17 @@ def _live_probe(
             result["status"] = "non_json_response"
             return result
         payload = response.json()
+        if not isinstance(payload, Mapping):
+            result["status"] = "schema_not_verified"
+            result["response_shape"] = type(payload).__name__
+            return result
+
+        provider_error = _provider_error(payload)
+        if provider_error is not None:
+            result.update(provider_error)
+            result["status"] = "api_error"
+            return result
+
         records = extract_records(payload)
         missing = missing_expected_fields(records, spec.expected_fields)
         result.update(

@@ -141,3 +141,90 @@ def test_live_probe_blocks_plaintext_endpoint_before_reading_credentials(tmp_pat
 
     assert result["status"] == "insecure_transport_blocked"
     assert calls == 0
+
+
+def test_live_probe_decodes_url_encoded_api_key(monkeypatch, tmp_path):
+    registry = {
+        "schema_version": 1,
+        "sources": [
+            {
+                "id": "taas",
+                "name": "TAAS",
+                "name_ko": "TAAS",
+                "documentation_url": "https://example.com/docs",
+                "endpoint_url": "https://example.com/taas",
+                "kind": "json_api",
+                "authentication": {
+                    "environment_variable": "TEST_TAAS_KEY",
+                    "query_parameter": "authKey",
+                },
+                "expected_fields": ["anals_grd"],
+            }
+        ],
+    }
+    path = tmp_path / "sources.json"
+    path.write_text(json.dumps(registry), encoding="utf-8")
+    spec = load_source_specs(path)[0]
+    monkeypatch.setenv("TEST_TAAS_KEY", "raw%2Bkey%2Fvalue%3D")
+    observed_key = None
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal observed_key
+        observed_key = request.url.params.get("authKey")
+        return httpx.Response(
+            200,
+            json={
+                "resultCode": "00",
+                "resultMsg": "NORMAL_CODE",
+                "items": {"item": [{"anals_grd": "01"}]},
+            },
+        )
+
+    with httpx.Client(transport=httpx.MockTransport(handler)) as client:
+        result = _live_probe(client, spec)
+
+    assert observed_key == "raw+key/value="
+    assert result["status"] == "schema_valid"
+
+
+def test_live_probe_reports_taas_error_inside_http_200(monkeypatch, tmp_path):
+    registry = {
+        "schema_version": 1,
+        "sources": [
+            {
+                "id": "taas",
+                "name": "TAAS",
+                "name_ko": "TAAS",
+                "documentation_url": "https://example.com/docs",
+                "endpoint_url": "https://example.com/taas",
+                "kind": "json_api",
+                "authentication": {
+                    "environment_variable": "TEST_TAAS_KEY",
+                    "query_parameter": "authKey",
+                },
+                "expected_fields": ["anals_grd"],
+            }
+        ],
+    }
+    path = tmp_path / "sources.json"
+    path.write_text(json.dumps(registry), encoding="utf-8")
+    spec = load_source_specs(path)[0]
+    monkeypatch.setenv("TEST_TAAS_KEY", "test-key")
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json={
+                "resultCode": "30",
+                "resultMsg": "SERVICE_KEY_IS_NOT_REGISTERED_ERROR",
+            },
+        )
+
+    with httpx.Client(transport=httpx.MockTransport(handler)) as client:
+        result = _live_probe(client, spec)
+
+    assert result["status"] == "api_error"
+    assert result["http_status"] == 200
+    assert result["provider_result_code"] == "30"
+    assert result["provider_result_message"] == "SERVICE_KEY_IS_NOT_REGISTERED_ERROR"
+    assert "missing_expected_fields" not in result
