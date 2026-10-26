@@ -2,6 +2,8 @@
 
 작성일 / Date: 2026-10-26
 
+> 후속 검증 / Follow-up: [실제 제주 도로망 품질 검증 v0.2](./20261026_roadops_real_road_network_quality_v0_2.md)에서 국토교통부 기준망 64,743행을 검증했다. The follow-up validates 64,743 actual baseline-network rows.
+
 ## 결론 / Decision
 
 RoadOps 주제는 다음 단계로 진행한다. 공식 명세상 제주 도로 구간·노드·일별 및 시간대별 교통량과 C-ITS 도로위험·통제·작업·노면기상, ITS 실시간 교통정보가 모두 `link_id`를 제공한다. 따라서 1차 결합은 좌표 추정이 아니라 표준 링크 ID의 정확 조인으로 설계할 수 있다.

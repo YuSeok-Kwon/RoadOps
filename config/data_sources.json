@@ -2,6 +2,18 @@
   "schema_version": 1,
   "sources": [
     {
+      "id": "molit_standard_node_link",
+      "name": "MOLIT national standard node-link",
+      "name_ko": "국토교통부 전국표준 노드링크",
+      "documentation_url": "https://www.data.go.kr/data/15025526/fileData.do",
+      "download_url": "https://www.its.go.kr/opendata/nodelinkFileSDownload/DF_221/0",
+      "kind": "shapefile_archive",
+      "authentication": null,
+      "join_key": "link_id,node_id",
+      "coordinate_system": "declared in archive .prj",
+      "expected_fields": ["LINK_ID", "F_NODE", "T_NODE", "NODE_ID"]
+    },
+    {
       "id": "jeju_center_road_spec",
       "name": "Jeju Big Data Center road and traffic specification",
       "name_ko": "제주빅데이터센터 도로·교통 데이터 명세",

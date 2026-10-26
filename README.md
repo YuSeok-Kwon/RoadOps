@@ -6,9 +6,9 @@ Jeju RoadOps is an explainable AI agent that combines historical and real-time r
 
 ## 현재 단계 / Current phase
 
-제주 도로 데이터, 제주 C-ITS, 기상청 단기예보, TAAS의 접근성과 스키마를 확인하고 공간 결합 가능성을 검증하는 데이터 스파이크를 진행합니다.
+국토교통부 전국표준 노드링크에서 추출한 제주 기준 도로망의 구조적 품질을 검증했습니다. 다음은 제주 C-ITS·ITS 실시간 응답과의 링크 ID 호환성과 정확 조인율을 검증합니다.
 
-The current data spike validates access, schemas, and spatial join feasibility for Jeju road data, Jeju C-ITS, KMA forecasts, and TAAS.
+The structural quality of a Jeju baseline network extracted from the MOLIT national standard node-link release is now validated. The next step is to measure link-version compatibility and exact-join coverage against live Jeju C-ITS/ITS responses.
 
 ## 디렉토리 / Directories
 
@@ -50,6 +50,16 @@ python 07_scripts/20261026_roadops_data_feasibility_v0_1.py --live
 
 # 실제 데이터가 아닌 fixture로 결합 규칙 확인 / deterministic fixture join
 python 07_scripts/20261026_roadops_join_fixture_v0_1.py
+
+# 도로망 CSV/JSON 품질 게이트 / road-network data-quality gates
+python 07_scripts/20261026_roadops_profile_road_network_v0_1.py \
+  --links 01_raw_data/links.csv \
+  --nodes 01_raw_data/nodes.csv \
+  --output 02_outputs/data/road_network_quality.json
+
+# 국가표준 노드링크에서 제주 추출 / extract Jeju from the national node-link archive
+python 07_scripts/20261026_roadops_extract_jeju_nodelink_v0_1.py \
+  --archive 01_raw_data/external/molit_nodelink_20261014/NODELINKDATA_20261014.zip
 ```
 
 ## 문서 / Documentation
@@ -57,6 +67,7 @@ python 07_scripts/20261026_roadops_join_fixture_v0_1.py
 - [프로젝트 정의 / Project brief](./PROJECT_BRIEF.md)
 - [콘텐츠 가이드 / Content guide](./CONTENT_GUIDE.md)
 - [데이터 실현 가능성 점검 / Data feasibility spike](./04_docs/data_feasibility/20261026_roadops_data_feasibility_v0_1.md)
+- [실제 제주 도로망 품질 검증 / Real Jeju road-network quality validation](./04_docs/data_feasibility/20261026_roadops_real_road_network_quality_v0_2.md)
 - [Velog 1부 초안 / Velog Part 1 draft](./04_docs/content/20261026_roadops_part_1_velog_draft_v0_1.md)
 - [LinkedIn 첫 기록 초안 / LinkedIn first update draft](./04_docs/content/20261026_roadops_part_1_linkedin_draft_v0_1.md)
 

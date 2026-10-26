@@ -99,3 +99,22 @@ def test_kma_grid_conversion_for_seoul_reference_point():
 def test_kma_grid_conversion_places_jeju_sample_in_valid_grid():
     x, y = kma_grid_from_wgs84(33.3260317412202, 126.832743354717)
     assert (x, y) == (58, 34)
+
+
+def test_broad_jeju_bounds_include_chuja_islands():
+    links, issues = build_road_links(
+        [
+            {
+                "link_id": "4050000001",
+                "start_node_id": "4080000001",
+                "end_node_id": "4080000002",
+            }
+        ],
+        [
+            {"node_id": "4080000001", "latitude": 33.95, "longitude": 126.30},
+            {"node_id": "4080000002", "latitude": 33.96, "longitude": 126.31},
+        ],
+    )
+
+    assert not issues
+    assert "4050000001" in links

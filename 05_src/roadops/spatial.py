@@ -12,7 +12,7 @@ from typing import Any, Iterable, Mapping
 
 JEJU_BOUNDS = {
     "min_latitude": 32.9,
-    "max_latitude": 33.8,
+    "max_latitude": 34.1,
     "min_longitude": 125.8,
     "max_longitude": 127.3,
 }

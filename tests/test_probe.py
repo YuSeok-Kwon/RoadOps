@@ -37,9 +37,10 @@ def test_project_registry_has_unique_expected_sources():
     specs = load_source_specs(PROJECT_ROOT / "config" / "data_sources.json")
     source_ids = [spec.source_id for spec in specs]
 
-    assert len(source_ids) == 8
+    assert len(source_ids) == 9
     assert len(source_ids) == len(set(source_ids))
     assert "jeju_cits_road_event" in source_ids
+    assert "molit_standard_node_link" in source_ids
     assert "kma_ultra_short_forecast" in source_ids
     assert "taas_link_risk" in source_ids
 
