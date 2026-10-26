@@ -1,0 +1,172 @@
+{
+  "schema_version": 1,
+  "sources": [
+    {
+      "id": "jeju_center_road_spec",
+      "name": "Jeju Big Data Center road and traffic specification",
+      "name_ko": "제주빅데이터센터 도로·교통 데이터 명세",
+      "documentation_url": "https://jejudatahub.net/center/data",
+      "download_url": "https://jejudatahub.net/document/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%AA%85%EC%84%B8%EC%84%9C_kr.xlsx",
+      "kind": "workbook",
+      "authentication": null,
+      "join_key": "link_id",
+      "coordinate_system": "EPSG:4326",
+      "expected_fields": [
+        "link_id",
+        "start_node_id",
+        "end_node_id",
+        "node_id",
+        "latitude",
+        "longitude",
+        "base_date",
+        "base_hour",
+        "average_speed",
+        "average_time"
+      ]
+    },
+    {
+      "id": "jeju_cits_road_event",
+      "name": "Jeju C-ITS road events",
+      "name_ko": "제주 C-ITS 도로위험상황",
+      "documentation_url": "https://jejuits.go.kr/open_api/open_apiView.do",
+      "endpoint_url": "http://api.jejuits.go.kr/api/infoRoadEventList",
+      "kind": "json_api",
+      "authentication": {
+        "environment_variable": "JEJU_CITS_API_KEY",
+        "query_parameter": "code"
+      },
+      "join_key": "link_id",
+      "coordinate_system": "EPSG:4326",
+      "expected_fields": ["ocrr_id", "latitude", "longitude", "heading", "link_id", "code"]
+    },
+    {
+      "id": "jeju_cits_road_close",
+      "name": "Jeju C-ITS road closures",
+      "name_ko": "제주 C-ITS 도로통제",
+      "documentation_url": "https://jejuits.go.kr/open_api/open_apiView.do",
+      "endpoint_url": "http://api.jejuits.go.kr/api/infoRoadCloseList",
+      "kind": "json_api",
+      "authentication": {
+        "environment_variable": "JEJU_CITS_API_KEY",
+        "query_parameter": "code"
+      },
+      "join_key": "link_id",
+      "coordinate_system": "EPSG:4326",
+      "expected_fields": [
+        "ocrr_id",
+        "latitude",
+        "longitude",
+        "heading",
+        "link_id",
+        "whole_lane",
+        "block_lane",
+        "text"
+      ]
+    },
+    {
+      "id": "jeju_cits_road_work",
+      "name": "Jeju C-ITS road works",
+      "name_ko": "제주 C-ITS 도로 작업구간",
+      "documentation_url": "https://jejuits.go.kr/open_api/open_apiView.do",
+      "endpoint_url": "http://api.jejuits.go.kr/api/infoRoadWorkList",
+      "kind": "json_api",
+      "authentication": {
+        "environment_variable": "JEJU_CITS_API_KEY",
+        "query_parameter": "code"
+      },
+      "join_key": "link_id",
+      "coordinate_system": "EPSG:4326",
+      "expected_fields": [
+        "ocrr_id",
+        "latitude",
+        "longitude",
+        "heading",
+        "link_id",
+        "whole_lane",
+        "block_lane",
+        "text"
+      ]
+    },
+    {
+      "id": "jeju_cits_road_weather",
+      "name": "Jeju C-ITS road weather",
+      "name_ko": "제주 C-ITS 노면기상",
+      "documentation_url": "https://jejuits.go.kr/open_api/open_apiView.do",
+      "endpoint_url": "http://api.jejuits.go.kr/api/infoRwisList",
+      "kind": "json_api",
+      "authentication": {
+        "environment_variable": "JEJU_CITS_API_KEY",
+        "query_parameter": "code"
+      },
+      "join_key": "link_id",
+      "coordinate_system": "EPSG:4326",
+      "expected_fields": [
+        "latitude",
+        "longitude",
+        "heading",
+        "link_id",
+        "visibility",
+        "snow",
+        "road_temp",
+        "water_film",
+        "friction",
+        "code"
+      ]
+    },
+    {
+      "id": "jeju_its_realtime_traffic",
+      "name": "Jeju ITS real-time traffic",
+      "name_ko": "제주 ITS 실시간 교통정보",
+      "documentation_url": "https://jejuits.go.kr/open_api/open_apiView.do",
+      "endpoint_url": "http://api.jejuits.go.kr/api/getFrafficInfo",
+      "kind": "json_api",
+      "authentication": {
+        "environment_variable": "JEJU_ITS_API_KEY",
+        "query_parameter": "code"
+      },
+      "default_params": {"type": "L"},
+      "join_key": "link_id",
+      "coordinate_system": null,
+      "expected_fields": ["link_id", "prcn_dt", "tfvl", "sped", "ocpy_rate", "trvl_hh"]
+    },
+    {
+      "id": "kma_ultra_short_forecast",
+      "name": "KMA ultra-short forecast",
+      "name_ko": "기상청 초단기예보",
+      "documentation_url": "https://www.data.go.kr/data/15084084/openapi.do",
+      "endpoint_url": "https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtFcst",
+      "kind": "json_api",
+      "authentication": {
+        "environment_variable": "DATA_GO_KR_SERVICE_KEY",
+        "query_parameter": "ServiceKey"
+      },
+      "runtime_params": "kma_ultra_short_now",
+      "default_params": {"pageNo": 1, "numOfRows": 1000, "dataType": "JSON", "nx": 53, "ny": 38},
+      "join_key": "nx,ny",
+      "coordinate_system": "KMA 5km grid",
+      "expected_fields": ["baseDate", "baseTime", "category", "fcstDate", "fcstTime", "fcstValue", "nx", "ny"]
+    },
+    {
+      "id": "taas_link_risk",
+      "name": "TAAS detailed-link road risk index",
+      "name_ko": "TAAS 세부링크 도로위험지수",
+      "documentation_url": "https://opendata.koroad.or.kr/api/selectLinkDataSet.do",
+      "endpoint_url": "https://opendata.koroad.or.kr/data/rest/road/dgdgr/link",
+      "kind": "json_api",
+      "authentication": {
+        "environment_variable": "TAAS_API_KEY",
+        "query_parameter": "authKey"
+      },
+      "default_params": {
+        "searchLineString": "LineString(126.832743 33.326032,126.833743 33.327032)",
+        "vhctyCd": "01",
+        "type": "json",
+        "numOfRows": 10,
+        "pageNo": 1
+      },
+      "join_key": "link geometry",
+      "coordinate_system": "EPSG:4326",
+      "expected_fields": ["index", "line_string", "anals_value", "anals_grd"]
+    }
+  ]
+}

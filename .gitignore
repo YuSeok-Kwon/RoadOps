@@ -1,0 +1,39 @@
+# Raw and generated data / 원본 및 생성 데이터
+01_raw_data/**/*
+!01_raw_data/**/
+!01_raw_data/**/.gitkeep
+02_outputs/data/**/*
+!02_outputs/data/.gitkeep
+02_outputs/interim/**/*
+!02_outputs/interim/.gitkeep
+02_outputs/figures/**/*
+!02_outputs/figures/.gitkeep
+
+# Temporary files / 임시 파일
+999_Temporary/**/*
+!999_Temporary/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
+
+# Environments and secrets / 환경 및 비밀정보
+.env
+.venv/
+venv/
+env/
+config/.env
+config/secrets.*
+!config/*.json
+
+# Editors and operating systems / 편집기 및 운영체제
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

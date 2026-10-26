@@ -1,0 +1,4 @@
+[tool.pytest.ini_options]
+pythonpath = ["05_src"]
+testpaths = ["tests"]
+addopts = "-q"
