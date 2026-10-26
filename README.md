@@ -57,6 +57,8 @@ python 07_scripts/20261026_roadops_join_fixture_v0_1.py
 - [프로젝트 정의 / Project brief](./PROJECT_BRIEF.md)
 - [콘텐츠 가이드 / Content guide](./CONTENT_GUIDE.md)
 - [데이터 실현 가능성 점검 / Data feasibility spike](./04_docs/data_feasibility/20261026_roadops_data_feasibility_v0_1.md)
+- [Velog 1부 초안 / Velog Part 1 draft](./04_docs/content/20261026_roadops_part_1_velog_draft_v0_1.md)
+- [LinkedIn 첫 기록 초안 / LinkedIn first update draft](./04_docs/content/20261026_roadops_part_1_linkedin_draft_v0_1.md)
 
 ## 파일 이름 / File naming
 
