@@ -81,6 +81,16 @@ jupyter nbconvert --execute --to notebook --inplace \
 # 제주 C-ITS·ITS 인증키·실시간성 감사 / audit Jeju API keys and timeliness
 python 07_scripts/20261027_roadops_audit_jeju_live_api_v0_1.py \
   --allow-insecure-http
+
+# C-ITS 스냅샷 1회 수집 / collect one C-ITS snapshot
+python 07_scripts/20261027_roadops_collect_cits_snapshots_v0_1.py \
+  --allow-insecure-http
+
+# 5분 간격 연속 수집 / collect every five minutes
+python 07_scripts/20261027_roadops_collect_cits_snapshots_v0_1.py \
+  --allow-insecure-http \
+  --iterations 12 \
+  --interval-seconds 300
 ```
 
 C-ITS·ITS 문서의 운영 주소는 HTTP이므로 인증키가 평문으로 전송될 수 있습니다. 실시간 호출은 기본 차단되며, 기존 JSON 응답을 입력하는 방식은 키 없이 검증할 수 있습니다.
@@ -96,6 +106,8 @@ The documented C-ITS/ITS operational URLs use HTTP and may transmit API keys in 
 - [TAAS 감사 노트북 / TAAS audit notebook](./03_notebooks/20261026_taas_link_risk_audit_v0_1.ipynb)
 - [제주 API 인증키·실시간성 감사 / Jeju API key and timeliness audit](./04_docs/data_quality/20261027_roadops_jeju_live_api_key_freshness_audit_v0_1.md)
 - [제주 API 감사 노트북 / Jeju API audit notebook](./03_notebooks/20261027_jeju_live_api_key_freshness_audit_v0_1.ipynb)
+- [C-ITS 스냅샷 생명주기 감사 / C-ITS snapshot lifecycle audit](./04_docs/data_quality/20261027_roadops_cits_snapshot_lifecycle_audit_v0_1.md)
+- [C-ITS 스냅샷 감사 노트북 / C-ITS snapshot audit notebook](./03_notebooks/20261027_cits_snapshot_lifecycle_audit_v0_1.ipynb)
 - [실제 제주 도로망 품질 검증 / Real Jeju road-network quality validation](./04_docs/data_feasibility/20261026_roadops_real_road_network_quality_v0_2.md)
 - [실시간 링크 호환성 검증 / Live-link compatibility validation](./04_docs/data_feasibility/20261026_roadops_live_link_compatibility_v0_3.md)
 - [Velog 1부 초안 / Velog Part 1 draft](./04_docs/content/20261026_roadops_part_1_velog_draft_v0_1.md)
