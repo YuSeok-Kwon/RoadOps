@@ -77,9 +77,10 @@ def load_source_specs(path: str | Path) -> list[SourceSpec]:
 def extract_records(payload: Mapping[str, Any]) -> list[Mapping[str, Any]]:
     """Extract records from the C-ITS, KMA, or TAAS response envelope."""
 
-    cits_records = payload.get("Info")
-    if isinstance(cits_records, list):
-        return [record for record in cits_records if isinstance(record, Mapping)]
+    for key in ("Info", "info"):
+        cits_records = payload.get(key)
+        if isinstance(cits_records, list):
+            return [record for record in cits_records if isinstance(record, Mapping)]
 
     response = payload.get("response")
     if isinstance(response, Mapping):
@@ -145,6 +146,17 @@ def _provider_error(payload: Mapping[str, Any]) -> dict[str, str] | None:
             "provider_result_code": str(code),
             "provider_result_message": "" if message is None else str(message),
         }
+
+    jeju_result = payload.get("result")
+    if jeju_result is not None and str(jeju_result).strip().lower() not in {
+        "success",
+        "ok",
+    }:
+        message = payload.get("message", payload.get("msg", ""))
+        return {
+            "provider_result_code": str(jeju_result),
+            "provider_result_message": str(message),
+        }
     return None
 
 
@@ -154,6 +166,31 @@ def _kma_runtime_params(now: datetime | None = None) -> dict[str, str]:
     current = now or datetime.now(tz=ZoneInfo("Asia/Seoul"))
     base = current - timedelta(minutes=45)
     return {"base_date": base.strftime("%Y%m%d"), "base_time": base.strftime("%H00")}
+
+
+def runtime_params_for(
+    runtime_params: str | None, now: datetime | None = None
+) -> dict[str, str]:
+    """Resolve safe time-dependent request parameters without credentials."""
+
+    current = now or datetime.now(tz=ZoneInfo("Asia/Seoul"))
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=ZoneInfo("Asia/Seoul"))
+    else:
+        current = current.astimezone(ZoneInfo("Asia/Seoul"))
+
+    if runtime_params is None:
+        return {}
+    if runtime_params == "kma_ultra_short_now":
+        return _kma_runtime_params(current)
+    if runtime_params == "jeju_previous_complete_hour":
+        previous_hour = current.replace(minute=0, second=0, microsecond=0) - timedelta(
+            hours=1
+        )
+        return {"statDt": previous_hour.strftime("%Y%m%d%H")}
+    if runtime_params == "jeju_previous_day":
+        return {"statDt": (current - timedelta(days=1)).strftime("%Y%m%d")}
+    raise ValueError(f"Unsupported runtime parameter strategy: {runtime_params}")
 
 
 def _documentation_probe(client: httpx.Client, url: str) -> dict[str, Any]:
@@ -199,8 +236,7 @@ def _live_probe(
 
     params = dict(spec.default_params)
     params[spec.authentication["query_parameter"]] = _normalize_api_key(api_key)
-    if spec.runtime_params == "kma_ultra_short_now":
-        params.update(_kma_runtime_params())
+    params.update(runtime_params_for(spec.runtime_params))
 
     try:
         response = client.get(spec.endpoint_url, params=params)

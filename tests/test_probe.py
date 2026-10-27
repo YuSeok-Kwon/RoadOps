@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import httpx
 
@@ -10,6 +12,7 @@ from roadops.probe import (
     extract_records,
     load_source_specs,
     missing_expected_fields,
+    runtime_params_for,
 )
 
 
@@ -76,17 +79,33 @@ def test_project_registry_has_unique_expected_sources():
     specs = load_source_specs(PROJECT_ROOT / "config" / "data_sources.json")
     source_ids = [spec.source_id for spec in specs]
 
-    assert len(source_ids) == 9
+    assert len(source_ids) == 11
     assert len(source_ids) == len(set(source_ids))
     assert "jeju_cits_road_event" in source_ids
     assert "molit_standard_node_link" in source_ids
     assert "kma_ultra_short_forecast" in source_ids
     assert "taas_link_risk" in source_ids
+    assert "jeju_its_hourly_traffic" in source_ids
+    assert "jeju_its_daily_traffic" in source_ids
 
 
 def test_extract_records_supports_cits_envelope():
     payload = {"result": "success", "Info": [{"link_id": "4050000001"}]}
     assert extract_records(payload) == [{"link_id": "4050000001"}]
+
+
+def test_extract_records_supports_actual_lowercase_jeju_envelope():
+    payload = {"result": "success", "info": [{"link_id": "4050000001"}]}
+    assert extract_records(payload) == [{"link_id": "4050000001"}]
+
+
+def test_runtime_params_resolve_previous_complete_periods():
+    now = datetime(2026, 10, 27, 9, 19, tzinfo=ZoneInfo("Asia/Seoul"))
+
+    assert runtime_params_for("jeju_previous_complete_hour", now) == {
+        "statDt": "2026102708"
+    }
+    assert runtime_params_for("jeju_previous_day", now) == {"statDt": "20261026"}
 
 
 def test_extract_records_supports_kma_envelope():

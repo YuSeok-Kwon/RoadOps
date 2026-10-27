@@ -12,23 +12,42 @@ from zoneinfo import ZoneInfo
 
 import httpx
 
-from roadops.probe import SourceSpec
+from roadops.probe import (
+    SourceSpec,
+    _normalize_api_key,
+    _provider_error,
+    runtime_params_for,
+)
 
 
 class LiveFetchError(RuntimeError):
     """A sanitized source-retrieval failure that never includes the API key."""
 
-    def __init__(self, reason: str, *, http_status: int | None = None):
+    def __init__(
+        self,
+        reason: str,
+        *,
+        http_status: int | None = None,
+        provider_result_code: str | None = None,
+        provider_result_message: str | None = None,
+    ):
         super().__init__(reason)
         self.reason = reason
         self.http_status = http_status
+        self.provider_result_code = provider_result_code
+        self.provider_result_message = provider_result_message
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        result: dict[str, Any] = {
             "status": "fetch_failed",
             "reason": self.reason,
             "http_status": self.http_status,
         }
+        if self.provider_result_code is not None:
+            result["provider_result_code"] = self.provider_result_code
+        if self.provider_result_message is not None:
+            result["provider_result_message"] = self.provider_result_message
+        return result
 
 
 def fetch_json_payload(
@@ -37,6 +56,7 @@ def fetch_json_payload(
     api_key: str,
     allow_insecure_http: bool = False,
     timeout_seconds: float = 30,
+    now: datetime | None = None,
     client: httpx.Client | None = None,
 ) -> tuple[Mapping[str, Any], dict[str, Any]]:
     """Fetch one JSON payload while keeping credentials out of logs and outputs."""
@@ -50,8 +70,11 @@ def fetch_json_payload(
     if spec.endpoint_url.startswith("http://") and not allow_insecure_http:
         raise LiveFetchError("insecure_transport_blocked")
 
+    normalized_api_key = _normalize_api_key(api_key)
     params = dict(spec.default_params)
-    params[spec.authentication["query_parameter"]] = api_key
+    params.update(runtime_params_for(spec.runtime_params, now))
+    authentication_parameter = spec.authentication["query_parameter"]
+    params[authentication_parameter] = normalized_api_key
     owns_client = client is None
     http_client = client or httpx.Client(
         follow_redirects=True,
@@ -71,6 +94,17 @@ def fetch_json_payload(
             raise LiveFetchError("invalid_json", http_status=response.status_code) from None
         if not isinstance(payload, Mapping):
             raise LiveFetchError("json_root_not_object", http_status=response.status_code)
+        provider_error = _provider_error(payload)
+        if provider_error is not None:
+            provider_message = provider_error["provider_result_message"].replace(
+                normalized_api_key, "[REDACTED]"
+            )
+            raise LiveFetchError(
+                "provider_error",
+                http_status=response.status_code,
+                provider_result_code=provider_error["provider_result_code"],
+                provider_result_message=provider_message,
+            )
         metadata = {
             "status": "response_received",
             "source_id": spec.source_id,
@@ -80,6 +114,9 @@ def fetch_json_payload(
             "content_type": response.headers.get("content-type"),
             "response_bytes": len(response.content),
             "fetched_at": datetime.now(ZoneInfo("Asia/Seoul")).isoformat(),
+            "request_params": {
+                key: value for key, value in params.items() if key != authentication_parameter
+            },
         }
         return payload, metadata
     finally:

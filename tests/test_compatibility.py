@@ -169,3 +169,30 @@ def test_live_fetch_metadata_never_contains_api_key_when_explicitly_allowed():
     assert payload["Info"][0]["link_id"] == "4050000001"
     assert "secret" not in str(metadata)
     assert metadata["transport"] == "http"
+    assert metadata["request_params"] == {"type": "L"}
+
+
+def test_live_fetch_reports_jeju_provider_error_without_exposing_key():
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json={"result": "fail", "message": "invalid authentication code: secret"},
+        )
+
+    with httpx.Client(transport=httpx.MockTransport(handler)) as client:
+        try:
+            fetch_json_payload(
+                _http_spec(),
+                api_key="secret",
+                allow_insecure_http=True,
+                client=client,
+            )
+        except LiveFetchError as exc:
+            error = exc.to_dict()
+        else:
+            raise AssertionError("Provider-level errors must fail the fetch")
+
+    assert error["reason"] == "provider_error"
+    assert error["provider_result_code"] == "fail"
+    assert "secret" not in str(error)
+    assert "[REDACTED]" in error["provider_result_message"]

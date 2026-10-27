@@ -137,7 +137,7 @@
         "code"
       ],
       "quality_contract": {
-        "record_key": ["link_id"],
+        "record_key": ["latitude", "longitude"],
         "source_timezone": "Asia/Seoul"
       }
     },
@@ -161,6 +161,50 @@
         "timestamp_field": "prcn_dt",
         "source_timezone": "Asia/Seoul",
         "freshness_max_minutes": 30
+      }
+    },
+    {
+      "id": "jeju_its_hourly_traffic",
+      "name": "Jeju ITS hourly traffic statistics",
+      "name_ko": "제주 ITS 교통정보 1시간 통계",
+      "documentation_url": "https://jejuits.go.kr/open_api/open_apiView.do",
+      "endpoint_url": "http://api.jejuits.go.kr/api/getFrafficInfoHourlyStat",
+      "kind": "json_api",
+      "authentication": {
+        "environment_variable": "JEJU_ITS_API_KEY",
+        "query_parameter": "code"
+      },
+      "runtime_params": "jeju_previous_complete_hour",
+      "default_params": {"type": "L"},
+      "join_key": "link_id",
+      "coordinate_system": null,
+      "expected_fields": ["link_id", "stat_dt", "tfvl", "sped", "ocpy_rate", "trvl_hh"],
+      "quality_contract": {
+        "record_key": ["link_id", "stat_dt"],
+        "timestamp_field": "stat_dt",
+        "source_timezone": "Asia/Seoul"
+      }
+    },
+    {
+      "id": "jeju_its_daily_traffic",
+      "name": "Jeju ITS daily traffic statistics",
+      "name_ko": "제주 ITS 교통정보 일간 통계",
+      "documentation_url": "https://jejuits.go.kr/open_api/open_apiView.do",
+      "endpoint_url": "http://api.jejuits.go.kr/api/getFrafficInfodailyStat",
+      "kind": "json_api",
+      "authentication": {
+        "environment_variable": "JEJU_ITS_API_KEY",
+        "query_parameter": "code"
+      },
+      "runtime_params": "jeju_previous_day",
+      "default_params": {"type": "L"},
+      "join_key": "link_id",
+      "coordinate_system": null,
+      "expected_fields": ["link_id", "stat_dt", "tfvl", "sped", "ocpy_rate", "trvl_hh"],
+      "quality_contract": {
+        "record_key": ["link_id", "stat_dt"],
+        "timestamp_field": "stat_dt",
+        "source_timezone": "Asia/Seoul"
       }
     },
     {
