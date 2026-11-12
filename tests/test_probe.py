@@ -79,11 +79,17 @@ def test_project_registry_has_unique_expected_sources():
     specs = load_source_specs(PROJECT_ROOT / "config" / "data_sources.json")
     source_ids = [spec.source_id for spec in specs]
 
-    assert len(source_ids) == 11
+    assert len(source_ids) == 17
     assert len(source_ids) == len(set(source_ids))
     assert "jeju_cits_road_event" in source_ids
     assert "molit_standard_node_link" in source_ids
     assert "kma_ultra_short_forecast" in source_ids
+    assert "kma_ultra_short_nowcast" in source_ids
+    assert "kma_short_forecast" in source_ids
+    assert "kac_realtime_flights" in source_ids
+    assert "kac_hourly_arrival_passengers" in source_ids
+    assert "komsa_ferry_schedule" in source_ids
+    assert "komsa_monthly_departure_statistics" in source_ids
     assert "taas_link_risk" in source_ids
     assert "jeju_its_hourly_traffic" in source_ids
     assert "jeju_its_daily_traffic" in source_ids
@@ -108,11 +114,77 @@ def test_runtime_params_resolve_previous_complete_periods():
     assert runtime_params_for("jeju_previous_day", now) == {"statDt": "20261026"}
 
 
+def test_runtime_params_separate_kma_observation_and_forecast_cycles():
+    before_release = datetime(
+        2026, 11, 12, 17, 32, tzinfo=ZoneInfo("Asia/Seoul")
+    )
+    after_release = datetime(
+        2026, 11, 12, 17, 50, tzinfo=ZoneInfo("Asia/Seoul")
+    )
+
+    assert runtime_params_for("kma_ultra_short_nowcast", before_release) == {
+        "base_date": "20261112",
+        "base_time": "1600",
+    }
+    assert runtime_params_for("kma_ultra_short_nowcast", after_release) == {
+        "base_date": "20261112",
+        "base_time": "1700",
+    }
+    assert runtime_params_for("kma_ultra_short_forecast", before_release) == {
+        "base_date": "20261112",
+        "base_time": "1630",
+    }
+    assert runtime_params_for("kma_ultra_short_forecast", after_release) == {
+        "base_date": "20261112",
+        "base_time": "1730",
+    }
+    assert runtime_params_for("kma_short_forecast", after_release) == {
+        "base_date": "20261112",
+        "base_time": "1700",
+    }
+
+
+def test_runtime_params_build_gateway_query_periods():
+    now = datetime(2026, 1, 3, 9, 19, tzinfo=ZoneInfo("Asia/Seoul"))
+
+    assert runtime_params_for("current_day_flight_search", now) == {
+        "searchDate": "20260103"
+    }
+    assert runtime_params_for("current_day_passenger_search", now) == {
+        "schStDate": "20260103",
+        "schEdDate": "20260103",
+    }
+    assert runtime_params_for("current_day_ferry_schedule", now) == {
+        "rlvtYmd": "20260103"
+    }
+    assert runtime_params_for("previous_month_ferry_statistics", now) == {
+        "dptreMm": "202512"
+    }
+
+
 def test_extract_records_supports_kma_envelope():
     payload = {
         "response": {"body": {"items": {"item": [{"category": "RN1"}]}}}
     }
     assert extract_records(payload) == [{"category": "RN1"}]
+
+
+def test_extract_records_supports_gateway_list_items():
+    payload = {
+        "response": {
+            "body": {
+                "items": [
+                    {"airport": "CJU", "passengers": 120},
+                    {"airport": "CJU", "passengers": 130},
+                ]
+            }
+        }
+    }
+
+    assert extract_records(payload) == [
+        {"airport": "CJU", "passengers": 120},
+        {"airport": "CJU", "passengers": 130},
+    ]
 
 
 def test_extract_records_supports_taas_envelope():

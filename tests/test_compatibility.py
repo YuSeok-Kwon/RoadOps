@@ -196,3 +196,34 @@ def test_live_fetch_reports_jeju_provider_error_without_exposing_key():
     assert error["provider_result_code"] == "fail"
     assert "secret" not in str(error)
     assert "[REDACTED]" in error["provider_result_message"]
+
+
+def test_live_fetch_extracts_xml_error_from_non_success_response():
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            403,
+            text=(
+                "<OpenAPI_ServiceResponse><cmmMsgHeader>"
+                "<returnReasonCode>20</returnReasonCode>"
+                "<returnAuthMsg>SERVICE_ACCESS_DENIED_ERROR secret</returnAuthMsg>"
+                "</cmmMsgHeader></OpenAPI_ServiceResponse>"
+            ),
+        )
+
+    with httpx.Client(transport=httpx.MockTransport(handler)) as client:
+        try:
+            fetch_json_payload(
+                _http_spec(),
+                api_key="secret",
+                allow_insecure_http=True,
+                client=client,
+            )
+        except LiveFetchError as exc:
+            error = exc.to_dict()
+        else:
+            raise AssertionError("HTTP errors must fail the fetch")
+
+    assert error["reason"] == "http_error"
+    assert error["http_status"] == 403
+    assert error["provider_result_code"] == "20"
+    assert error["provider_result_message"] == "SERVICE_ACCESS_DENIED_ERROR [REDACTED]"

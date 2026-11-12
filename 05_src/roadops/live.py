@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 from datetime import datetime
 from typing import Any, Mapping
+from xml.etree import ElementTree
 from zoneinfo import ZoneInfo
 
 import httpx
@@ -50,6 +51,77 @@ class LiveFetchError(RuntimeError):
         return result
 
 
+def _http_error_details(
+    response: httpx.Response, *, api_key: str
+) -> tuple[str | None, str | None]:
+    """Extract a sanitized provider code/message from a non-2xx response."""
+
+    code: str | None = None
+    message: str | None = None
+    try:
+        payload = response.json()
+    except (json.JSONDecodeError, ValueError):
+        payload = None
+    if isinstance(payload, Mapping):
+        provider_error = _provider_error(payload)
+        if provider_error is not None:
+            code = provider_error.get("provider_result_code")
+            message = provider_error.get("provider_result_message")
+        else:
+            mappings: list[Mapping[str, Any]] = [payload]
+            cursor = 0
+            while cursor < len(mappings):
+                candidate = mappings[cursor]
+                cursor += 1
+                for value in candidate.values():
+                    if isinstance(value, Mapping):
+                        mappings.append(value)
+            for candidate in mappings:
+                for key in ("resultCode", "returnReasonCode", "code", "status"):
+                    if candidate.get(key) not in (None, ""):
+                        code = str(candidate[key]).strip()
+                        break
+                for key in (
+                    "errMsg",
+                    "resultMsg",
+                    "returnAuthMsg",
+                    "message",
+                    "error",
+                ):
+                    if candidate.get(key) not in (None, ""):
+                        message = str(candidate[key]).strip()
+                        break
+                if code is not None or message is not None:
+                    break
+    if code is None and message is None:
+        try:
+            root = ElementTree.fromstring(response.text)
+        except ElementTree.ParseError:
+            root = None
+        if root is not None:
+            values = {
+                element.tag.rsplit("}", 1)[-1]: (element.text or "").strip()
+                for element in root.iter()
+            }
+            for key in ("resultCode", "returnReasonCode", "status"):
+                if values.get(key):
+                    code = values[key]
+                    break
+            for key in (
+                "resultMsg",
+                "returnAuthMsg",
+                "errMsg",
+                "cmmMsgHeader",
+                "message",
+            ):
+                if values.get(key):
+                    message = values[key]
+                    break
+    if message is not None:
+        message = message.replace(api_key, "[REDACTED]")[:500]
+    return code, message
+
+
 def fetch_json_payload(
     spec: SourceSpec,
     *,
@@ -87,7 +159,15 @@ def fetch_json_payload(
         except httpx.HTTPError as exc:
             raise LiveFetchError(type(exc).__name__) from None
         if not response.is_success:
-            raise LiveFetchError("http_error", http_status=response.status_code)
+            provider_code, provider_message = _http_error_details(
+                response, api_key=normalized_api_key
+            )
+            raise LiveFetchError(
+                "http_error",
+                http_status=response.status_code,
+                provider_result_code=provider_code,
+                provider_result_message=provider_message,
+            )
         try:
             payload = response.json()
         except json.JSONDecodeError:

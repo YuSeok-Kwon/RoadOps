@@ -93,6 +93,27 @@ def extract_records(payload: Mapping[str, Any]) -> list[Mapping[str, Any]]:
                     return [record for record in item if isinstance(record, Mapping)]
                 if isinstance(item, Mapping):
                     return [item]
+            if isinstance(items, list):
+                return [record for record in items if isinstance(record, Mapping)]
+            data = body.get("data")
+            if isinstance(data, list):
+                return [record for record in data if isinstance(record, Mapping)]
+
+    body = payload.get("body")
+    if isinstance(body, Mapping):
+        items = body.get("items")
+        if isinstance(items, Mapping):
+            item = items.get("item")
+            if isinstance(item, list):
+                return [record for record in item if isinstance(record, Mapping)]
+            if isinstance(item, Mapping):
+                return [item]
+        if isinstance(items, list):
+            return [record for record in items if isinstance(record, Mapping)]
+
+    data = payload.get("data")
+    if isinstance(data, list):
+        return [record for record in data if isinstance(record, Mapping)]
 
     items = payload.get("items")
     if isinstance(items, Mapping):
@@ -160,11 +181,39 @@ def _provider_error(payload: Mapping[str, Any]) -> dict[str, str] | None:
     return None
 
 
-def _kma_runtime_params(now: datetime | None = None) -> dict[str, str]:
-    """Choose the latest safely available hourly base time in Korea."""
+def _kma_nowcast_runtime_params(current: datetime) -> dict[str, str]:
+    """Choose the latest safely published hourly observation cycle."""
 
-    current = now or datetime.now(tz=ZoneInfo("Asia/Seoul"))
-    base = current - timedelta(minutes=45)
+    base = current.replace(minute=0, second=0, microsecond=0)
+    if current.minute < 40:
+        base -= timedelta(hours=1)
+    return {"base_date": base.strftime("%Y%m%d"), "base_time": base.strftime("%H00")}
+
+
+def _kma_ultra_forecast_runtime_params(current: datetime) -> dict[str, str]:
+    """Choose the latest safely published half-hour ultra-short forecast cycle."""
+
+    base = current.replace(minute=30, second=0, microsecond=0)
+    if current.minute < 45:
+        base -= timedelta(hours=1)
+    return {"base_date": base.strftime("%Y%m%d"), "base_time": base.strftime("%H30")}
+
+
+def _kma_short_forecast_runtime_params(current: datetime) -> dict[str, str]:
+    """Choose the latest safely available three-hourly short forecast cycle."""
+
+    available = current - timedelta(minutes=15)
+    base_hours = (2, 5, 8, 11, 14, 17, 20, 23)
+    candidates = [
+        available.replace(hour=hour, minute=0, second=0, microsecond=0)
+        for hour in base_hours
+        if hour <= available.hour
+    ]
+    if candidates:
+        base = candidates[-1]
+    else:
+        previous_day = available - timedelta(days=1)
+        base = previous_day.replace(hour=23, minute=0, second=0, microsecond=0)
     return {"base_date": base.strftime("%Y%m%d"), "base_time": base.strftime("%H00")}
 
 
@@ -181,8 +230,24 @@ def runtime_params_for(
 
     if runtime_params is None:
         return {}
+    if runtime_params == "kma_ultra_short_nowcast":
+        return _kma_nowcast_runtime_params(current)
+    if runtime_params == "kma_ultra_short_forecast":
+        return _kma_ultra_forecast_runtime_params(current)
+    if runtime_params == "kma_short_forecast":
+        return _kma_short_forecast_runtime_params(current)
     if runtime_params == "kma_ultra_short_now":
-        return _kma_runtime_params(current)
+        return _kma_nowcast_runtime_params(current)
+    if runtime_params == "current_day_flight_search":
+        return {"searchDate": current.strftime("%Y%m%d")}
+    if runtime_params == "current_day_passenger_search":
+        date_value = current.strftime("%Y%m%d")
+        return {"schStDate": date_value, "schEdDate": date_value}
+    if runtime_params == "current_day_ferry_schedule":
+        return {"rlvtYmd": current.strftime("%Y%m%d")}
+    if runtime_params == "previous_month_ferry_statistics":
+        previous_month = current.replace(day=1) - timedelta(days=1)
+        return {"dptreMm": previous_month.strftime("%Y%m")}
     if runtime_params == "jeju_previous_complete_hour":
         previous_hour = current.replace(minute=0, second=0, microsecond=0) - timedelta(
             hours=1

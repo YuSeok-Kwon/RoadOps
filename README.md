@@ -6,9 +6,9 @@ Jeju RoadOps is an explainable AI agent that combines historical and real-time r
 
 ## 현재 단계 / Current phase
 
-제주 C-ITS 현장 이벤트를 `exact_link_id`, `spatial_fallback`, `excluded`로 분리하고, 제주데이터허브·ITS·기상청·TAAS를 결합한 뒤 현재 이벤트·구조위험·기상·노면·교통 노출을 분리한 설명 가능한 위험점수 v0.1을 구축했습니다. 결측은 0점으로 대체하지 않고 상·하한을 넓히며, `usable`, `degraded`, `hold`로 점수 사용 가능성을 분리합니다. 다음은 기상 실황·예보 이원화, 항공·여객선 유입압력, 1·3·6시간 예측, 자원 배분, 제주 도로 지도 웹사이트를 순차적으로 구축합니다.
+제주 C-ITS 현장 이벤트와 제주데이터허브·ITS·기상청·TAAS를 결합한 설명 가능한 위험점수 v0.1을 구축했습니다. 기상청 초단기실황·초단기예보·단기예보는 12격자의 현재·1·3·6시간 48행으로 이원화했습니다. 항공·여객선 4종은 실응답 감사를 완료했지만 항공 서비스키 미등록과 여객선 operation 경로 문제로 현재 연동이 차단돼 있습니다. 다음은 권한·계약을 해결한 뒤 유입압력, 자원 배분, 제주 도로 지도 웹사이트를 순차적으로 구축합니다.
 
-The project now separates Jeju C-ITS field events into `exact_link_id`, `spatial_fallback`, and `excluded`, joins Jeju Data Hub, ITS, KMA, and TAAS evidence, and calculates an explainable risk-score v0.1 with separate event, structural, weather-road, and traffic components. Missing evidence expands a lower-upper interval instead of becoming zero, while `usable`, `degraded`, and `hold` states govern score use. Next, the project will add observed-versus-forecast weather, air-and-sea gateway inflow pressure, 1/3/6-hour forecasts, resource allocation, and a Jeju road-map web application.
+The project now calculates an explainable risk-score v0.1 from Jeju C-ITS, Jeju Data Hub, ITS, KMA, and TAAS evidence. KMA observations, ultra-short forecasts, and short forecasts are separated into 48 rows across 12 grids and 0/1/3/6-hour horizons. Four air-and-sea APIs were audited live, but integration is currently blocked by unregistered KAC service access and unresolved KOMSA operation routes. Next work will resolve those contracts before adding gateway pressure, resource allocation, and the Jeju road-map web application.
 
 ## 디렉토리 / Directories
 

@@ -208,6 +208,23 @@
       }
     },
     {
+      "id": "kma_ultra_short_nowcast",
+      "name": "KMA ultra-short nowcast observations",
+      "name_ko": "기상청 초단기실황",
+      "documentation_url": "https://www.data.go.kr/data/15084084/openapi.do",
+      "endpoint_url": "https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst",
+      "kind": "json_api",
+      "authentication": {
+        "environment_variable": "DATA_GO_KR_SERVICE_KEY",
+        "query_parameter": "ServiceKey"
+      },
+      "runtime_params": "kma_ultra_short_nowcast",
+      "default_params": {"pageNo": 1, "numOfRows": 1000, "dataType": "JSON", "nx": 53, "ny": 38},
+      "join_key": "nx,ny",
+      "coordinate_system": "KMA 5km grid",
+      "expected_fields": ["baseDate", "baseTime", "category", "obsrValue", "nx", "ny"]
+    },
+    {
       "id": "kma_ultra_short_forecast",
       "name": "KMA ultra-short forecast",
       "name_ko": "기상청 초단기예보",
@@ -218,11 +235,96 @@
         "environment_variable": "DATA_GO_KR_SERVICE_KEY",
         "query_parameter": "ServiceKey"
       },
-      "runtime_params": "kma_ultra_short_now",
+      "runtime_params": "kma_ultra_short_forecast",
       "default_params": {"pageNo": 1, "numOfRows": 1000, "dataType": "JSON", "nx": 53, "ny": 38},
       "join_key": "nx,ny",
       "coordinate_system": "KMA 5km grid",
       "expected_fields": ["baseDate", "baseTime", "category", "fcstDate", "fcstTime", "fcstValue", "nx", "ny"]
+    },
+    {
+      "id": "kma_short_forecast",
+      "name": "KMA short forecast",
+      "name_ko": "기상청 단기예보",
+      "documentation_url": "https://www.data.go.kr/data/15084084/openapi.do",
+      "endpoint_url": "https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst",
+      "kind": "json_api",
+      "authentication": {
+        "environment_variable": "DATA_GO_KR_SERVICE_KEY",
+        "query_parameter": "ServiceKey"
+      },
+      "runtime_params": "kma_short_forecast",
+      "default_params": {"pageNo": 1, "numOfRows": 1000, "dataType": "JSON", "nx": 53, "ny": 38},
+      "join_key": "nx,ny",
+      "coordinate_system": "KMA 5km grid",
+      "expected_fields": ["baseDate", "baseTime", "category", "fcstDate", "fcstTime", "fcstValue", "nx", "ny"]
+    },
+    {
+      "id": "kac_realtime_flights",
+      "name": "KAC real-time flight operations",
+      "name_ko": "한국공항공사 실시간 항공기 운항정보",
+      "documentation_url": "https://www.data.go.kr/data/15163384/openapi.do",
+      "endpoint_url": "https://apis.data.go.kr/B551178/dutyfree/info",
+      "kind": "json_api",
+      "authentication": {
+        "environment_variable": "DATA_GO_KR_SERVICE_KEY",
+        "query_parameter": "serviceKey"
+      },
+      "runtime_params": "current_day_flight_search",
+      "default_params": {"pageNo": 1, "numOfRows": 1000, "arrvCityCode": "CJU", "type": "json"},
+      "join_key": "arrvCityCode,scheduledDateTime",
+      "coordinate_system": null,
+      "expected_fields": []
+    },
+    {
+      "id": "kac_hourly_arrival_passengers",
+      "name": "KAC hourly airport passenger counts",
+      "name_ko": "한국공항공사 전국공항 시간대별 도착 승객 수",
+      "documentation_url": "https://www.data.go.kr/data/15167062/openapi.do",
+      "endpoint_url": "https://apis.data.go.kr/B551178/daily-expect-passenger/info",
+      "kind": "json_api",
+      "authentication": {
+        "environment_variable": "DATA_GO_KR_SERVICE_KEY",
+        "query_parameter": "serviceKey"
+      },
+      "runtime_params": "current_day_passenger_search",
+      "default_params": {"pageNo": 1, "numOfRows": 1000, "schAirport": "CJU", "schTof": "D", "schAOD": "A", "type": "json"},
+      "join_key": "airport,date,hour",
+      "coordinate_system": null,
+      "expected_fields": []
+    },
+    {
+      "id": "komsa_ferry_schedule",
+      "name": "KOMSA coastal passenger-ferry schedule",
+      "name_ko": "한국해양교통안전공단 연안여객선 운항 스케줄",
+      "documentation_url": "https://www.data.go.kr/data/15142302/openapi.do",
+      "endpoint_url": "https://apis.data.go.kr/B554035/oprt-schd-info-v2",
+      "kind": "json_api",
+      "authentication": {
+        "environment_variable": "DATA_GO_KR_SERVICE_KEY",
+        "query_parameter": "serviceKey"
+      },
+      "runtime_params": "current_day_ferry_schedule",
+      "default_params": {"pageNo": 1, "numOfRows": 1000, "dataType": "JSON", "filters": "", "psnshpNm": ""},
+      "join_key": "vessel,date,departure_port",
+      "coordinate_system": null,
+      "expected_fields": []
+    },
+    {
+      "id": "komsa_monthly_departure_statistics",
+      "name": "KOMSA monthly departure-port statistics",
+      "name_ko": "한국해양교통안전공단 월별 출발기항지 운항통계",
+      "documentation_url": "https://www.data.go.kr/data/15142310/openapi.do",
+      "endpoint_url": "https://apis.data.go.kr/B554035/monthly/dpt-pt-stts",
+      "kind": "json_api",
+      "authentication": {
+        "environment_variable": "DATA_GO_KR_SERVICE_KEY",
+        "query_parameter": "serviceKey"
+      },
+      "runtime_params": "previous_month_ferry_statistics",
+      "default_params": {"pageNo": 1, "numOfRows": 1000, "dataType": "JSON", "filters": ""},
+      "join_key": "departure_month,departure_port",
+      "coordinate_system": null,
+      "expected_fields": []
     },
     {
       "id": "taas_link_risk",
