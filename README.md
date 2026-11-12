@@ -6,9 +6,9 @@ Jeju RoadOps is an explainable AI agent that combines historical and real-time r
 
 ## 현재 단계 / Current phase
 
-국토교통부 전국표준 노드링크에서 추출한 제주 기준 도로망의 구조적 품질을 검증했습니다. 다음은 제주 C-ITS·ITS 실시간 응답과의 링크 ID 호환성과 정확 조인율을 검증합니다.
+제주 C-ITS 현장 이벤트를 `exact_link_id`, `spatial_fallback`, `excluded`로 분리하고, 점수화가 허용된 이벤트에 최신 ITS 교통량·기상청 초단기예보·TAAS 링크 위험지수를 결합하는 통합 테이블을 구축했습니다. 다음은 결측·신선도 게이트를 포함한 도로 위험점수와 현장 자원 배분 규칙을 설계합니다.
 
-The structural quality of a Jeju baseline network extracted from the MOLIT national standard node-link release is now validated. The next step is to measure link-version compatibility and exact-join coverage against live Jeju C-ITS/ITS responses.
+The project now separates Jeju C-ITS field events into `exact_link_id`, `spatial_fallback`, and `excluded`, then joins latest ITS traffic, KMA ultra-short forecasts, and TAAS link risk to scoring-eligible events. The next step is to design road-risk scores and field-resource allocation rules with explicit missingness and freshness gates.
 
 ## 디렉토리 / Directories
 
@@ -94,6 +94,16 @@ python 07_scripts/20261027_roadops_collect_cits_snapshots_v0_1.py \
 
 # 최신 C-ITS 스냅샷 좌표 기반 도로 결합 감사 / audit spatial road matching
 python 07_scripts/20261112_roadops_audit_cits_spatial_join_v0_1.py
+
+# 통합 현장 이벤트 테이블 생성 / build the integrated field-event table
+# 최초 수집 또는 새로고침 시에만 HTTP 명시 허용 / allow HTTP explicitly only when refreshing
+python 07_scripts/20261112_roadops_build_integrated_events_v0_1.py \
+  --refresh-enrichments \
+  --allow-insecure-http \
+  --strict
+
+# 저장된 보강 데이터로 네트워크 호출 없이 재생성 / rebuild from cached enrichments
+python 07_scripts/20261112_roadops_build_integrated_events_v0_1.py --strict
 ```
 
 C-ITS·ITS 문서의 운영 주소는 HTTP이므로 인증키가 평문으로 전송될 수 있습니다. 실시간 호출은 기본 차단되며, 기존 JSON 응답을 입력하는 방식은 키 없이 검증할 수 있습니다.
@@ -112,6 +122,7 @@ The documented C-ITS/ITS operational URLs use HTTP and may transmit API keys in 
 - [C-ITS 스냅샷 생명주기 감사 / C-ITS snapshot lifecycle audit](./04_docs/data_quality/20261027_roadops_cits_snapshot_lifecycle_audit_v0_1.md)
 - [C-ITS 스냅샷 감사 노트북 / C-ITS snapshot audit notebook](./03_notebooks/20261027_cits_snapshot_lifecycle_audit_v0_1.ipynb)
 - [C-ITS 공간 결합 품질 감사 / C-ITS spatial-join quality audit](./04_docs/data_quality/20261112_roadops_cits_spatial_join_audit_v0_1.md)
+- [통합 현장 이벤트 품질 감사 / Integrated field-event quality audit](./04_docs/data_quality/20261112_roadops_integrated_field_events_audit_v0_1.md)
 - [실제 제주 도로망 품질 검증 / Real Jeju road-network quality validation](./04_docs/data_feasibility/20261026_roadops_real_road_network_quality_v0_2.md)
 - [실시간 링크 호환성 검증 / Live-link compatibility validation](./04_docs/data_feasibility/20261026_roadops_live_link_compatibility_v0_3.md)
 - [Velog 1부 초안 / Velog Part 1 draft](./04_docs/content/20261026_roadops_part_1_velog_draft_v0_1.md)
