@@ -33,6 +33,9 @@ from roadops.integrated_events import (  # noqa: E402
     taas_by_link,
     weather_feature_for_grid,
 )
+from roadops.jeju_datahub_accidents import (  # noqa: E402
+    index_link_geometry_priors,
+)
 from roadops.live import LiveFetchError, fetch_json_payload  # noqa: E402
 from roadops.probe import extract_records, load_source_specs  # noqa: E402
 from roadops.quality import load_records  # noqa: E402
@@ -75,6 +78,15 @@ def parse_args() -> argparse.Namespace:
         "--output-dir",
         type=Path,
         default=PROJECT_ROOT / "02_outputs/data/integrated_field_events_v0_1",
+    )
+    parser.add_argument(
+        "--geometry-priors",
+        type=Path,
+        default=(
+            PROJECT_ROOT
+            / "02_outputs/data/jeju_datahub_geometry_severity_prior_v0_1"
+            / "link_geometry_severity_priors.csv"
+        ),
     )
     parser.add_argument(
         "--taas-cache-dir",
@@ -328,6 +340,16 @@ def main() -> int:
     generated_at = datetime.now(ZoneInfo("Asia/Seoul"))
     joined_records = _read_jsonl(args.joined_records)
     reference_links = load_records(args.reference_links)
+    if not args.geometry_priors.exists():
+        raise SystemExit(
+            "Jeju Data Hub geometry priors are missing. Run "
+            "07_scripts/20261112_roadops_build_jeju_datahub_geometry_prior_v0_1.py "
+            "first."
+        )
+    geometry_prior_rows = load_records(args.geometry_priors)
+    geometry_prior_index, geometry_prior_profile = index_link_geometry_priors(
+        geometry_prior_rows
+    )
     reference_index = {
         link_id: {str(key).strip().lower(): value for key, value in row.items()}
         for row in reference_links
@@ -411,6 +433,8 @@ def main() -> int:
         weather_features=weather_features,
         taas_index=taas_index,
         taas_profile=taas_profile,
+        geometry_prior_index=geometry_prior_index,
+        geometry_prior_profile=geometry_prior_profile,
         generated_at=generated_at,
     )
     table_path = args.output_dir / "integrated_field_events.csv"
@@ -418,6 +442,7 @@ def main() -> int:
     report["inputs"] = {
         "joined_records": _relative(args.joined_records),
         "reference_links": _relative(args.reference_links),
+        "jeju_datahub_geometry_priors": _relative(args.geometry_priors),
         "traffic_enrichment": _relative(traffic_path),
         "weather_enrichment": _relative(weather_path),
         "taas_enrichment": _relative(taas_path),

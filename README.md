@@ -6,9 +6,9 @@ Jeju RoadOps is an explainable AI agent that combines historical and real-time r
 
 ## 현재 단계 / Current phase
 
-제주 C-ITS 현장 이벤트를 `exact_link_id`, `spatial_fallback`, `excluded`로 분리하고, 점수화가 허용된 이벤트에 최신 ITS 교통량·기상청 초단기예보·TAAS 링크 위험지수를 결합하는 통합 테이블을 구축했습니다. 다음은 결측·신선도 게이트를 포함한 도로 위험점수와 현장 자원 배분 규칙을 설계합니다.
+제주 C-ITS 현장 이벤트를 `exact_link_id`, `spatial_fallback`, `excluded`로 분리하고, 점수화가 허용된 이벤트에 제주데이터허브 선형 심각도·최신 ITS 교통량·기상청 초단기예보·TAAS 링크 위험지수를 결합하는 통합 테이블을 구축했습니다. 다음은 결측·신선도·중복계산 방지 게이트를 포함한 도로 위험점수와 현장 자원 배분 규칙을 설계합니다.
 
-The project now separates Jeju C-ITS field events into `exact_link_id`, `spatial_fallback`, and `excluded`, then joins latest ITS traffic, KMA ultra-short forecasts, and TAAS link risk to scoring-eligible events. The next step is to design road-risk scores and field-resource allocation rules with explicit missingness and freshness gates.
+The project now separates Jeju C-ITS field events into `exact_link_id`, `spatial_fallback`, and `excluded`, then joins a Jeju Data Hub geometry-severity prior, latest ITS traffic, KMA ultra-short forecasts, and TAAS link risk to scoring-eligible events. The next step is to design road-risk scores and field-resource allocation rules with explicit missingness, freshness, and double-counting gates.
 
 ## 디렉토리 / Directories
 
@@ -95,6 +95,12 @@ python 07_scripts/20261027_roadops_collect_cits_snapshots_v0_1.py \
 # 최신 C-ITS 스냅샷 좌표 기반 도로 결합 감사 / audit spatial road matching
 python 07_scripts/20261112_roadops_audit_cits_spatial_join_v0_1.py
 
+# 제주데이터허브 도로 선형 심각도 선행값 / build Jeju Data Hub geometry priors
+# 데이터 ID 1027의 CSV를 아래 경로에 저장 / save dataset 1027 CSV at:
+# 01_raw_data/external/jeju_datahub_1027/제주도로선형별교통사고현황.csv
+python 07_scripts/20261112_roadops_build_jeju_datahub_geometry_prior_v0_1.py \
+  --strict
+
 # 통합 현장 이벤트 테이블 생성 / build the integrated field-event table
 # 최초 수집 또는 새로고침 시에만 HTTP 명시 허용 / allow HTTP explicitly only when refreshing
 python 07_scripts/20261112_roadops_build_integrated_events_v0_1.py \
@@ -122,6 +128,7 @@ The documented C-ITS/ITS operational URLs use HTTP and may transmit API keys in 
 - [C-ITS 스냅샷 생명주기 감사 / C-ITS snapshot lifecycle audit](./04_docs/data_quality/20261027_roadops_cits_snapshot_lifecycle_audit_v0_1.md)
 - [C-ITS 스냅샷 감사 노트북 / C-ITS snapshot audit notebook](./03_notebooks/20261027_cits_snapshot_lifecycle_audit_v0_1.ipynb)
 - [C-ITS 공간 결합 품질 감사 / C-ITS spatial-join quality audit](./04_docs/data_quality/20261112_roadops_cits_spatial_join_audit_v0_1.md)
+- [제주데이터허브 선형 심각도 감사 / Jeju Data Hub geometry severity audit](./04_docs/data_quality/20261112_roadops_jeju_datahub_geometry_prior_audit_v0_1.md)
 - [통합 현장 이벤트 품질 감사 / Integrated field-event quality audit](./04_docs/data_quality/20261112_roadops_integrated_field_events_audit_v0_1.md)
 - [평가 연계 작업표 / Evaluation-aligned work plan](./04_docs/planning/20261112_roadops_evaluation_workplan_v0_1.md)
 - [실제 제주 도로망 품질 검증 / Real Jeju road-network quality validation](./04_docs/data_feasibility/20261026_roadops_real_road_network_quality_v0_2.md)

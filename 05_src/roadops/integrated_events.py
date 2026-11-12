@@ -62,6 +62,16 @@ INTEGRATED_EVENT_FIELDS = (
     "lane_count",
     "maximum_speed_limit",
     "road_type",
+    "hub_geometry_prior_status",
+    "hub_dataset_id",
+    "hub_geometry_proxy_class",
+    "hub_link_sinuosity",
+    "hub_source_period_start_year",
+    "hub_source_period_end_year",
+    "hub_source_accident_count",
+    "hub_fatalities_per_100_accidents",
+    "hub_injuries_per_accident",
+    "hub_fatality_index_vs_straight",
     "traffic_status",
     "traffic_observed_at",
     "traffic_age_minutes_at_build",
@@ -85,7 +95,7 @@ INTEGRATED_EVENT_FIELDS = (
     "taas_risk_value",
     "taas_risk_grade",
     "taas_fetched_at",
-    "feature_source_count",
+    "operational_feature_source_count",
     "quality_flags",
 )
 
@@ -354,6 +364,8 @@ def build_integrated_event_table(
     weather_features: Mapping[tuple[int, int], Mapping[str, Any]],
     taas_index: Mapping[str, Mapping[str, Any]],
     taas_profile: Mapping[str, Any],
+    geometry_prior_index: Mapping[str, Mapping[str, Any]],
+    geometry_prior_profile: Mapping[str, Any],
     generated_at: datetime,
     traffic_freshness_max_minutes: float = 30.0,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
@@ -384,6 +396,16 @@ def build_integrated_event_table(
         effective_link_id = audited_link_id if eligible else None
         reference = link_index.get(effective_link_id or "", {})
         snapshot_at = _datetime(joined.get("snapshot_collected_at"))
+
+        geometry_prior = geometry_prior_index.get(effective_link_id or "")
+        if not eligible:
+            geometry_prior_status = "not_applicable_excluded"
+        elif geometry_prior is None:
+            geometry_prior_status = "missing_link"
+        else:
+            geometry_prior_status = str(
+                geometry_prior.get("mapping_status") or "unknown"
+            )
 
         traffic = traffic_index.get(effective_link_id or "")
         traffic_at = _datetime(traffic.get("observed_at")) if traffic else None
@@ -436,6 +458,8 @@ def build_integrated_event_table(
         quality_flags = ["cits_source_timestamp_unavailable"]
         if classification == "excluded":
             quality_flags.append(f"excluded:{match.get('reason') or match.get('method')}")
+        if geometry_prior_status != "matched":
+            quality_flags.append(f"hub_geometry_prior:{geometry_prior_status}")
         if traffic_status != "matched":
             quality_flags.append(f"traffic:{traffic_status}")
         if weather_status != "matched":
@@ -443,7 +467,7 @@ def build_integrated_event_table(
         if taas_status != "ok":
             quality_flags.append(f"taas:{taas_status}")
 
-        feature_source_count = sum(
+        operational_feature_source_count = sum(
             (
                 traffic_status == "matched",
                 weather_status == "matched",
@@ -501,6 +525,52 @@ def build_integrated_event_table(
                 "lane_count": reference.get("lane_count"),
                 "maximum_speed_limit": reference.get("maximum_speed_limit"),
                 "road_type": reference.get("road_type"),
+                "hub_geometry_prior_status": geometry_prior_status,
+                "hub_dataset_id": (
+                    geometry_prior.get("source_dataset_id")
+                    if geometry_prior
+                    else None
+                ),
+                "hub_geometry_proxy_class": (
+                    geometry_prior.get("geometry_proxy_class")
+                    if geometry_prior
+                    else None
+                ),
+                "hub_link_sinuosity": (
+                    _numeric(geometry_prior.get("link_sinuosity"))
+                    if geometry_prior
+                    else None
+                ),
+                "hub_source_period_start_year": (
+                    geometry_prior.get("source_period_start_year")
+                    if geometry_prior
+                    else None
+                ),
+                "hub_source_period_end_year": (
+                    geometry_prior.get("source_period_end_year")
+                    if geometry_prior
+                    else None
+                ),
+                "hub_source_accident_count": (
+                    _numeric(geometry_prior.get("source_accident_count"))
+                    if geometry_prior
+                    else None
+                ),
+                "hub_fatalities_per_100_accidents": (
+                    _numeric(geometry_prior.get("fatalities_per_100_accidents"))
+                    if geometry_prior
+                    else None
+                ),
+                "hub_injuries_per_accident": (
+                    _numeric(geometry_prior.get("injuries_per_accident"))
+                    if geometry_prior
+                    else None
+                ),
+                "hub_fatality_index_vs_straight": (
+                    _numeric(geometry_prior.get("fatality_index_vs_straight"))
+                    if geometry_prior
+                    else None
+                ),
                 "traffic_status": traffic_status,
                 "traffic_observed_at": traffic.get("observed_at") if traffic else None,
                 "traffic_age_minutes_at_build": traffic_age,
@@ -540,7 +610,9 @@ def build_integrated_event_table(
                 "taas_risk_value": taas.get("risk_value") if taas else None,
                 "taas_risk_grade": taas.get("risk_grade") if taas else None,
                 "taas_fetched_at": taas.get("fetched_at") if taas else None,
-                "feature_source_count": feature_source_count,
+                "operational_feature_source_count": (
+                    operational_feature_source_count
+                ),
                 "quality_flags": "|".join(quality_flags),
             }
         )
@@ -560,7 +632,17 @@ def build_integrated_event_table(
     traffic_matched = sum(row["traffic_status"] == "matched" for row in eligible_rows)
     weather_matched = sum(row["weather_status"] == "matched" for row in coordinate_rows)
     taas_matched = sum(row["taas_status"] == "ok" for row in eligible_rows)
-    all_three = sum(row["feature_source_count"] == 3 for row in eligible_rows)
+    geometry_prior_matched = sum(
+        row["hub_geometry_prior_status"] == "matched" for row in eligible_rows
+    )
+    all_three = sum(
+        row["operational_feature_source_count"] == 3 for row in eligible_rows
+    )
+    all_four = sum(
+        row["operational_feature_source_count"] == 3
+        and row["hub_geometry_prior_status"] == "matched"
+        for row in eligible_rows
+    )
     eligible_link_ids = {
         str(row["effective_link_id"])
         for row in eligible_rows
@@ -576,10 +658,24 @@ def build_integrated_event_table(
         for row in eligible_rows
         if row["taas_status"] == "ok" and row["effective_link_id"]
     }
+    geometry_prior_matched_link_ids = {
+        str(row["effective_link_id"])
+        for row in eligible_rows
+        if row["hub_geometry_prior_status"] == "matched"
+        and row["effective_link_id"]
+    }
     all_three_link_ids = {
         str(row["effective_link_id"])
         for row in eligible_rows
-        if row["feature_source_count"] == 3 and row["effective_link_id"]
+        if row["operational_feature_source_count"] == 3
+        and row["effective_link_id"]
+    }
+    all_four_link_ids = {
+        str(row["effective_link_id"])
+        for row in eligible_rows
+        if row["operational_feature_source_count"] == 3
+        and row["hub_geometry_prior_status"] == "matched"
+        and row["effective_link_id"]
     }
     required_weather_grid_ids = {
         (str(row["weather_grid_x"]), str(row["weather_grid_y"]))
@@ -655,6 +751,14 @@ def build_integrated_event_table(
             "passed": int(taas_profile.get("duplicate_link_rows") or 0) == 0,
             "duplicate_rows": taas_profile.get("duplicate_link_rows"),
         },
+        {
+            "check_id": "hub_geometry_prior_link_uniqueness",
+            "passed": int(
+                geometry_prior_profile.get("duplicate_link_rows") or 0
+            )
+            == 0,
+            "duplicate_rows": geometry_prior_profile.get("duplicate_link_rows"),
+        },
     ]
     failed_checks = [check["check_id"] for check in checks if not check["passed"]]
     status = "fail" if failed_checks else "pass_with_limitations"
@@ -664,13 +768,15 @@ def build_integrated_event_table(
             "event_type": row["event_type"],
             "integration_class": row["integration_class"],
             "effective_link_id": row["effective_link_id"],
+            "hub_geometry_prior_status": row["hub_geometry_prior_status"],
             "traffic_status": row["traffic_status"],
             "weather_status": row["weather_status"],
             "taas_status": row["taas_status"],
             "quality_flags": row["quality_flags"],
         }
         for row in output_rows
-        if row["traffic_status"] != "matched"
+        if row["hub_geometry_prior_status"] != "matched"
+        or row["traffic_status"] != "matched"
         or row["weather_status"] != "matched"
         or row["taas_status"] != "ok"
     ][:25]
@@ -713,6 +819,17 @@ def build_integrated_event_table(
                     len(matched_weather_grid_ids), len(required_weather_grid_ids)
                 ),
             },
+            "jeju_datahub_geometry_prior": {
+                "matched_rows": geometry_prior_matched,
+                "eligible_rows": len(eligible_rows),
+                "rate": _rate(geometry_prior_matched, len(eligible_rows)),
+                "matched_distinct_links": len(geometry_prior_matched_link_ids),
+                "eligible_distinct_links": len(eligible_link_ids),
+                "distinct_link_rate": _rate(
+                    len(geometry_prior_matched_link_ids),
+                    len(eligible_link_ids),
+                ),
+            },
             "taas": {
                 "matched_rows": taas_matched,
                 "eligible_rows": len(eligible_rows),
@@ -733,10 +850,21 @@ def build_integrated_event_table(
                     len(all_three_link_ids), len(eligible_link_ids)
                 ),
             },
+            "all_four_features": {
+                "matched_rows": all_four,
+                "eligible_rows": len(eligible_rows),
+                "rate": _rate(all_four, len(eligible_rows)),
+                "matched_distinct_links": len(all_four_link_ids),
+                "eligible_distinct_links": len(eligible_link_ids),
+                "distinct_link_rate": _rate(
+                    len(all_four_link_ids), len(eligible_link_ids)
+                ),
+            },
         },
         "profiles": {
             "traffic": dict(traffic_profile),
             "taas": dict(taas_profile),
+            "jeju_datahub_geometry_prior": dict(geometry_prior_profile),
             "weather_grid_count": len(weather_features),
         },
         "temporal": {
@@ -757,8 +885,10 @@ def build_integrated_event_table(
         "limitations": [
             "C-ITS records have no provider observation timestamp; snapshot time is ingestion time.",
             "TAAS is structural prior risk and is not a real-time incident measure.",
+            "Jeju Data Hub dataset 1027 covers 2018-2020 and supplies conditional crash severity by a RoadOps straight/curve geometry proxy, not per-link crash incidence.",
+            "Dataset 1027 is sourced from TAAS; the future scoring rule must prevent independent additive double counting with TAAS link risk.",
             "Missing enrichment values remain null with an explicit status and are never imputed as zero.",
-            "Excluded events retain evidence but have no effective_link_id and cannot receive link-level traffic or TAAS features.",
+            "Excluded events retain evidence but have no effective_link_id and cannot receive link-level geometry-prior, traffic, or TAAS features.",
         ],
     }
     return output_rows, report

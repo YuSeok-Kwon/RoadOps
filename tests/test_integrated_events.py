@@ -212,6 +212,32 @@ def test_integrated_table_preserves_grain_and_blocks_excluded_link_features():
             {"link_id": "4050000002", "status": "api_error"},
         ]
     )
+    geometry_prior_index = {
+        "4050000001": {
+            "mapping_status": "matched",
+            "source_dataset_id": "1027",
+            "geometry_proxy_class": "straight",
+            "link_sinuosity": "1.0",
+            "source_period_start_year": "2018",
+            "source_period_end_year": "2020",
+            "source_accident_count": "11441",
+            "fatalities_per_100_accidents": "1.608251",
+            "injuries_per_accident": "1.53317",
+            "fatality_index_vs_straight": "1.0",
+        },
+        "4050000002": {
+            "mapping_status": "matched",
+            "source_dataset_id": "1027",
+            "geometry_proxy_class": "curve",
+            "link_sinuosity": "1.1",
+            "source_period_start_year": "2018",
+            "source_period_end_year": "2020",
+            "source_accident_count": "1068",
+            "fatalities_per_100_accidents": "2.808989",
+            "injuries_per_accident": "1.674157",
+            "fatality_index_vs_straight": "1.746611",
+        },
+    }
 
     rows, report = build_integrated_event_table(
         joined,
@@ -221,6 +247,11 @@ def test_integrated_table_preserves_grain_and_blocks_excluded_link_features():
         weather_features=weather_features,
         taas_index=taas_index,
         taas_profile=taas_profile,
+        geometry_prior_index=geometry_prior_index,
+        geometry_prior_profile={
+            "duplicate_link_rows": 0,
+            "unique_link_rows": 2,
+        },
         generated_at=NOW,
     )
 
@@ -236,11 +267,18 @@ def test_integrated_table_preserves_grain_and_blocks_excluded_link_features():
     excluded = next(row for row in rows if row["integration_class"] == "excluded")
     assert excluded["audit_matched_link_id"] == "4050000001"
     assert excluded["effective_link_id"] is None
+    assert excluded["hub_geometry_prior_status"] == "not_applicable_excluded"
     assert excluded["traffic_status"] == "not_applicable_excluded"
     assert excluded["taas_status"] == "not_applicable_excluded"
     assert excluded["weather_status"] == "matched"
     assert report["enrichment_coverage"]["traffic"]["matched_rows"] == 1
     assert report["enrichment_coverage"]["taas"]["matched_rows"] == 1
+    assert (
+        report["enrichment_coverage"]["jeju_datahub_geometry_prior"][
+            "matched_rows"
+        ]
+        == 2
+    )
     assert report["enrichment_coverage"]["traffic"]["distinct_link_rate"] == 0.5
     assert report["enrichment_coverage"]["taas"]["distinct_link_rate"] == 0.5
 
@@ -280,6 +318,8 @@ def test_integrated_table_marks_stale_and_future_traffic_without_zero_filling():
         weather_features={},
         taas_index=taas_index,
         taas_profile=taas_profile,
+        geometry_prior_index={},
+        geometry_prior_profile={"duplicate_link_rows": 0},
         generated_at=NOW,
     )
 
