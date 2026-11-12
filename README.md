@@ -6,9 +6,9 @@ Jeju RoadOps is an explainable AI agent that combines historical and real-time r
 
 ## 현재 단계 / Current phase
 
-제주 C-ITS 현장 이벤트를 `exact_link_id`, `spatial_fallback`, `excluded`로 분리하고, 점수화가 허용된 이벤트에 제주데이터허브 선형 심각도·최신 ITS 교통량·기상청 초단기예보·TAAS 링크 위험지수를 결합하는 통합 테이블을 구축했습니다. 다음은 결측·신선도·중복계산 방지 게이트를 포함한 도로 위험점수와 현장 자원 배분 규칙을 설계합니다.
+제주 C-ITS 현장 이벤트를 `exact_link_id`, `spatial_fallback`, `excluded`로 분리하고, 제주데이터허브·ITS·기상청·TAAS를 결합한 뒤 현재 이벤트·구조위험·기상·노면·교통 노출을 분리한 설명 가능한 위험점수 v0.1을 구축했습니다. 결측은 0점으로 대체하지 않고 상·하한을 넓히며, `usable`, `degraded`, `hold`로 점수 사용 가능성을 분리합니다. 다음은 현장 자원 입력 모델과 기준선 배분을 구축합니다.
 
-The project now separates Jeju C-ITS field events into `exact_link_id`, `spatial_fallback`, and `excluded`, then joins a Jeju Data Hub geometry-severity prior, latest ITS traffic, KMA ultra-short forecasts, and TAAS link risk to scoring-eligible events. The next step is to design road-risk scores and field-resource allocation rules with explicit missingness, freshness, and double-counting gates.
+The project now separates Jeju C-ITS field events into `exact_link_id`, `spatial_fallback`, and `excluded`, joins Jeju Data Hub, ITS, KMA, and TAAS evidence, and calculates an explainable risk-score v0.1 with separate event, structural, weather-road, and traffic components. Missing evidence expands a lower-upper interval instead of becoming zero, while `usable`, `degraded`, and `hold` states govern score use. The next step is the field-resource input model and baseline allocation.
 
 ## 디렉토리 / Directories
 
@@ -108,6 +108,9 @@ python 07_scripts/20261112_roadops_build_integrated_events_v0_1.py \
   --allow-insecure-http \
   --strict
 
+# 설명 가능한 위험점수 / build explainable risk scores
+python 07_scripts/20261112_roadops_build_risk_scores_v0_1.py --strict
+
 # 저장된 보강 데이터로 네트워크 호출 없이 재생성 / rebuild from cached enrichments
 python 07_scripts/20261112_roadops_build_integrated_events_v0_1.py --strict
 ```
@@ -130,6 +133,7 @@ The documented C-ITS/ITS operational URLs use HTTP and may transmit API keys in 
 - [C-ITS 공간 결합 품질 감사 / C-ITS spatial-join quality audit](./04_docs/data_quality/20261112_roadops_cits_spatial_join_audit_v0_1.md)
 - [제주데이터허브 선형 심각도 감사 / Jeju Data Hub geometry severity audit](./04_docs/data_quality/20261112_roadops_jeju_datahub_geometry_prior_audit_v0_1.md)
 - [통합 현장 이벤트 품질 감사 / Integrated field-event quality audit](./04_docs/data_quality/20261112_roadops_integrated_field_events_audit_v0_1.md)
+- [설명 가능한 위험점수 v0.1 / Explainable risk score v0.1](./04_docs/model/20261112_roadops_explainable_risk_score_v0_1.md)
 - [평가 연계 작업표 / Evaluation-aligned work plan](./04_docs/planning/20261112_roadops_evaluation_workplan_v0_1.md)
 - [실제 제주 도로망 품질 검증 / Real Jeju road-network quality validation](./04_docs/data_feasibility/20261026_roadops_real_road_network_quality_v0_2.md)
 - [실시간 링크 호환성 검증 / Live-link compatibility validation](./04_docs/data_feasibility/20261026_roadops_live_link_compatibility_v0_3.md)
