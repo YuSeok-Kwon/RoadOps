@@ -6,9 +6,9 @@ Jeju RoadOps is an explainable AI agent that combines historical and real-time r
 
 ## 현재 단계 / Current phase
 
-제주 C-ITS 현장 이벤트와 제주데이터허브·ITS·기상청·TAAS를 결합한 설명 가능한 위험점수 v0.1을 구축했습니다. 기상청 초단기실황·초단기예보·단기예보는 13격자의 현재·1·3·6시간 52행으로 이원화했습니다. 이를 22개 현장 이벤트와 결합해 88행의 운영 우선순위 시나리오를 생성했습니다. 항공·여객선은 승인 후에도 제공자 게이트웨이가 차단해 `unavailable`로 분리했고, 미래 교통량·노면센서를 임의로 복사하지 않았습니다. 다음은 자원 입력 모델과 기준선 배분을 구축합니다.
+제주 C-ITS 현장 이벤트와 제주데이터허브·ITS·기상청·TAAS를 결합한 설명 가능한 위험점수 v0.1과 0·1·3·6시간 운영 우선순위를 구축했습니다. 이어 팀 3개·차량 3대·2시간 자원 시나리오를 검증하고, 현재 점수 대상 14건을 동일 링크 기준 10개 현장 작업으로 정규화했습니다. 운영자 제외 1개를 뺀 9개 작업을 위험순·최근접 기준선으로 각각 배정했으며 중복·근무시간·장비·필수·제외 제약 위반은 0건입니다. 다음은 실제 도로 이동시간 도구와 제약 기반 최적화입니다.
 
-The project now calculates an explainable risk-score v0.1 from Jeju C-ITS, Jeju Data Hub, ITS, KMA, and TAAS evidence. KMA observations and forecasts form 52 rows across 13 grids and 0/1/3/6-hour horizons. Joined with 22 field events, they produce 88 operational-priority scenario rows without copying current traffic or road-sensor values into the future. Air-and-sea evidence remains explicitly unavailable because provider gateways still reject the approved services. Next work will add the resource-input model and baseline allocation methods.
+The project now combines its explainable 0/1/3/6-hour priorities with a validated three-team, three-vehicle, two-hour resource scenario. Fourteen eligible current-event rows collapse into ten distinct link tasks; after one operator exclusion, both risk-first and nearest baselines assign all nine candidates with zero duplicate, shift, equipment, mandatory, or exclusion violations. Next work will replace straight-line travel proxies with a road-time tool and add constraint-based optimization.
 
 ## 디렉토리 / Directories
 
@@ -115,6 +115,9 @@ python 07_scripts/20261112_roadops_build_risk_scores_v0_1.py --strict
 python 07_scripts/20261112_roadops_build_weather_timeline_v0_1.py --strict
 python 07_scripts/20261112_roadops_build_risk_forecasts_v0_1.py --strict
 
+# 팀·차량 자원 검증과 위험순·최근접 기준선 / resource validation and baselines
+python 07_scripts/20261112_roadops_build_allocation_baselines_v0_1.py --strict
+
 # 저장된 보강 데이터로 네트워크 호출 없이 재생성 / rebuild from cached enrichments
 python 07_scripts/20261112_roadops_build_integrated_events_v0_1.py --strict
 ```
@@ -139,6 +142,7 @@ The documented C-ITS/ITS operational URLs use HTTP and may transmit API keys in 
 - [통합 현장 이벤트 품질 감사 / Integrated field-event quality audit](./04_docs/data_quality/20261112_roadops_integrated_field_events_audit_v0_1.md)
 - [설명 가능한 위험점수 v0.1 / Explainable risk score v0.1](./04_docs/model/20261112_roadops_explainable_risk_score_v0_1.md)
 - [0·1·3·6시간 운영 우선순위 v0.1 / Horizon priority scenarios v0.1](./04_docs/model/20261112_roadops_risk_forecast_v0_1.md)
+- [자원 입력과 기준선 배분 v0.1 / Resource inputs and allocation baselines v0.1](./04_docs/model/20261112_roadops_allocation_baselines_v0_1.md)
 - [평가 연계 작업표 / Evaluation-aligned work plan](./04_docs/planning/20261112_roadops_evaluation_workplan_v0_1.md)
 - [실제 제주 도로망 품질 검증 / Real Jeju road-network quality validation](./04_docs/data_feasibility/20261026_roadops_real_road_network_quality_v0_2.md)
 - [실시간 링크 호환성 검증 / Live-link compatibility validation](./04_docs/data_feasibility/20261026_roadops_live_link_compatibility_v0_3.md)

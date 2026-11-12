@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "scenario_id": "demo-three-teams-two-hours-v0.1",
+  "planning": {
+    "planning_start_at": "2026-11-12T22:11:25+09:00",
+    "horizon_hours": 0,
+    "default_service_minutes": 15,
+    "baseline_speed_kph": 40,
+    "max_tasks_per_team": 3
+  },
+  "vehicles": [
+    {
+      "vehicle_id": "patrol-east-01",
+      "vehicle_type": "patrol_car",
+      "personnel_capacity": 2,
+      "status": "available",
+      "equipment": ["traffic_cones", "road_weather_kit"]
+    },
+    {
+      "vehicle_id": "patrol-north-01",
+      "vehicle_type": "patrol_car",
+      "personnel_capacity": 2,
+      "status": "available",
+      "equipment": ["traffic_cones"]
+    },
+    {
+      "vehicle_id": "patrol-west-01",
+      "vehicle_type": "patrol_car",
+      "personnel_capacity": 2,
+      "status": "available",
+      "equipment": ["traffic_cones"]
+    }
+  ],
+  "teams": [
+    {
+      "team_id": "team-east",
+      "team_name": "동부 순찰팀",
+      "personnel_count": 2,
+      "vehicle_id": "patrol-east-01",
+      "start_latitude": 33.35,
+      "start_longitude": 126.6,
+      "shift_start_at": "2026-11-12T22:00:00+09:00",
+      "shift_end_at": "2026-11-13T00:11:25+09:00",
+      "skills": ["general_patrol"],
+      "equipment": []
+    },
+    {
+      "team_id": "team-north",
+      "team_name": "북부 순찰팀",
+      "personnel_count": 2,
+      "vehicle_id": "patrol-north-01",
+      "start_latitude": 33.5,
+      "start_longitude": 126.53,
+      "shift_start_at": "2026-11-12T22:00:00+09:00",
+      "shift_end_at": "2026-11-13T00:11:25+09:00",
+      "skills": ["general_patrol"],
+      "equipment": []
+    },
+    {
+      "team_id": "team-west",
+      "team_name": "서부 순찰팀",
+      "personnel_count": 2,
+      "vehicle_id": "patrol-west-01",
+      "start_latitude": 33.38,
+      "start_longitude": 126.37,
+      "shift_start_at": "2026-11-12T22:00:00+09:00",
+      "shift_end_at": "2026-11-13T00:11:25+09:00",
+      "skills": ["general_patrol"],
+      "equipment": []
+    }
+  ],
+  "constraints": {
+    "mandatory_link_ids": ["4060024900"],
+    "excluded_link_ids": ["4060456800"],
+    "fixed_assignments": [
+      {
+        "team_id": "team-east",
+        "link_id": "4050418600"
+      }
+    ],
+    "task_overrides": [
+      {
+        "link_id": "4050418600",
+        "service_minutes": 20,
+        "required_skills": ["general_patrol"],
+        "required_equipment": ["road_weather_kit"]
+      }
+    ]
+  }
+}

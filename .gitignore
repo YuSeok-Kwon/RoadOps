@@ -31,6 +31,8 @@ env/
 config/.env
 config/secrets.*
 !config/*.json
+!config/resource_scenarios/
+!config/resource_scenarios/*.json
 !tests/fixtures/*.json
 
 # Editors and operating systems / 편집기 및 운영체제
