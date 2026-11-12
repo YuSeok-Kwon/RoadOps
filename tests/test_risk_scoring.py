@@ -158,6 +158,27 @@ def test_excluded_and_stale_events_are_held_without_scores():
     assert stale["risk_score"] is None
 
 
+def test_future_persistence_scenario_is_explicitly_degraded_not_silently_fresh():
+    future = score_risk_event(
+        _complete_row(snapshot_collected_at="2026-11-12T10:00:00+09:00"),
+        generated_at=NOW,
+        allow_event_persistence_scenario=True,
+    )
+
+    assert future["scoring_status"] == "degraded"
+    assert future["score_available"] is True
+    assert future["snapshot_age_minutes_at_scoring"] == 270.0
+    assert "scenario:event_persistence_without_end_time" in future["quality_flags"]
+
+    missing = score_risk_event(
+        _complete_row(snapshot_collected_at=""),
+        generated_at=NOW,
+        allow_event_persistence_scenario=True,
+    )
+    assert missing["scoring_status"] == "hold"
+    assert missing["score_available"] is False
+
+
 def test_insufficient_evidence_is_held_not_ranked_low():
     row = _complete_row(
         hub_geometry_prior_status="missing_link",

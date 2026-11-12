@@ -6,9 +6,9 @@ Jeju RoadOps is an explainable AI agent that combines historical and real-time r
 
 ## 현재 단계 / Current phase
 
-제주 C-ITS 현장 이벤트와 제주데이터허브·ITS·기상청·TAAS를 결합한 설명 가능한 위험점수 v0.1을 구축했습니다. 기상청 초단기실황·초단기예보·단기예보는 12격자의 현재·1·3·6시간 48행으로 이원화했습니다. 항공·여객선 4종은 실응답 감사를 완료했지만 항공 서비스키 미등록과 여객선 operation 경로 문제로 현재 연동이 차단돼 있습니다. 다음은 권한·계약을 해결한 뒤 유입압력, 자원 배분, 제주 도로 지도 웹사이트를 순차적으로 구축합니다.
+제주 C-ITS 현장 이벤트와 제주데이터허브·ITS·기상청·TAAS를 결합한 설명 가능한 위험점수 v0.1을 구축했습니다. 기상청 초단기실황·초단기예보·단기예보는 13격자의 현재·1·3·6시간 52행으로 이원화했습니다. 이를 22개 현장 이벤트와 결합해 88행의 운영 우선순위 시나리오를 생성했습니다. 항공·여객선은 승인 후에도 제공자 게이트웨이가 차단해 `unavailable`로 분리했고, 미래 교통량·노면센서를 임의로 복사하지 않았습니다. 다음은 자원 입력 모델과 기준선 배분을 구축합니다.
 
-The project now calculates an explainable risk-score v0.1 from Jeju C-ITS, Jeju Data Hub, ITS, KMA, and TAAS evidence. KMA observations, ultra-short forecasts, and short forecasts are separated into 48 rows across 12 grids and 0/1/3/6-hour horizons. Four air-and-sea APIs were audited live, but integration is currently blocked by unregistered KAC service access and unresolved KOMSA operation routes. Next work will resolve those contracts before adding gateway pressure, resource allocation, and the Jeju road-map web application.
+The project now calculates an explainable risk-score v0.1 from Jeju C-ITS, Jeju Data Hub, ITS, KMA, and TAAS evidence. KMA observations and forecasts form 52 rows across 13 grids and 0/1/3/6-hour horizons. Joined with 22 field events, they produce 88 operational-priority scenario rows without copying current traffic or road-sensor values into the future. Air-and-sea evidence remains explicitly unavailable because provider gateways still reject the approved services. Next work will add the resource-input model and baseline allocation methods.
 
 ## 디렉토리 / Directories
 
@@ -111,6 +111,10 @@ python 07_scripts/20261112_roadops_build_integrated_events_v0_1.py \
 # 설명 가능한 위험점수 / build explainable risk scores
 python 07_scripts/20261112_roadops_build_risk_scores_v0_1.py --strict
 
+# 0·1·3·6시간 운영 우선순위 시나리오 / build horizon priority scenarios
+python 07_scripts/20261112_roadops_build_weather_timeline_v0_1.py --strict
+python 07_scripts/20261112_roadops_build_risk_forecasts_v0_1.py --strict
+
 # 저장된 보강 데이터로 네트워크 호출 없이 재생성 / rebuild from cached enrichments
 python 07_scripts/20261112_roadops_build_integrated_events_v0_1.py --strict
 ```
@@ -134,6 +138,7 @@ The documented C-ITS/ITS operational URLs use HTTP and may transmit API keys in 
 - [제주데이터허브 선형 심각도 감사 / Jeju Data Hub geometry severity audit](./04_docs/data_quality/20261112_roadops_jeju_datahub_geometry_prior_audit_v0_1.md)
 - [통합 현장 이벤트 품질 감사 / Integrated field-event quality audit](./04_docs/data_quality/20261112_roadops_integrated_field_events_audit_v0_1.md)
 - [설명 가능한 위험점수 v0.1 / Explainable risk score v0.1](./04_docs/model/20261112_roadops_explainable_risk_score_v0_1.md)
+- [0·1·3·6시간 운영 우선순위 v0.1 / Horizon priority scenarios v0.1](./04_docs/model/20261112_roadops_risk_forecast_v0_1.md)
 - [평가 연계 작업표 / Evaluation-aligned work plan](./04_docs/planning/20261112_roadops_evaluation_workplan_v0_1.md)
 - [실제 제주 도로망 품질 검증 / Real Jeju road-network quality validation](./04_docs/data_feasibility/20261026_roadops_real_road_network_quality_v0_2.md)
 - [실시간 링크 호환성 검증 / Live-link compatibility validation](./04_docs/data_feasibility/20261026_roadops_live_link_compatibility_v0_3.md)

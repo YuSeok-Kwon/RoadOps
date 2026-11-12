@@ -541,8 +541,14 @@ def score_risk_event(
     row: Mapping[str, Any],
     *,
     generated_at: datetime,
+    allow_event_persistence_scenario: bool = False,
 ) -> dict[str, Any]:
-    """Score one integrated event without converting missing evidence to zero."""
+    """Score one event without converting missing evidence to zero.
+
+    Future-horizon callers may explicitly retain an event whose provider does not
+    publish an end time. That branch is a persistence scenario, never a claim that
+    the event is confirmed to remain active.
+    """
 
     if generated_at.tzinfo is None:
         raise ValueError("generated_at must be timezone-aware")
@@ -567,10 +573,14 @@ def score_risk_event(
             traffic_age=traffic_age,
             weather_offset=weather_offset,
         )
-    if (
-        snapshot_age is None
-        or snapshot_age > SNAPSHOT_MAX_AGE_MINUTES
-        or snapshot_age < -MAX_FUTURE_SKEW_MINUTES
+    snapshot_missing_or_future = (
+        snapshot_age is None or snapshot_age < -MAX_FUTURE_SKEW_MINUTES
+    )
+    snapshot_stale = (
+        snapshot_age is not None and snapshot_age > SNAPSHOT_MAX_AGE_MINUTES
+    )
+    if snapshot_missing_or_future or (
+        snapshot_stale and not allow_event_persistence_scenario
     ):
         return _empty_hold_row(
             row,
@@ -642,6 +652,8 @@ def score_risk_event(
         for flag in str(row.get("quality_flags") or "").split("|")
         if flag
     }
+    if snapshot_stale:
+        quality_flags.add("scenario:event_persistence_without_end_time")
     if integration_class == "spatial_fallback":
         quality_flags.add("integration:spatial_fallback")
     if not traffic_current:
