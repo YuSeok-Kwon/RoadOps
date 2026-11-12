@@ -115,9 +115,8 @@ The documented C-ITS/ITS operational URLs use HTTP and may transmit API keys in 
 - [실제 제주 도로망 품질 검증 / Real Jeju road-network quality validation](./04_docs/data_feasibility/20261026_roadops_real_road_network_quality_v0_2.md)
 - [실시간 링크 호환성 검증 / Live-link compatibility validation](./04_docs/data_feasibility/20261026_roadops_live_link_compatibility_v0_3.md)
 - [Velog 1부 초안 / Velog Part 1 draft](./04_docs/content/20261026_roadops_part_1_velog_draft_v0_1.md)
-- [LinkedIn 첫 기록 초안 / LinkedIn first update draft](./04_docs/content/20261026_roadops_part_1_linkedin_draft_v0_1.md)
+- [LinkedIn 1·2부 통합 초안 / Combined LinkedIn Parts 1 and 2](./04_docs/content/20261112_roadops_linkedin_combined_draft_v0_1.txt)
 - [Velog 2부 초안 / Velog Part 2 draft](./04_docs/content/20261027_roadops_part_2_velog_draft_v0_1.md)
-- [LinkedIn 두 번째 기록 초안 / LinkedIn second update draft](./04_docs/content/20261027_roadops_part_2_linkedin_draft_v0_1.md)
 
 ## 파일 이름 / File naming
 
