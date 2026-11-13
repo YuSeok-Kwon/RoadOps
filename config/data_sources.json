@@ -297,7 +297,7 @@
       "name": "KOMSA coastal passenger-ferry schedule",
       "name_ko": "한국해양교통안전공단 연안여객선 운항 스케줄",
       "documentation_url": "https://www.data.go.kr/data/15142302/openapi.do",
-      "endpoint_url": "https://apis.data.go.kr/B554035/oprt-schd-info-v2",
+      "endpoint_url": "https://apis.data.go.kr/B554035/oprt-schd-info-v2/get-oprt-schd-info-v2",
       "kind": "json_api",
       "authentication": {
         "environment_variable": "DATA_GO_KR_SERVICE_KEY",
@@ -314,7 +314,7 @@
       "name": "KOMSA monthly departure-port statistics",
       "name_ko": "한국해양교통안전공단 월별 출발기항지 운항통계",
       "documentation_url": "https://www.data.go.kr/data/15142310/openapi.do",
-      "endpoint_url": "https://apis.data.go.kr/B554035/monthly/dpt-pt-stts",
+      "endpoint_url": "https://apis.data.go.kr/B554035/monthly/dpt-pt-stts/get-monthly/dpt-pt-stts",
       "kind": "json_api",
       "authentication": {
         "environment_variable": "DATA_GO_KR_SERVICE_KEY",

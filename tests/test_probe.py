@@ -78,6 +78,7 @@ def test_source_registry_loads_quality_contract(tmp_path):
 def test_project_registry_has_unique_expected_sources():
     specs = load_source_specs(PROJECT_ROOT / "config" / "data_sources.json")
     source_ids = [spec.source_id for spec in specs]
+    by_id = {spec.source_id: spec for spec in specs}
 
     assert len(source_ids) == 17
     assert len(source_ids) == len(set(source_ids))
@@ -93,6 +94,12 @@ def test_project_registry_has_unique_expected_sources():
     assert "taas_link_risk" in source_ids
     assert "jeju_its_hourly_traffic" in source_ids
     assert "jeju_its_daily_traffic" in source_ids
+    assert by_id["komsa_ferry_schedule"].endpoint_url.endswith(
+        "/oprt-schd-info-v2/get-oprt-schd-info-v2"
+    )
+    assert by_id["komsa_monthly_departure_statistics"].endpoint_url.endswith(
+        "/monthly/dpt-pt-stts/get-monthly/dpt-pt-stts"
+    )
 
 
 def test_extract_records_supports_cits_envelope():
