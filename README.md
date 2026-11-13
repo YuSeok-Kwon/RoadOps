@@ -6,9 +6,9 @@ Jeju RoadOps is an explainable AI agent that combines historical and real-time r
 
 ## 현재 단계 / Current phase
 
-제주 C-ITS 현장 이벤트와 설명 가능한 0·1·3·6시간 운영 우선순위, 팀·차량 자원 모델, 도로망 이동시간, 제약 기반 배분을 연결했습니다. 자연어 요청 한 문장으로 품질검사부터 두 배분 대안의 검증·설명까지 7개 Tool을 수동 개입 없이 실행하고 감사 로그를 남깁니다. 팀 3개·차량 3대·2시간 시나리오에서는 9개 작업과 위험가중 커버리지 100%를 유지하면서 기준선의 근무시간 초과를 0건으로 제거했습니다. 다음은 통제·폭우 발생 시 완료·고정 업무를 보존하는 부분 재계획입니다.
+제주 C-ITS 현장 이벤트와 설명 가능한 0·1·3·6시간 운영 우선순위, 팀·차량 자원 모델, 도로망 이동시간, 제약 기반 배분을 연결했습니다. 자연어 요청 한 문장으로 최초 계획을 만들고, 통제·폭우 What-if에서는 완료·고정·비영향 업무를 보존한 채 영향팀만 부분 재계획합니다. 팀 3개·차량 3대·2시간 시나리오에서 9개 작업과 위험가중 커버리지 100%, 제약 위반 0건을 유지했습니다. 다음은 현재·예측 위험과 팀 경로를 보여주는 제주 도로 지도 웹사이트입니다.
 
-The project now runs seven auditable tools from one natural-language request through quality checks, risk tasks, road-network validation, allocation, plan validation, and explanation without manual intermediate edits. In the three-team, three-vehicle, two-hour scenario, both alternatives retain all nine tasks and 100% risk-weighted coverage while eliminating baseline shift violations. Next work will preserve completed and fixed tasks during partial replanning after a closure or heavy-rain event.
+The project now creates an initial plan from one natural-language request and partially replans only affected teams under road-closure and heavy-rain what-if scenarios. Completed work, operator-fixed work, and unaffected team routes remain unchanged. The three-team, three-vehicle, two-hour demo retains all nine tasks, 100% risk-weighted coverage, and zero constraint violations. Next work is the Jeju road-map website for current and forecast risk and team routes.
 
 ## 디렉토리 / Directories
 
@@ -153,6 +153,7 @@ The documented C-ITS/ITS operational URLs use HTTP and may transmit API keys in 
 - [제약 기반 자원 배분 v0.1 / Constraint-based allocation v0.1](./04_docs/model/20261113_roadops_constraint_allocation_v0_1.md)
 - [자원 배분 정량 평가 v0.1 / Allocation evaluation v0.1](./04_docs/evaluation/20261113_roadops_allocation_evaluation_v0_1.md)
 - [Agent 도구 흐름 v0.1 / Agent tool flow v0.1](./04_docs/agent/20261113_roadops_agent_flow_v0_1.md)
+- [부분 재계획 v0.1 / Partial replanning v0.1](./04_docs/agent/20261113_roadops_partial_replanning_v0_1.md)
 - [평가 연계 작업표 / Evaluation-aligned work plan](./04_docs/planning/20261112_roadops_evaluation_workplan_v0_1.md)
 - [실제 제주 도로망 품질 검증 / Real Jeju road-network quality validation](./04_docs/data_feasibility/20261026_roadops_real_road_network_quality_v0_2.md)
 - [실시간 링크 호환성 검증 / Live-link compatibility validation](./04_docs/data_feasibility/20261026_roadops_live_link_compatibility_v0_3.md)
