@@ -6,9 +6,9 @@ Jeju RoadOps is an explainable AI agent that combines historical and real-time r
 
 ## 현재 단계 / Current phase
 
-제주 C-ITS 현장 이벤트와 제주데이터허브·ITS·기상청·TAAS를 결합한 설명 가능한 위험점수 v0.1과 0·1·3·6시간 운영 우선순위를 구축했습니다. 이어 팀 3개·차량 3대·2시간 자원 시나리오를 검증하고, 현재 점수 대상 14건을 동일 링크 기준 10개 현장 작업으로 정규화했습니다. 운영자 제외 1개를 뺀 9개 작업을 위험순·최근접 기준선으로 각각 배정했으며 중복·근무시간·장비·필수·제외 제약 위반은 0건입니다. 다음은 실제 도로 이동시간 도구와 제약 기반 최적화입니다.
+제주 C-ITS 현장 이벤트와 제주데이터허브·ITS·기상청·TAAS를 결합한 설명 가능한 위험점수 v0.1과 0·1·3·6시간 운영 우선순위를 구축했습니다. 팀 3개·차량 3대·2시간 시나리오의 9개 현장 작업을 위험순·최근접 기준선으로 배정한 뒤, 국토교통부 제주 방향성 노드 27,656개·링크 37,087개로 108개 이동경로를 계산했습니다. 직선거리 기준에서는 보이지 않던 근무시간 초과가 두 기준선에서 각각 1개 팀씩 발견됐습니다. 다음은 이 실제 도로시간 행렬로 제약 기반 최적화안을 만드는 작업입니다.
 
-The project now combines its explainable 0/1/3/6-hour priorities with a validated three-team, three-vehicle, two-hour resource scenario. Fourteen eligible current-event rows collapse into ten distinct link tasks; after one operator exclusion, both risk-first and nearest baselines assign all nine candidates with zero duplicate, shift, equipment, mandatory, or exclusion violations. Next work will replace straight-line travel proxies with a road-time tool and add constraint-based optimization.
+The project now combines explainable 0/1/3/6-hour priorities with a validated three-team, three-vehicle, two-hour resource scenario and a local road-network router. The router calculates 108 paths across 27,656 directed nodes and 37,087 links, supports closure removal and cache replay, and reveals one shift violation in each baseline that straight-line estimates missed. Next work will build constraint-based alternatives from this matrix.
 
 ## 디렉토리 / Directories
 
@@ -118,6 +118,9 @@ python 07_scripts/20261112_roadops_build_risk_forecasts_v0_1.py --strict
 # 팀·차량 자원 검증과 위험순·최근접 기준선 / resource validation and baselines
 python 07_scripts/20261112_roadops_build_allocation_baselines_v0_1.py --strict
 
+# 실제 도로망 이동시간 행렬과 캐시 / road-network travel-time matrix and cache
+python 07_scripts/20261113_roadops_build_travel_time_matrix_v0_1.py --strict
+
 # 저장된 보강 데이터로 네트워크 호출 없이 재생성 / rebuild from cached enrichments
 python 07_scripts/20261112_roadops_build_integrated_events_v0_1.py --strict
 ```
@@ -143,6 +146,7 @@ The documented C-ITS/ITS operational URLs use HTTP and may transmit API keys in 
 - [설명 가능한 위험점수 v0.1 / Explainable risk score v0.1](./04_docs/model/20261112_roadops_explainable_risk_score_v0_1.md)
 - [0·1·3·6시간 운영 우선순위 v0.1 / Horizon priority scenarios v0.1](./04_docs/model/20261112_roadops_risk_forecast_v0_1.md)
 - [자원 입력과 기준선 배분 v0.1 / Resource inputs and allocation baselines v0.1](./04_docs/model/20261112_roadops_allocation_baselines_v0_1.md)
+- [도로망 이동시간 행렬 v0.1 / Road-network travel-time matrix v0.1](./04_docs/model/20261113_roadops_travel_time_matrix_v0_1.md)
 - [평가 연계 작업표 / Evaluation-aligned work plan](./04_docs/planning/20261112_roadops_evaluation_workplan_v0_1.md)
 - [실제 제주 도로망 품질 검증 / Real Jeju road-network quality validation](./04_docs/data_feasibility/20261026_roadops_real_road_network_quality_v0_2.md)
 - [실시간 링크 호환성 검증 / Live-link compatibility validation](./04_docs/data_feasibility/20261026_roadops_live_link_compatibility_v0_3.md)
