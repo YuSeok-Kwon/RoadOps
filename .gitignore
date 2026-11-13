@@ -13,6 +13,11 @@
 999_Temporary/**/*
 !999_Temporary/.gitkeep
 
+# Local dashboard builds / 로컬 대시보드 빌드 산출물
+08_dashboard/**/dist/
+08_dashboard/**/.data-app-offline/
+08_dashboard/**/node_modules/
+
 # Python
 __pycache__/
 *.py[cod]

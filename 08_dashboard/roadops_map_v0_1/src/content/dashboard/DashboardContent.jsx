@@ -1,0 +1,434 @@
+import React, { useEffect, useMemo, useState } from "react";
+
+import {
+  DataComponent,
+  Dropdown,
+  Slider,
+  useDataApp,
+  useDashboardTabs,
+} from "../../data-app-public.jsx";
+import "./dashboard.css";
+
+const HORIZONS = [0, 1, 3, 6];
+const TEAM_COLORS = {
+  "team-east": "#7c5cff",
+  "team-north": "#1177cc",
+  "team-west": "#008f7a",
+};
+const RISK_COLORS = {
+  critical: "#b42318",
+  high: "#e5484d",
+  moderate: "#f59e0b",
+  low: "#2f80ed",
+  minimal: "#6b7280",
+};
+const PLAN_LABELS = {
+  safety_first: "안전 우선",
+  balanced_operations: "균형 운영",
+};
+const SCENARIO_LABELS = {
+  none: "기본 계획",
+  "demo-road-closure-v0.1": "도로 통제 What-if",
+  "demo-heavy-rain-v0.1": "폭우 What-if",
+};
+
+function geometry(value) {
+  if (Array.isArray(value)) return value;
+  try {
+    const parsed = JSON.parse(value || "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function number(value, digits = 1) {
+  if (value == null || Number.isNaN(Number(value))) return "—";
+  return new Intl.NumberFormat("ko-KR", { maximumFractionDigits: digits }).format(Number(value));
+}
+
+function percentage(value) {
+  if (value == null || Number.isNaN(Number(value))) return "—";
+  return `${Math.round(Number(value) * 100)}%`;
+}
+
+function dateTime(value) {
+  if (!value) return "확인 불가";
+  return new Intl.DateTimeFormat("ko-KR", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
+}
+
+function pathFor(parts, project) {
+  return parts.map((part) => part.map(([longitude, latitude], index) => {
+    const [x, y] = project(longitude, latitude);
+    return `${index ? "L" : "M"}${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(" ")).join(" ");
+}
+
+function useProjection(backgroundRows, overlayRows) {
+  return useMemo(() => {
+    const points = [];
+    [...backgroundRows, ...overlayRows].forEach((row) => {
+      geometry(row.geometry_json).forEach((part) => part.forEach((point) => points.push(point)));
+    });
+    const longitudes = points.map(([longitude]) => longitude);
+    const latitudes = points.map(([, latitude]) => latitude);
+    const minLongitude = Math.min(...longitudes, 126.08);
+    const maxLongitude = Math.max(...longitudes, 126.98);
+    const minLatitude = Math.min(...latitudes, 33.1);
+    const maxLatitude = Math.max(...latitudes, 33.58);
+    const width = 1000;
+    const height = 590;
+    const padding = 38;
+    const xScale = (width - padding * 2) / Math.max(0.001, maxLongitude - minLongitude);
+    const yScale = (height - padding * 2) / Math.max(0.001, maxLatitude - minLatitude);
+    const scale = Math.min(xScale, yScale);
+    const projectedWidth = (maxLongitude - minLongitude) * scale;
+    const projectedHeight = (maxLatitude - minLatitude) * scale;
+    const xOffset = (width - projectedWidth) / 2;
+    const yOffset = (height - projectedHeight) / 2;
+    return {
+      width,
+      height,
+      project: (longitude, latitude) => [
+        xOffset + (longitude - minLongitude) * scale,
+        height - yOffset - (latitude - minLatitude) * scale,
+      ],
+    };
+  }, [backgroundRows, overlayRows]);
+}
+
+function Metric({ label, value, note, tone = "neutral" }) {
+  return <div className="roadops-metric" data-tone={tone}>
+    <span>{label}</span>
+    <strong>{value}</strong>
+    <small>{note}</small>
+  </div>;
+}
+
+function MapLegend({ showScenario }) {
+  return <div className="roadops-map-legend" aria-label="지도 범례">
+    <div className="legend-group">
+      <span className="legend-title">위험</span>
+      <span><i data-risk="high" />높음</span>
+      <span><i data-risk="moderate" />보통</span>
+      <span><i data-risk="low" />낮음</span>
+    </div>
+    <div className="legend-group">
+      <span className="legend-title">표현</span>
+      <span><i className="legend-line" />팀 경로</span>
+      <span><i className="legend-uncertain" />불확실성 있음</span>
+      {showScenario && <span><i className="legend-before" />변경 전</span>}
+      {showScenario && <span><i className="legend-after" />변경 후</span>}
+    </div>
+  </div>;
+}
+
+function RoadMap({
+  backgroundRows,
+  riskRows,
+  taskRows,
+  teamRows,
+  routeRows,
+  replanRows,
+  impactRows,
+  selectedRisk,
+  onSelectRisk,
+  scenarioId,
+}) {
+  const overlayRows = [...riskRows, ...routeRows, ...replanRows, ...impactRows];
+  const { width, height, project } = useProjection(backgroundRows, overlayRows);
+  const scenarioActive = scenarioId !== "none";
+  const affectedTeams = new Set(replanRows.map((row) => row.team_id));
+
+  return <div className="roadops-map-wrap">
+    <svg className="roadops-map" viewBox={`0 0 ${width} ${height}`} role="img"
+      aria-label="제주 위험 링크, 순찰팀 경로, 재계획 전후 비교 지도">
+      <defs>
+        <filter id="selected-glow" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="3" result="blur" />
+          <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+        </filter>
+      </defs>
+
+      <g className="map-grid" aria-hidden="true">
+        {[160, 320, 480, 640, 800].map((x) => <line key={`x-${x}`} x1={x} x2={x} y1="20" y2={height - 20} />)}
+        {[120, 240, 360, 480].map((y) => <line key={`y-${y}`} x1="20" x2={width - 20} y1={y} y2={y} />)}
+      </g>
+
+      <g className="map-background" data-reviewed-rows="road_background">
+        {backgroundRows.map((row) => <path key={row.road_name}
+          d={pathFor(geometry(row.geometry_json), project)} />)}
+      </g>
+
+      {scenarioActive && <g className="scenario-impact" data-reviewed-rows="scenario_impacts">
+        {impactRows.map((row) => <path key={`${row.scenario_id}-${row.link_id}`}
+          className={row.scenario_type === "road_closure" ? "impact-closure" : "impact-rain"}
+          d={pathFor(geometry(row.geometry_json), project)} />)}
+      </g>}
+
+      <g className="plan-routes" data-reviewed-rows="plan_routes">
+        {routeRows.filter((row) => !scenarioActive || !affectedTeams.has(row.team_id)).map((row) => <path
+          key={`${row.alternative_id}-${row.team_id}-${row.sequence}`}
+          d={pathFor(geometry(row.geometry_json), project)}
+          style={{ "--team-color": TEAM_COLORS[row.team_id] || "#475569" }} />)}
+      </g>
+
+      {scenarioActive && <g className="replan-routes" data-reviewed-rows="replan_routes">
+        {replanRows.map((row) => <path
+          key={`${row.scenario_id}-${row.plan_stage}-${row.team_id}-${row.sequence}`}
+          className={`replan-${row.plan_stage}`}
+          d={pathFor(geometry(row.geometry_json), project)}
+          style={{ "--team-color": TEAM_COLORS[row.team_id] || "#475569" }} />)}
+      </g>}
+
+      <g className="risk-links" data-reviewed-rows="risk_links">
+        {riskRows.map((row) => {
+          const selected = selectedRisk?.link_id === row.link_id;
+          return <path key={`${row.horizon_hours}-${row.link_id}`}
+            className={selected ? "risk-link selected" : "risk-link"}
+            d={pathFor(geometry(row.geometry_json), project)}
+            role="button" tabIndex="0"
+            aria-label={`${row.road_name} 링크 ${row.link_id}, 위험점수 ${row.priority_score ?? "없음"}`}
+            onClick={() => onSelectRisk(row)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") onSelectRisk(row);
+            }}
+            style={{
+              "--risk-color": RISK_COLORS[row.risk_level] || RISK_COLORS.minimal,
+              "--risk-width": `${Math.max(4, Math.min(10, 3 + (Number(row.priority_score) || 0) / 10))}px`,
+              "--risk-opacity": String(Math.max(.48, Number(row.evidence_coverage_ratio) || .48)),
+              filter: selected ? "url(#selected-glow)" : undefined,
+              strokeDasharray: Number(row.uncertainty_width) > 0 ? "8 5" : undefined,
+            }} />;
+        })}
+      </g>
+
+      <g className="task-points" data-reviewed-rows="field_tasks">
+        {taskRows.map((row) => {
+          const [x, y] = project(row.longitude, row.latitude);
+          return <circle key={row.task_id} cx={x} cy={y} r={row.mandatory ? 7 : 5}
+            data-excluded={row.excluded || undefined} data-mandatory={row.mandatory || undefined}>
+            <title>{`${row.road_name} · ${row.task_id}`}</title>
+          </circle>;
+        })}
+      </g>
+
+      <g className="team-points" data-reviewed-rows="teams">
+        {teamRows.map((row) => {
+          const [x, y] = project(row.start_longitude, row.start_latitude);
+          return <g key={row.team_id} transform={`translate(${x} ${y})`}>
+            <circle r="11" style={{ fill: TEAM_COLORS[row.team_id] || "#475569" }} />
+            <text y="4">{row.team_name?.slice(0, 1) || "팀"}</text>
+          </g>;
+        })}
+      </g>
+    </svg>
+    <div className="map-place-label map-place-label--jeju">제주시</div>
+    <div className="map-place-label map-place-label--seogwipo">서귀포시</div>
+    <MapLegend showScenario={scenarioActive} />
+  </div>;
+}
+
+function RiskDetail({ row, sourceRows, horizon }) {
+  if (!row) return <div className="empty-detail">표시할 위험 링크가 없습니다.</div>;
+  const drivers = String(row.risk_drivers || "").split(" | ").filter(Boolean);
+  return <DataComponent variant="plain" id="risk-detail" queryId="risk_links" kind="custom"
+    title={`${row.road_name} · ${row.link_id}`}
+    description="선택한 링크의 운영 우선순위 점수, 불확실성 범위, 근거와 데이터 품질입니다."
+    sourceRows={sourceRows} displayRows={[row]}
+    scopeFilters={[{ field: "horizon_hours", label: "예측 시점", value: horizon }, { field: "link_id", label: "링크", value: row.link_id }]}
+    className="risk-detail-card">
+    <div className="risk-score-block">
+      <div><span>우선순위 점수</span><strong>{number(row.priority_score)}</strong></div>
+      <span className="risk-band">{number(row.score_lower_bound)}–{number(row.score_upper_bound)}</span>
+    </div>
+    <div className="risk-detail-grid">
+      <div><span>위험 단계</span><b data-risk-level={row.risk_level}>{row.risk_level || "미분류"}</b></div>
+      <div><span>근거 충족률</span><b>{percentage(row.evidence_coverage_ratio)}</b></div>
+      <div><span>결합 방식</span><b>{row.integration_class || "확인 불가"}</b></div>
+      <div><span>대상 시각</span><b>{dateTime(row.target_at)}</b></div>
+    </div>
+    <div className="driver-list">
+      <span>점수 근거</span>
+      {drivers.length ? <ul>{drivers.map((driver) => <li key={driver}>{driver}</li>)}</ul> : <p>사용 가능한 근거가 없습니다.</p>}
+    </div>
+    <div className="quality-note">
+      <span>품질 플래그</span><p>{row.quality_flags || "none"}</p>
+    </div>
+  </DataComponent>;
+}
+
+function TaskQueue({ rows, selectedLinkId, onSelect }) {
+  const sorted = [...rows].filter((row) => !row.excluded)
+    .sort((left, right) => Number(right.priority_score) - Number(left.priority_score));
+  return <DataComponent variant="plain" id="task-queue" queryId="field_tasks" kind="table"
+    title="현장 점검 대기열" description="제외 조건을 통과한 현재 시점 점검 후보입니다."
+    sourceRows={rows} displayRows={sorted} className="task-queue-card">
+    <div className="task-queue-list">
+      {sorted.slice(0, 6).map((row, index) => <button type="button" key={row.task_id}
+        className={selectedLinkId === row.link_id ? "selected" : ""} onClick={() => onSelect(row.link_id)}>
+        <span className="task-rank">{String(index + 1).padStart(2, "0")}</span>
+        <span className="task-copy"><strong>{row.road_name}</strong><small>{row.link_id}</small></span>
+        <span className="task-score">{number(row.priority_score)}</span>
+      </button>)}
+    </div>
+  </DataComponent>;
+}
+
+function PlanComparison({ rows, selectedPlan, onSelect }) {
+  return <DataComponent variant="plain" id="plan-comparison" queryId="plan_metrics" kind="table"
+    title="대안 비교" description="안전 우선과 균형 운영 대안의 네트워크 이동시간과 업무 편차를 비교합니다."
+    sourceRows={rows} displayRows={rows} className="plan-comparison-card">
+    <div className="plan-comparison-table">
+      <div className="plan-table-head"><span>대안</span><span>이동</span><span>최대 업무</span><span>편차</span></div>
+      {rows.map((row) => <button type="button" key={row.alternative_id}
+        className={selectedPlan === row.alternative_id ? "selected" : ""}
+        onClick={() => onSelect(row.alternative_id)}>
+        <strong>{PLAN_LABELS[row.alternative_id] || row.alternative_id}</strong>
+        <span>{number(row.network_total_travel_minutes)}분</span>
+        <span>{number(row.maximum_team_elapsed_minutes)}분</span>
+        <span>{number(row.elapsed_minutes_variance)}</span>
+      </button>)}
+    </div>
+  </DataComponent>;
+}
+
+function ReplanSummary({ rows, scenarioId }) {
+  const row = rows.find((item) => item.scenario_id === scenarioId);
+  if (!row) return <div className="replan-empty">
+    <strong>기본 계획 표시 중</strong>
+    <span>통제 또는 폭우 시나리오를 선택하면 변경 전·후 경로와 이유를 비교합니다.</span>
+  </div>;
+  return <DataComponent variant="plain" id="replan-summary" queryId="scenario_summary" kind="custom"
+    title="부분 재계획 설명" description="영향팀만 다시 계산하고 완료·고정·비영향 업무는 보존한 결과입니다."
+    sourceRows={rows} displayRows={[row]}
+    scopeFilters={[{ field: "scenario_id", label: "시나리오", value: scenarioId }]}
+    className="replan-summary-card">
+    <div className="replan-summary-head">
+      <span className="approval-badge">승인 필요</span>
+      <strong>{row.summary}</strong>
+    </div>
+    <p>{row.change_reasons}</p>
+    <div className="replan-deltas">
+      <span><b>{row.affected_team_count}</b> 영향팀</span>
+      <span><b>{Number(row.travel_minutes_delta) >= 0 ? "+" : ""}{number(row.travel_minutes_delta, 3)}</b> 이동분</span>
+      <span><b>{number(row.violation_count_delta, 0)}</b> 제약 위반 증감</span>
+    </div>
+  </DataComponent>;
+}
+
+export function DashboardContent() {
+  useDashboardTabs([{ id: "dashboard", label: "현장 운영 지도" }]);
+  const { queries, snapshot, appTitle, setAppTitle } = useDataApp();
+  const [horizonIndex, setHorizonIndex] = useState(0);
+  const [selectedPlan, setSelectedPlan] = useState("safety_first");
+  const [scenarioId, setScenarioId] = useState("none");
+  const [selectedRiskId, setSelectedRiskId] = useState(null);
+  const horizon = HORIZONS[horizonIndex] ?? 0;
+
+  useEffect(() => {
+    if (appTitle !== snapshot.title) setAppTitle(snapshot.title);
+  }, [appTitle, setAppTitle, snapshot.title]);
+
+  const rows = (queryId) => queries[queryId]?.rows ?? [];
+  const metadata = rows("map_metadata")[0] ?? {};
+  const allRiskRows = rows("risk_links");
+  const riskRows = allRiskRows.filter((row) => Number(row.horizon_hours) === horizon && row.has_geometry);
+  const selectedRisk = riskRows.find((row) => row.link_id === selectedRiskId)
+    ?? [...riskRows].sort((left, right) => Number(right.priority_score) - Number(left.priority_score))[0]
+    ?? null;
+  const planMetrics = rows("plan_metrics");
+  const selectedMetrics = planMetrics.find((row) => row.alternative_id === selectedPlan) ?? {};
+  const routeRows = rows("plan_routes").filter((row) => row.alternative_id === selectedPlan);
+  const replanRows = rows("replan_routes").filter((row) => row.scenario_id === scenarioId);
+  const impactRows = rows("scenario_impacts").filter((row) => row.scenario_id === scenarioId);
+  const highRiskCount = riskRows.filter((row) => ["high", "critical"].includes(row.risk_level)).length;
+  const scenarioChoices = ["none", ...rows("scenario_summary").map((row) => row.scenario_id)];
+  const mapQueryIds = ["risk_links", "road_background", "field_tasks", "teams", "plan_routes", "replan_routes", "scenario_impacts"];
+  const sourceRowsByQuery = Object.fromEntries(mapQueryIds.map((queryId) => [queryId, rows(queryId)]));
+
+  const selectTask = (linkId) => {
+    const match = riskRows.find((row) => row.link_id === linkId);
+    if (match) setSelectedRiskId(match.link_id);
+  };
+
+  return <article className="roadops-page" data-dashboard-layout="viewport">
+    <section className="roadops-toolbar" aria-label="지도 제어">
+      <div className="toolbar-title">
+        <div><span className="eyebrow">JEJU FIELD OPERATIONS</span><strong>위험과 현장 자원을 한 화면에서</strong></div>
+        <span className={`roadops-freshness-badge ${metadata.freshness_status === "recent_snapshot" ? "recent" : "stale"}`}>
+          {metadata.freshness_status === "recent_snapshot" ? "최근 스냅샷" : "스냅샷 오래됨"} · {dateTime(metadata.latest_risk_target_at)}
+        </span>
+      </div>
+      <div className="toolbar-controls">
+        <div className="horizon-control">
+          <span>예측 시점</span>
+          <Slider label="예측 시점" labelPlacement="hidden" min={0} max={3} step={1}
+            value={horizonIndex} onChange={setHorizonIndex} showBounds={false}
+            formatValue={(value) => `+${HORIZONS[value] ?? 0}h`} />
+        </div>
+        <Dropdown label="배분 대안" showLabel value={selectedPlan}
+          choices={planMetrics.map((row) => row.alternative_id)} choiceLabels={PLAN_LABELS}
+          onChange={setSelectedPlan} />
+        <Dropdown label="재계획 시나리오" showLabel value={scenarioId}
+          choices={scenarioChoices} choiceLabels={SCENARIO_LABELS} onChange={setScenarioId} />
+      </div>
+    </section>
+
+    <section className="roadops-kpis">
+      <DataComponent variant="plain" id="allocation-kpis" queryId="plan_metrics" kind="metrics"
+        title="운영 요약" description="선택한 예측 시점과 배분 대안의 핵심 운영 지표입니다."
+        showHeading={false} sourceRows={planMetrics} displayRows={[selectedMetrics]}
+        scopeFilters={[{ field: "alternative_id", label: "배분 대안", value: selectedPlan }]}>
+        <div className="roadops-metric-grid">
+          <Metric label="위험 링크" value={riskRows.length} note={`+${horizon}시간 · 고위험 ${highRiskCount}개`} tone={highRiskCount ? "warning" : "neutral"} />
+          <Metric label="배분 완료" value={`${selectedMetrics.assigned_task_count ?? "—"}/${selectedMetrics.candidate_task_count ?? "—"}`} note="제외 조건 통과 업무" tone="positive" />
+          <Metric label="위험 커버리지" value={percentage(selectedMetrics.risk_weighted_coverage_ratio)} note="배정 우선순위 합 기준" tone="positive" />
+          <Metric label="네트워크 이동" value={`${number(selectedMetrics.network_total_travel_minutes)}분`} note="자유흐름 추정 · 실시간 ETA 아님" />
+          <Metric label="제약 위반" value={number(selectedMetrics.constraint_violation_count, 0)} note={scenarioId === "none" ? "기본 대안" : "What-if · 담당자 승인 필요"} tone="positive" />
+        </div>
+      </DataComponent>
+    </section>
+
+    <div className="roadops-workspace">
+      <section className="roadops-map-column">
+        <DataComponent variant="plain" id="roadops-map" queryId="risk_links" queryIds={mapQueryIds}
+          kind="custom" title="제주 도로 운영 지도"
+          description="위험 링크, 점검 후보, 팀 경로와 What-if 재계획 전후를 실제 표준링크 좌표로 겹쳐 표시합니다."
+          sourceRows={allRiskRows} displayRows={riskRows} sourceRowsByQuery={sourceRowsByQuery}
+          scopeFilters={[
+            { field: "horizon_hours", label: "예측 시점", value: horizon },
+            { field: "alternative_id", label: "배분 대안", value: selectedPlan },
+            { field: "scenario_id", label: "재계획 시나리오", value: scenarioId },
+          ]} className="roadops-map-card">
+          <RoadMap backgroundRows={rows("road_background")} riskRows={riskRows}
+            taskRows={rows("field_tasks")} teamRows={rows("teams")} routeRows={routeRows}
+            replanRows={replanRows} impactRows={impactRows} selectedRisk={selectedRisk}
+            onSelectRisk={(row) => setSelectedRiskId(row.link_id)} scenarioId={scenarioId} />
+        </DataComponent>
+        <ReplanSummary rows={rows("scenario_summary")} scenarioId={scenarioId} />
+      </section>
+
+      <aside className="roadops-inspector">
+        <RiskDetail row={selectedRisk} sourceRows={allRiskRows} horizon={horizon} />
+        <TaskQueue rows={rows("field_tasks")} selectedLinkId={selectedRisk?.link_id} onSelect={selectTask} />
+        <PlanComparison rows={planMetrics} selectedPlan={selectedPlan} onSelect={setSelectedPlan} />
+        <DataComponent variant="plain" id="gateway-availability" queryId="data_availability" kind="custom"
+          title="외부 유입압력" description="공항·항만 유입압력 데이터의 연결 상태입니다."
+          sourceRows={rows("data_availability")} displayRows={rows("data_availability")}
+          className="availability-card">
+          <div className="availability-state"><span>데이터 미연결</span><p>{rows("data_availability")[0]?.reason}</p></div>
+        </DataComponent>
+      </aside>
+    </div>
+
+    <footer className="roadops-disclaimer">
+      운영 우선순위 시나리오이며 사고확률이 아닙니다. 모든 배분·재계획 결과는 현장 지시 전 담당자 승인이 필요합니다.
+    </footer>
+  </article>;
+}
