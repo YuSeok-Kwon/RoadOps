@@ -164,6 +164,10 @@ The documented C-ITS/ITS operational URLs use HTTP and may transmit API keys in 
 - [Velog 3부 초안 / Velog Part 3 draft](./04_docs/content/20261112_roadops_part_3_velog_draft_v0_1.md)
 - [LinkedIn 3부 초안 / LinkedIn Part 3 draft](./04_docs/content/20261113_roadops_part_3_linkedin_draft_v0_1.txt)
 - [Velog 4부 초안 / Velog Part 4 draft](./04_docs/content/20261113_roadops_part_4_velog_draft_v0_1.md)
+- [LinkedIn 4부 초안 / LinkedIn Part 4 draft](./04_docs/content/20261113_roadops_part_4_linkedin_draft_v0_1.txt)
+- [Velog 5부 초안 / Velog Part 5 draft](./04_docs/content/20261113_roadops_part_5_velog_draft_v0_1.md)
+- [Velog 6부 초안 / Velog Part 6 draft](./04_docs/content/20261116_roadops_part_6_velog_draft_v0_1.md)
+- [LinkedIn 5부 초안 / LinkedIn Part 5 draft](./04_docs/content/20261116_roadops_part_5_linkedin_draft_v0_1.txt)
 
 ## 파일 이름 / File naming
 
