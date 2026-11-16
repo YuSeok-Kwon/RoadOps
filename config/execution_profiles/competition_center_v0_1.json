@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "profile_id": "jeju-ai-bigdata-center-v0.1",
+  "hardware": {
+    "cpu_model": "Intel Core i7-8700",
+    "physical_core_count": 6,
+    "logical_thread_count": 12,
+    "memory_gib": 32,
+    "gpu_model": "NVIDIA GeForce GTX 1060",
+    "gpu_memory_gib": 3,
+    "gpu_required_by_roadops": false
+  },
+  "software": {
+    "operating_system": "not_yet_confirmed",
+    "python_minimum": "3.11.0",
+    "python_maximum_exclusive": "3.15.0",
+    "node_supported": "^20.19.0 || >=22.12.0",
+    "package_manager": "npm with package-lock.json"
+  },
+  "execution_policy": {
+    "default_mode": "cached_demo",
+    "live_api_keys_required_for_cached_demo": false,
+    "large_local_llm_required": false,
+    "cuda_required": false,
+    "network_required_after_dependencies_are_installed": false
+  }
+}

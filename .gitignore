@@ -38,7 +38,15 @@ config/secrets.*
 !config/*.json
 !config/resource_scenarios/
 !config/resource_scenarios/*.json
+!config/execution_profiles/
+!config/execution_profiles/*.json
 !tests/fixtures/*.json
+
+# Committed offline demonstration inputs / 커밋된 오프라인 데모 입력
+!demo/
+!demo/cached_inputs_v0_1/
+!demo/cached_inputs_v0_1/*.csv
+!demo/cached_inputs_v0_1/*.json
 
 # Editors and operating systems / 편집기 및 운영체제
 .DS_Store

@@ -21,6 +21,7 @@ The project now creates an initial plan from one natural-language request and pa
 07_scripts/        실행 스크립트 / executable scripts
 config/            비밀정보를 제외한 설정 / non-secret configuration
 tests/             자동화 테스트 / automated tests
+demo/              API 키 없는 오프라인 시연 입력 / key-free offline demo inputs
 999_Temporary/     임시 작업 파일 / temporary files
 ```
 
@@ -35,6 +36,27 @@ python -m pip install -r requirements.txt
 API 키가 필요하면 [`config/.env.example`](./config/.env.example)을 복사해 사용합니다. 실제 키는 Git에 포함하지 않습니다.
 
 Copy [`config/.env.example`](./config/.env.example) when API keys are needed. Real keys must not be committed.
+
+## 오프라인 캐시 데모 / Offline cached demo
+
+API 키 없이 검토된 저장 입력으로 Agent를 실행합니다. 이 결과는 실시간 현황이 아닙니다.
+
+Run the Agent from reviewed frozen inputs without API keys. The result is not live road status.
+
+```bash
+.venv/bin/python 07_scripts/20261113_roadops_run_agent_flow_v0_1.py \
+  --as-of '2026-11-16T18:00:00+09:00' \
+  --strict
+```
+
+센터 환경 사전점검은 Python·Node 의존성 설치 후 다음처럼 실행합니다.
+
+Run the center-environment preflight after installing the Python and Node dependencies.
+
+```bash
+.venv/bin/python 07_scripts/20261116_roadops_validate_center_environment_v0_1.py \
+  --strict
+```
 
 ## 첫 데이터 스파이크 / First data spike
 
@@ -155,6 +177,7 @@ The documented C-ITS/ITS operational URLs use HTTP and may transmit API keys in 
 - [Agent 도구 흐름 v0.1 / Agent tool flow v0.1](./04_docs/agent/20261113_roadops_agent_flow_v0_1.md)
 - [부분 재계획 v0.1 / Partial replanning v0.1](./04_docs/agent/20261113_roadops_partial_replanning_v0_1.md)
 - [장애·복구 평가 v0.1 / Resilience evaluation v0.1](./04_docs/evaluation/20261116_roadops_resilience_evaluation_v0_1.md)
+- [센터 실행환경 검증 v0.1 / Center environment validation v0.1](./04_docs/deployment/20261116_roadops_center_environment_validation_v0_1.md)
 - [평가 연계 작업표 / Evaluation-aligned work plan](./04_docs/planning/20261112_roadops_evaluation_workplan_v0_1.md)
 - [실제 제주 도로망 품질 검증 / Real Jeju road-network quality validation](./04_docs/data_feasibility/20261026_roadops_real_road_network_quality_v0_2.md)
 - [실시간 링크 호환성 검증 / Live-link compatibility validation](./04_docs/data_feasibility/20261026_roadops_live_link_compatibility_v0_3.md)

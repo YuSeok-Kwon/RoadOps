@@ -16,6 +16,7 @@ from zoneinfo import ZoneInfo
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT / "05_src"))
+DEFAULT_DEMO_DIR = PROJECT_ROOT / "demo/cached_inputs_v0_1"
 
 from roadops.agent_flow import run_agent_flow  # noqa: E402
 from roadops.cits_snapshot import write_json_atomic  # noqa: E402
@@ -39,38 +40,32 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--risk-forecasts",
         type=Path,
-        default=PROJECT_ROOT
-        / "02_outputs/data/risk_forecasts_v0_1/risk_forecasts.csv",
+        default=DEFAULT_DEMO_DIR / "risk_forecasts.csv",
     )
     parser.add_argument(
         "--integrated-events",
         type=Path,
-        default=PROJECT_ROOT
-        / "02_outputs/data/integrated_field_events_v0_1/integrated_field_events.csv",
+        default=DEFAULT_DEMO_DIR / "integrated_field_events.csv",
     )
     parser.add_argument(
         "--risk-quality",
         type=Path,
-        default=PROJECT_ROOT
-        / "02_outputs/data/risk_forecasts_v0_1/quality_report.json",
+        default=DEFAULT_DEMO_DIR / "risk_quality_report.json",
     )
     parser.add_argument(
         "--event-quality",
         type=Path,
-        default=PROJECT_ROOT
-        / "02_outputs/data/integrated_field_events_v0_1/quality_report.json",
+        default=DEFAULT_DEMO_DIR / "event_quality_report.json",
     )
     parser.add_argument(
         "--travel-time-matrix",
         type=Path,
-        default=PROJECT_ROOT
-        / "02_outputs/data/travel_time_matrix_v0_1/travel_time_matrix.json",
+        default=DEFAULT_DEMO_DIR / "travel_time_matrix.json",
     )
     parser.add_argument(
         "--travel-quality",
         type=Path,
-        default=PROJECT_ROOT
-        / "02_outputs/data/travel_time_matrix_v0_1/quality_report.json",
+        default=DEFAULT_DEMO_DIR / "travel_quality_report.json",
     )
     parser.add_argument(
         "--output-dir",
