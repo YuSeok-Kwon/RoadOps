@@ -1,0 +1,78 @@
+{
+  "contract_id": "roadops-agent-contract-v0.1",
+  "runtime": {
+    "mode": "deterministic_python_tools_no_external_llm",
+    "description_ko": "제출 데모는 외부 LLM 호출 없이 검증된 Python Tool로만 실행된다.",
+    "description_en": "The submission demo runs only verified Python tools and makes no external LLM call."
+  },
+  "prompt_contract": {
+    "mode": "constrained_korean_operator_request",
+    "operator_request_template_ko": "팀 {team_count}개와 차량 {vehicle_count}대로 {duration_hours}시간 안에 {risk_horizon} 위험 기준 순찰계획을 만들어줘. 안전 우선과 업무 균형을 비교해줘.",
+    "supported_risk_horizons": [
+      "현재",
+      "1시간 후",
+      "3시간 후",
+      "6시간 후"
+    ],
+    "representative_request_ko": "팀 3개와 차량 3대로 2시간 안에 현재 위험 기준 순찰계획을 만들어줘. 안전 우선과 업무 균형을 비교해줘.",
+    "limitation_ko": "범용 대화형 LLM 프롬프트가 아니며, 제출 환경의 재현성을 위해 제한된 한국어 문법을 사용한다."
+  },
+  "tool_flow": [
+    {
+      "order": 1,
+      "tool_id": "request_interpreter",
+      "implementation": "roadops.agent_flow.parse_agent_request",
+      "purpose_ko": "요청의 팀·차량·시간·위험 시점·대안을 구조화한다."
+    },
+    {
+      "order": 2,
+      "tool_id": "data_quality_gate",
+      "implementation": "roadops.agent_flow._quality_gate",
+      "purpose_ko": "자원과 입력 품질을 검사하고 실패 시 배분을 차단한다."
+    },
+    {
+      "order": 3,
+      "tool_id": "risk_task_builder",
+      "implementation": "roadops.allocation_baselines.build_field_tasks",
+      "purpose_ko": "동일 도로링크의 위험 이벤트를 하나의 현장 작업으로 통합한다."
+    },
+    {
+      "order": 4,
+      "tool_id": "travel_time_gate",
+      "implementation": "roadops.agent_flow._travel_matrix_errors",
+      "purpose_ko": "도로망 이동시간 경로와 작업 ID의 호환성을 검사한다."
+    },
+    {
+      "order": 5,
+      "tool_id": "allocation_optimizer",
+      "implementation": "roadops.allocation_optimizer.build_constraint_allocation",
+      "purpose_ko": "운영 제약 안에서 안전 우선·업무 균형 대안을 생성한다."
+    },
+    {
+      "order": 6,
+      "tool_id": "plan_validator",
+      "implementation": "roadops.agent_flow._validate_plans",
+      "purpose_ko": "중복·근무시간·경로·하드 제약을 독립적으로 재검사한다."
+    },
+    {
+      "order": 7,
+      "tool_id": "result_explainer",
+      "implementation": "roadops.agent_flow._explain",
+      "purpose_ko": "정량 지표·한계·수동 승인 필요 여부를 운영자에게 설명한다."
+    }
+  ],
+  "guardrails": [
+    "manual_approval_required",
+    "quality_failure_blocks_allocation",
+    "constraint_validation_after_optimization",
+    "resource_request_mismatch_blocks_allocation",
+    "missing_route_blocks_optimization",
+    "cached_and_live_modes_are_labeled"
+  ],
+  "api_policy": {
+    "cached_demo_requires_api_keys": false,
+    "live_collection_is_separate_from_agent_execution": true,
+    "plaintext_http_live_calls_are_blocked_by_default": true,
+    "secret_values_must_not_appear_in_logs_or_outputs": true
+  }
+}

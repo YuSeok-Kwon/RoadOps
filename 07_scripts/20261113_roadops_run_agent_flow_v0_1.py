@@ -17,10 +17,15 @@ from zoneinfo import ZoneInfo
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT / "05_src"))
 DEFAULT_DEMO_DIR = PROJECT_ROOT / "demo/cached_inputs_v0_1"
+DEFAULT_AGENT_CONTRACT = (
+    PROJECT_ROOT / "config/agent/roadops_agent_contract_v0_1.json"
+)
 
 from roadops.agent_flow import run_agent_flow  # noqa: E402
 from roadops.cits_snapshot import write_json_atomic  # noqa: E402
+from roadops.environment_validation import file_sha256  # noqa: E402
 from roadops.quality import load_records  # noqa: E402
+from roadops.submission_validation import validate_agent_contract  # noqa: E402
 
 
 DEFAULT_REQUEST = (
@@ -77,6 +82,11 @@ def parse_args() -> argparse.Namespace:
         choices=("cached_demo", "prepared_inputs"),
         default="cached_demo",
     )
+    parser.add_argument(
+        "--agent-contract",
+        type=Path,
+        default=DEFAULT_AGENT_CONTRACT,
+    )
     parser.add_argument("--as-of", default=None)
     parser.add_argument("--strict", action="store_true")
     return parser.parse_args()
@@ -115,6 +125,11 @@ def _write_jsonl(path: Path, rows: list[dict]) -> None:
 
 def main() -> int:
     args = parse_args()
+    agent_contract = _read(args.agent_contract)
+    contract_validation = validate_agent_contract(agent_contract)
+    if contract_validation["status"] != "pass":
+        failures = ", ".join(contract_validation["failures"])
+        raise SystemExit(f"Invalid agent contract: {failures}")
     resources = _read(args.resources)
     forecasts = load_records(args.risk_forecasts)
     events = load_records(args.integrated_events)
@@ -133,6 +148,36 @@ def main() -> int:
         quality_reports,
         execution_mode=args.execution_mode,
     )
+    expected_tools = list(contract_validation["tool_ids"])
+    observed_tools = [
+        str(row.get("tool_name")) for row in result.get("tool_trace", [])
+    ]
+    tool_sequence_matches = observed_tools == expected_tools[: len(observed_tools)]
+    successful_run_completed_contract = result.get("status") == "fail" or (
+        observed_tools == expected_tools
+    )
+    contract_execution_status = (
+        "pass"
+        if tool_sequence_matches and successful_run_completed_contract
+        else "fail"
+    )
+    contract_reference = {
+        "contract_id": contract_validation["contract_id"],
+        "contract_sha256": file_sha256(args.agent_contract),
+        "runtime_mode": contract_validation["runtime_mode"],
+        "contract_path": _relative(args.agent_contract),
+        "expected_tool_ids": expected_tools,
+        "observed_tool_ids": observed_tools,
+        "execution_status": contract_execution_status,
+    }
+    result["agent_contract"] = contract_reference
+    report["agent_contract"] = contract_reference
+    if contract_execution_status == "fail":
+        result["status"] = "fail"
+        report["status"] = "fail"
+        report.setdefault("failed_checks", []).append(
+            "agent_contract_tool_sequence_mismatch"
+        )
     generated_at = _generated_at(args.as_of)
     result["generated_at"] = generated_at
     report["generated_at"] = generated_at

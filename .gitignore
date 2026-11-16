@@ -40,6 +40,10 @@ config/secrets.*
 !config/resource_scenarios/*.json
 !config/execution_profiles/
 !config/execution_profiles/*.json
+!config/agent/
+!config/agent/*.json
+!config/submission/
+!config/submission/*.json
 !tests/fixtures/*.json
 
 # Committed offline demonstration inputs / 커밋된 오프라인 데모 입력

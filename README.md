@@ -49,12 +49,35 @@ Run the Agent from reviewed frozen inputs without API keys. The result is not li
   --strict
 ```
 
+OS별 원클릭 진입점도 제공합니다. 추가 인자는 Python 실행기에 그대로 전달됩니다.
+
+OS-specific one-command entry points are also provided. Additional arguments are forwarded to the Python runner.
+
+```bash
+# macOS / Linux
+./run_demo.sh --as-of '2026-11-16T18:00:00+09:00'
+```
+
+```powershell
+# Windows PowerShell
+.\run_demo.ps1 --as-of "2026-11-16T18:00:00+09:00"
+```
+
 센터 환경 사전점검은 Python·Node 의존성 설치 후 다음처럼 실행합니다.
 
 Run the center-environment preflight after installing the Python and Node dependencies.
 
 ```bash
 .venv/bin/python 07_scripts/20261116_roadops_validate_center_environment_v0_1.py \
+  --strict
+```
+
+제출 소스·Prompt/Tool 계약·비밀값 미포함·원클릭 실행을 한 번에 검증할 수 있습니다.
+
+Validate the submission source, Prompt/Tool contract, secret exclusion, and one-command entry point together.
+
+```bash
+.venv/bin/python 07_scripts/20261116_roadops_validate_submission_source_v0_1.py \
   --strict
 ```
 
@@ -178,6 +201,7 @@ The documented C-ITS/ITS operational URLs use HTTP and may transmit API keys in 
 - [부분 재계획 v0.1 / Partial replanning v0.1](./04_docs/agent/20261113_roadops_partial_replanning_v0_1.md)
 - [장애·복구 평가 v0.1 / Resilience evaluation v0.1](./04_docs/evaluation/20261116_roadops_resilience_evaluation_v0_1.md)
 - [센터 실행환경 검증 v0.1 / Center environment validation v0.1](./04_docs/deployment/20261116_roadops_center_environment_validation_v0_1.md)
+- [실행·사용자 매뉴얼 v0.1 / Execution and user manual v0.1](./04_docs/deployment/20261116_roadops_execution_user_manual_v0_1.md)
 - [평가 연계 작업표 / Evaluation-aligned work plan](./04_docs/planning/20261112_roadops_evaluation_workplan_v0_1.md)
 - [실제 제주 도로망 품질 검증 / Real Jeju road-network quality validation](./04_docs/data_feasibility/20261026_roadops_real_road_network_quality_v0_2.md)
 - [실시간 링크 호환성 검증 / Live-link compatibility validation](./04_docs/data_feasibility/20261026_roadops_live_link_compatibility_v0_3.md)
