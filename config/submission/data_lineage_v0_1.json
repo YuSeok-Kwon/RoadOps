@@ -1,0 +1,461 @@
+{
+  "lineage_id": "roadops-data-lineage-v0.1",
+  "as_of": "2026-11-16",
+  "decision_semantics": "road_field_inspection_priority_and_resource_allocation_not_accident_probability",
+  "sources": [
+    {
+      "source_id": "molit_standard_node_link",
+      "provider": "국토교통부",
+      "usage_status": "used_in_decision",
+      "role": "37,087개 제주 방향성 링크·노드, 도로 형상과 이동경로 기준망",
+      "authentication_env": null,
+      "score_contribution": "점수에 직접 가산하지 않고 공간 결합·구조 선행값·경로 계산에 사용",
+      "redistribution_status": "제출 전 원본 재배포 조건 최종 확인; 캐시 데모는 경로 형상 제외"
+    },
+    {
+      "source_id": "jeju_center_road_spec",
+      "provider": "제주빅데이터센터",
+      "usage_status": "context_only",
+      "role": "도로·교통 필드 명세 참조",
+      "authentication_env": null,
+      "score_contribution": "없음",
+      "redistribution_status": "명세서 URL만 제출 문서에 표시"
+    },
+    {
+      "source_id": "jeju_datahub_1027",
+      "provider": "제주특별자치도 미래성장과 / TAAS",
+      "usage_status": "used_in_decision",
+      "role": "2018~2020 도로선형별 교통사고 51행을 조건부 구조 심각도 선행값으로 변환",
+      "authentication_env": null,
+      "score_contribution": "구조위험 25점 바구니 안에서 TAAS와 30:70으로 결합; 독립 가산 금지",
+      "redistribution_status": "review_required_before_raw_data_packaging"
+    },
+    {
+      "source_id": "jeju_cits_road_event",
+      "provider": "제주 C-ITS",
+      "usage_status": "used_in_decision",
+      "role": "도로 돌발·위험 현장 이벤트",
+      "authentication_env": "JEJU_CITS_API_KEY",
+      "score_contribution": "현재 이벤트 구성점수 및 미래 지속 시나리오",
+      "redistribution_status": "raw_payload_not_packaged"
+    },
+    {
+      "source_id": "jeju_cits_road_close",
+      "provider": "제주 C-ITS",
+      "usage_status": "used_in_decision",
+      "role": "도로통제 링크 제거와 부분 재계획",
+      "authentication_env": "JEJU_CITS_API_KEY",
+      "score_contribution": "점수보다 경로 가용성·재계획 제약에 사용",
+      "redistribution_status": "raw_payload_not_packaged"
+    },
+    {
+      "source_id": "jeju_cits_road_work",
+      "provider": "제주 C-ITS",
+      "usage_status": "used_in_decision",
+      "role": "도로 공사구간 현장 이벤트",
+      "authentication_env": "JEJU_CITS_API_KEY",
+      "score_contribution": "현재 이벤트 구성점수",
+      "redistribution_status": "raw_payload_not_packaged"
+    },
+    {
+      "source_id": "jeju_cits_road_weather",
+      "provider": "제주 C-ITS",
+      "usage_status": "used_in_decision",
+      "role": "시정·적설·노면온도·수막·마찰 신호",
+      "authentication_env": "JEJU_CITS_API_KEY",
+      "score_contribution": "현재 기상·노면 25점 구성요소; 미래로 복사 금지",
+      "redistribution_status": "raw_payload_not_packaged"
+    },
+    {
+      "source_id": "jeju_its_realtime_traffic",
+      "provider": "제주 ITS",
+      "usage_status": "used_in_decision",
+      "role": "링크별 최신 속도·점유율·통행량",
+      "authentication_env": "JEJU_ITS_API_KEY",
+      "score_contribution": "현재 교통노출 15점 구성요소; 30분 신선도 게이트",
+      "redistribution_status": "raw_payload_not_packaged"
+    },
+    {
+      "source_id": "jeju_its_hourly_traffic",
+      "provider": "제주 ITS",
+      "usage_status": "configured_not_used",
+      "role": "F2 교통 예측·백테스트 후보",
+      "authentication_env": "JEJU_ITS_API_KEY",
+      "score_contribution": "v0.1 최종 점수에 미사용",
+      "redistribution_status": "not_packaged"
+    },
+    {
+      "source_id": "jeju_its_daily_traffic",
+      "provider": "제주 ITS",
+      "usage_status": "configured_not_used",
+      "role": "F2 일간 패턴 기준선 후보",
+      "authentication_env": "JEJU_ITS_API_KEY",
+      "score_contribution": "v0.1 최종 점수에 미사용",
+      "redistribution_status": "not_packaged"
+    },
+    {
+      "source_id": "kma_ultra_short_nowcast",
+      "provider": "기상청",
+      "usage_status": "used_in_quality_gate",
+      "role": "현재 격자별 관측시각과 가용성 판정",
+      "authentication_env": "DATA_GO_KR_SERVICE_KEY",
+      "score_contribution": "현재 행의 usable/degraded 판정에 사용",
+      "redistribution_status": "raw_payload_not_packaged"
+    },
+    {
+      "source_id": "kma_ultra_short_forecast",
+      "provider": "기상청",
+      "usage_status": "used_in_decision",
+      "role": "현재·1·3시간 격자 기상 근거",
+      "authentication_env": "DATA_GO_KR_SERVICE_KEY",
+      "score_contribution": "기상·노면 점수와 미래 시나리오",
+      "redistribution_status": "raw_payload_not_packaged"
+    },
+    {
+      "source_id": "kma_short_forecast",
+      "provider": "기상청",
+      "usage_status": "used_in_decision",
+      "role": "6시간 격자 기상 근거",
+      "authentication_env": "DATA_GO_KR_SERVICE_KEY",
+      "score_contribution": "6시간 기상·노면 점수 시나리오",
+      "redistribution_status": "raw_payload_not_packaged"
+    },
+    {
+      "source_id": "taas_link_risk",
+      "provider": "도로교통공단 TAAS",
+      "usage_status": "used_in_decision",
+      "role": "세부링크 구조적 도로위험 선행값",
+      "authentication_env": "TAAS_API_KEY",
+      "score_contribution": "구조위험 25점 바구니의 70%; 제주데이터허브와 중복 방지",
+      "redistribution_status": "raw_payload_not_packaged"
+    },
+    {
+      "source_id": "kac_realtime_flights",
+      "provider": "한국공항공사",
+      "usage_status": "blocked_not_used",
+      "role": "제주공항 도착편 유입압력 후보",
+      "authentication_env": "DATA_GO_KR_SERVICE_KEY",
+      "score_contribution": "권한 코드 30으로 unavailable; 0으로 대체하지 않음",
+      "redistribution_status": "not_packaged"
+    },
+    {
+      "source_id": "kac_hourly_arrival_passengers",
+      "provider": "한국공항공사",
+      "usage_status": "blocked_not_used",
+      "role": "제주공항 시간대별 도착 승객 유입압력 후보",
+      "authentication_env": "DATA_GO_KR_SERVICE_KEY",
+      "score_contribution": "권한 코드 30으로 unavailable; 0으로 대체하지 않음",
+      "redistribution_status": "not_packaged"
+    },
+    {
+      "source_id": "komsa_ferry_schedule",
+      "provider": "한국해양교통안전공단",
+      "usage_status": "blocked_not_used",
+      "role": "제주행 여객선 운항 일정 유입압력 후보",
+      "authentication_env": "DATA_GO_KR_SERVICE_KEY",
+      "score_contribution": "권한 코드 30으로 unavailable; 선박명 seed 필요",
+      "redistribution_status": "not_packaged"
+    },
+    {
+      "source_id": "komsa_monthly_departure_statistics",
+      "provider": "한국해양교통안전공단",
+      "usage_status": "blocked_not_used",
+      "role": "여객선 월별 기준 유입량 후보",
+      "authentication_env": "DATA_GO_KR_SERVICE_KEY",
+      "score_contribution": "권한 코드 30으로 unavailable; 0으로 대체하지 않음",
+      "redistribution_status": "not_packaged"
+    },
+    {
+      "source_id": "operator_resource_plan",
+      "provider": "RoadOps 운영자",
+      "usage_status": "operator_input",
+      "role": "팀·차량·출발지·근무시간·장비·필수·제외·고정 제약",
+      "authentication_env": null,
+      "score_contribution": "위험점수에는 미사용; 현장 업무·경로·배분의 하드 제약",
+      "redistribution_status": "synthetic_demo_scenario_packaged"
+    }
+  ],
+  "datasets": [
+    {
+      "dataset_id": "integrated_field_events",
+      "artifact": "demo/cached_inputs_v0_1/integrated_field_events.csv",
+      "format": "csv",
+      "grain": "one row per selected C-ITS source record",
+      "row_count": 22,
+      "primary_key": ["event_id"],
+      "source_ids": [
+        "molit_standard_node_link",
+        "jeju_datahub_1027",
+        "jeju_cits_road_event",
+        "jeju_cits_road_work",
+        "jeju_cits_road_weather",
+        "jeju_its_realtime_traffic",
+        "kma_ultra_short_forecast",
+        "taas_link_risk"
+      ],
+      "input_dataset_ids": [],
+      "code_refs": [
+        "05_src/roadops/integrated_events.py:358",
+        "07_scripts/20261112_roadops_build_integrated_events_v0_1.py:1"
+      ],
+      "field_groups": [
+        {
+          "group_id": "event_identity_and_time",
+          "fields": ["event_id", "source_id", "event_type", "snapshot_collected_at", "snapshot_age_minutes_at_build", "source_record_index"],
+          "source_ids": ["jeju_cits_road_event", "jeju_cits_road_work", "jeju_cits_road_weather"],
+          "transform": "소스·수집시각·원천순번·ID·좌표로 결정적 event_id를 생성하고 수집 신선도를 분단위로 계산"
+        },
+        {
+          "group_id": "spatial_match_audit",
+          "fields": ["integration_class", "scoring_eligible", "source_link_id", "audit_matched_link_id", "effective_link_id", "match_method", "match_distance_meters", "nearest_candidate_link_id", "nearest_candidate_distance_meters", "second_nearest_link_id", "second_nearest_distance_meters", "distance_margin_meters", "match_reason", "exclusion_reason"],
+          "source_ids": ["molit_standard_node_link"],
+          "transform": "원천 링크 ID 정확 일치를 우선하고 좌표 최근린크·1·2순위 거리차로 spatial_fallback/excluded를 분리; excluded는 effective_link_id를 null로 고정"
+        },
+        {
+          "group_id": "cits_event_payload",
+          "fields": ["event_latitude", "event_longitude", "event_heading", "event_code", "event_text", "whole_lane", "block_lane", "cits_visibility", "cits_snow", "cits_road_temperature", "cits_water_film", "cits_friction"],
+          "source_ids": ["jeju_cits_road_event", "jeju_cits_road_work", "jeju_cits_road_weather"],
+          "transform": "C-ITS 원본 이벤트·노면 필드를 유형 정규화하되 불확실한 단위는 원시값과 플래그로 보존"
+        },
+        {
+          "group_id": "road_reference",
+          "fields": ["road_name", "road_rank", "lane_count", "maximum_speed_limit", "road_type"],
+          "source_ids": ["molit_standard_node_link"],
+          "transform": "effective_link_id로 제주 기준망의 도로 속성을 1:1 결합"
+        },
+        {
+          "group_id": "jeju_datahub_geometry_prior",
+          "fields": ["hub_geometry_prior_status", "hub_dataset_id", "hub_geometry_proxy_class", "hub_link_sinuosity", "hub_source_period_start_year", "hub_source_period_end_year", "hub_source_accident_count", "hub_fatalities_per_100_accidents", "hub_injuries_per_accident", "hub_fatality_index_vs_straight"],
+          "source_ids": ["jeju_datahub_1027", "molit_standard_node_link"],
+          "transform": "ID 1027의 2018~2020 최상위 합계로 조건부 심각도를 계산하고 WKT 굴곡도 1.02 프록시로 37,087개 링크에 전파"
+        },
+        {
+          "group_id": "latest_traffic",
+          "fields": ["traffic_status", "traffic_observed_at", "traffic_age_minutes_at_build", "traffic_volume", "traffic_speed_kph", "traffic_occupancy_rate", "traffic_travel_time"],
+          "source_ids": ["jeju_its_realtime_traffic"],
+          "transform": "링크별 최신 유효 관측 1건을 선택하고 빌드 시점 신선도를 계산"
+        },
+        {
+          "group_id": "weather_enrichment",
+          "fields": ["weather_status", "weather_grid_x", "weather_grid_y", "weather_base_at", "weather_forecast_at", "weather_valid_time_offset_minutes_at_build", "weather_temperature_c", "weather_rainfall_1h_raw", "weather_sky_code", "weather_precipitation_type", "weather_humidity_percent", "weather_wind_speed_mps"],
+          "source_ids": ["kma_ultra_short_forecast"],
+          "transform": "이벤트 좌표를 기상청 5km 격자로 변환하고 빌드 시점과 60분 이내의 가장 가까운 예보 슬롯을 선택"
+        },
+        {
+          "group_id": "taas_prior",
+          "fields": ["taas_status", "taas_risk_value", "taas_risk_grade", "taas_fetched_at"],
+          "source_ids": ["taas_link_risk"],
+          "transform": "점수화 가능한 고유 링크별 위험지수를 조회하고 HTTP·제공자 오류를 분리"
+        },
+        {
+          "group_id": "quality_provenance",
+          "fields": ["operational_feature_source_count", "quality_flags"],
+          "source_ids": ["molit_standard_node_link", "jeju_datahub_1027", "jeju_its_realtime_traffic", "kma_ultra_short_forecast", "taas_link_risk"],
+          "transform": "가용 근거 수와 결측·시각·공간결합 한계를 결합하여 보존"
+        }
+      ]
+    },
+    {
+      "dataset_id": "weather_timeline",
+      "artifact": "02_outputs/data/weather_timeline_v0_1/weather_timeline.csv",
+      "format": "csv_generated_not_packaged",
+      "grain": "one row per KMA grid and 0/1/3/6-hour target",
+      "source_ids": ["kma_ultra_short_nowcast", "kma_ultra_short_forecast", "kma_short_forecast"],
+      "input_dataset_ids": ["integrated_field_events"],
+      "code_refs": ["05_src/roadops/weather_timeline.py:174"],
+      "field_groups": [
+        {"group_id": "time_semantics", "fields": ["observed_at", "observation_fetched_at", "forecast_base_at", "forecast_valid_at", "forecast_fetched_at", "target_at"], "transform": "관측·예보기준·유효·수집·목표 시각을 분리"}
+      ]
+    },
+    {
+      "dataset_id": "risk_scores",
+      "artifact": "02_outputs/data/risk_scores_v0_1/risk_scores.csv",
+      "format": "csv_generated_not_packaged",
+      "grain": "one score row per integrated C-ITS event",
+      "source_ids": ["jeju_datahub_1027", "jeju_cits_road_event", "jeju_cits_road_work", "jeju_cits_road_weather", "jeju_its_realtime_traffic", "kma_ultra_short_forecast", "taas_link_risk"],
+      "input_dataset_ids": ["integrated_field_events"],
+      "code_refs": ["05_src/roadops/risk_scoring.py:1"],
+      "field_groups": [
+        {"group_id": "four_components", "fields": ["event_score", "structural_score", "weather_road_score", "traffic_score"], "transform": "현재이벤트 35, 구조 25, 기상·노면 25, 교통 15의 가용 근거를 0~100으로 정규화"},
+        {"group_id": "uncertainty", "fields": ["risk_score", "risk_score_lower_bound", "risk_score_upper_bound", "evidence_coverage_ratio"], "transform": "결측 근거를 0으로 대체하지 않고 추정치·하한·상한을 분리; 커버리지 60% 미만 hold"}
+      ]
+    },
+    {
+      "dataset_id": "risk_forecasts",
+      "artifact": "demo/cached_inputs_v0_1/risk_forecasts.csv",
+      "format": "csv",
+      "grain": "one row per integrated event and 0/1/3/6-hour horizon",
+      "row_count": 88,
+      "primary_key": ["forecast_id"],
+      "source_ids": ["jeju_cits_road_event", "jeju_cits_road_work", "jeju_cits_road_weather", "jeju_its_realtime_traffic", "kma_ultra_short_nowcast", "kma_ultra_short_forecast", "kma_short_forecast", "jeju_datahub_1027", "taas_link_risk", "kac_realtime_flights", "kac_hourly_arrival_passengers", "komsa_ferry_schedule", "komsa_monthly_departure_statistics"],
+      "input_dataset_ids": ["integrated_field_events", "weather_timeline", "risk_scores"],
+      "code_refs": ["05_src/roadops/risk_forecast.py:1", "07_scripts/20261112_roadops_build_risk_forecasts_v0_1.py:1"],
+      "field_groups": [
+        {
+          "group_id": "forecast_identity",
+          "fields": ["forecast_id", "generated_at", "target_at", "horizon_hours", "event_id", "source_id", "event_type", "event_code", "effective_link_id", "road_name", "integration_class", "forecast_version", "forecast_semantics"],
+          "transform": "event_id·target_at·버전으로 결정적 forecast_id를 생성하고 원천·도로 식별자를 전파"
+        },
+        {
+          "group_id": "availability_and_rank",
+          "fields": ["forecast_status", "score_available", "ranking_eligible", "forecast_rank", "risk_level", "evidence_coverage_ratio"],
+          "transform": "시점별 근거 커버리지와 품질 상태로 usable/degraded/hold를 판정하고 가용 행만 독립 순위화"
+        },
+        {
+          "group_id": "priority_interval_and_delta",
+          "fields": ["forecast_priority_score", "forecast_score_lower_bound", "forecast_score_upper_bound", "forecast_uncertainty_width", "risk_delta_from_current", "risk_direction"],
+          "transform": "가용 근거 재정규화 점수와 결측 근거 0/100 가정 구간을 계산하고 현재 대비 변화를 분리"
+        },
+        {
+          "group_id": "scenario_assumptions",
+          "fields": ["event_assumption", "traffic_assumption", "gateway_inflow_status", "gateway_inflow_pressure"],
+          "transform": "해제시각 없는 이벤트는 지속 시나리오로, 미래 ITS·관문 근거는 unavailable로 남기고 0으로 대체하지 않음"
+        },
+        {
+          "group_id": "weather_evidence",
+          "fields": ["weather_row_status", "weather_evidence_kind", "weather_source_id", "weather_base_at", "weather_valid_at", "weather_evidence_at", "weather_temperature_c", "weather_rainfall_raw", "weather_precipitation_type", "weather_humidity_percent", "weather_wind_speed_mps"],
+          "transform": "격자·목표시각으로 weather_timeline을 조인하고 관측/초단기/단기 근거와 시각을 보존"
+        },
+        {
+          "group_id": "components_and_quality",
+          "fields": ["event_score", "structural_score", "weather_road_score", "traffic_score", "risk_drivers", "quality_flags", "forecast_limitations"],
+          "transform": "네 구성점수와 기여도 순의 주요 근거, 품질 플래그, 시나리오 한계를 결합"
+        }
+      ]
+    },
+    {
+      "dataset_id": "travel_time_matrix",
+      "artifact": "demo/cached_inputs_v0_1/travel_time_matrix.json",
+      "format": "json",
+      "grain": "one route per origin and destination task",
+      "row_count": 108,
+      "source_ids": ["molit_standard_node_link", "jeju_cits_road_close", "operator_resource_plan"],
+      "input_dataset_ids": ["risk_forecasts"],
+      "code_refs": ["05_src/roadops/travel_time.py:624", "07_scripts/20261113_roadops_build_travel_time_matrix_v0_1.py:1"],
+      "coverage_rules": [
+        {"path": "schema_version", "match": "exact", "transform": "스키마 버전 상수"},
+        {"path": "travel_time_version", "match": "exact", "transform": "경로계산 버전 상수"},
+        {"path": "status", "match": "exact", "transform": "경로 품질게이트 종합 상태"},
+        {"path": "scenario_id", "match": "exact", "transform": "운영자 자원 시나리오 ID 전파"},
+        {"path": "generated_at", "match": "exact", "transform": "행렬 생성시각"},
+        {"path": "route_semantics", "match": "exact", "transform": "제한속도 기반 자유흐름·비실시간 ETA 의미 고정"},
+        {"path": "closed_link_ids", "match": "prefix", "transform": "C-ITS·운영자 통제 링크를 방향성 그래프에서 제거"},
+        {"path": "execution", "match": "prefix", "transform": "입력·파라미터 해시 캐시의 생성·재생 정보"},
+        {"path": "routes", "match": "prefix", "transform": "제주 방향성 노드링크에서 제한속도 가중치 Dijkstra로 최단시간 경로·거리·통과링크 계산"},
+        {"path": "limitations", "match": "prefix", "transform": "실시간 정체·회전제한·도로 접근 한계 표시"}
+      ]
+    },
+    {
+      "dataset_id": "field_tasks",
+      "artifact": "generated inside agent_result.json",
+      "format": "json_array",
+      "grain": "one field task per effective link and horizon",
+      "source_ids": ["operator_resource_plan"],
+      "input_dataset_ids": ["risk_forecasts", "integrated_field_events"],
+      "code_refs": ["05_src/roadops/allocation_baselines.py:84"],
+      "field_groups": [
+        {"group_id": "task_identity_and_priority", "fields": ["task_id", "link_id", "horizon_hours", "priority_score", "score_lower_bound", "score_upper_bound", "risk_level"], "transform": "동일 effective_link_id의 순위 가능 이벤트를 하나의 현장 업무로 묶고 최고 우선순위와 구간을 보존"},
+        {"group_id": "operator_constraints", "fields": ["mandatory", "excluded", "fixed_team_id", "service_minutes", "required_skills", "required_equipment"], "transform": "운영자 자원 시나리오의 필수·제외·고정·시간·역량 제약을 링크별로 결합"}
+      ]
+    },
+    {
+      "dataset_id": "optimized_allocation",
+      "artifact": "generated inside agent_result.json",
+      "format": "json",
+      "grain": "one alternative containing ordered team routes",
+      "source_ids": ["operator_resource_plan"],
+      "input_dataset_ids": ["field_tasks", "travel_time_matrix"],
+      "code_refs": ["05_src/roadops/allocation_optimizer.py:496"],
+      "field_groups": [
+        {"group_id": "feasible_route_search", "fields": ["assignments", "team_summaries", "unassigned_tasks"], "transform": "팀별 최대 3개 업무 순열을 생성하고 장비·고정·필수·근무시간·경로 하드 제약을 통과한 조합만 탐색"},
+        {"group_id": "objectives", "fields": ["risk_weighted_coverage_ratio", "network_total_travel_minutes", "maximum_team_elapsed_minutes", "elapsed_minutes_variance"], "transform": "안전우선은 위험합→업무수→이동시간, 균형안은 안전안 95% 이상에서 최대소요·분산을 최소화"}
+      ]
+    },
+    {
+      "dataset_id": "partial_replanning",
+      "artifact": "02_outputs/data/partial_replanning_v0_1/replanning_result.json",
+      "format": "json_generated_and_projected_to_dashboard",
+      "grain": "one scenario result per closure or heavy-rain what-if",
+      "source_ids": ["jeju_cits_road_close", "kma_ultra_short_forecast", "operator_resource_plan"],
+      "input_dataset_ids": ["optimized_allocation", "travel_time_matrix", "risk_forecasts"],
+      "code_refs": ["05_src/roadops/replanning.py:784"],
+      "field_groups": [
+        {"group_id": "partial_change", "fields": ["affected_team_ids", "unchanged_team_ids", "plan_diff", "change_reasons"], "transform": "완료·고정·비영향 업무를 보존하고 영향팀만 재최적화한 후 변경 이유를 결정적 문장으로 생성"}
+      ]
+    },
+    {
+      "dataset_id": "map_snapshot",
+      "artifact": "08_dashboard/roadops_map_v0_1/src/data.json",
+      "format": "json",
+      "grain": "one reviewed dashboard snapshot containing named query tables",
+      "source_ids": ["molit_standard_node_link", "operator_resource_plan"],
+      "input_dataset_ids": ["risk_forecasts", "field_tasks", "optimized_allocation", "partial_replanning"],
+      "code_refs": ["05_src/roadops/map_snapshot.py:321", "07_scripts/20261113_roadops_build_map_snapshot_v0_1.py:127"],
+      "field_groups": [
+        {"group_id": "dashboard_queries", "fields": ["road_background", "risk_links", "field_tasks", "teams", "plan_routes", "plan_metrics", "replan_routes", "scenario_summary", "scenario_impacts", "data_availability", "map_metadata"], "transform": "원천 형상·위험·자원·배분·재계획을 11개 명명 쿼리로 투영하고 소스·한계 메타데이터를 첨부"}
+      ]
+    }
+  ],
+  "final_outputs": [
+    {
+      "output_id": "agent_result",
+      "artifact": "02_outputs/data/data_lineage_validation_v0_1/agent_result/agent_result.json",
+      "generated_by": "07_scripts/20261113_roadops_run_agent_flow_v0_1.py",
+      "input_dataset_ids": ["integrated_field_events", "risk_forecasts", "travel_time_matrix", "field_tasks", "optimized_allocation"],
+      "code_refs": ["05_src/roadops/agent_flow.py:487", "07_scripts/20261113_roadops_run_agent_flow_v0_1.py:1"],
+      "coverage_rules": [
+        {"path": "schema_version", "match": "exact", "transform": "Agent 결과 스키마 버전"},
+        {"path": "agent_version", "match": "exact", "transform": "Agent 오케스트레이션 버전"},
+        {"path": "run_id", "match": "exact", "transform": "요청·자원시나리오·실행모드의 결정적 SHA-256"},
+        {"path": "status", "match": "exact", "transform": "7 Tool과 품질게이트의 종합 상태"},
+        {"path": "execution_mode", "match": "exact", "transform": "cached_demo/prepared_inputs 실행모드"},
+        {"path": "request_text", "match": "exact", "transform": "운영자 입력 원문"},
+        {"path": "scenario_id", "match": "exact", "transform": "검증된 자원시나리오 ID"},
+        {"path": "generated_at", "match": "exact", "transform": "실행 기준시각; --as-of로 고정 가능"},
+        {"path": "agent_contract", "match": "prefix", "transform": "Prompt·Tool 계약 ID·해시·기대/관측 순서"},
+        {"path": "parsed_request", "match": "prefix", "transform": "제한된 한국어 문법에서 팀·차량·시간·시점·대안 제약 추출"},
+        {"path": "field_tasks", "match": "prefix", "transform": "risk_forecasts의 순위 가능 행을 동일 링크별 현장 업무로 통합하고 운영자 제약 결합"},
+        {"path": "allocation", "match": "prefix", "transform": "field_tasks·travel_time_matrix·resource_plan의 하드 제약 완전탐색으로 안전/균형 대안 생성"},
+        {"path": "validation_checks", "match": "prefix", "transform": "최적화 후 중복·경로·근무시간·하드제약을 독립 재검사"},
+        {"path": "tool_trace", "match": "prefix", "transform": "각 Tool의 입력·출력 요약·상태·한계를 순서대로 기록"},
+        {"path": "final_response", "match": "prefix", "transform": "검증된 배분 지표·데이터 의미·한계·수동승인 필요를 결정적 템플릿으로 투영"}
+      ]
+    },
+    {
+      "output_id": "dashboard_snapshot",
+      "artifact": "08_dashboard/roadops_map_v0_1/src/data.json",
+      "generated_by": "07_scripts/20261113_roadops_build_map_snapshot_v0_1.py",
+      "input_dataset_ids": ["map_snapshot"],
+      "code_refs": ["05_src/roadops/map_snapshot.py:321", "07_scripts/20261113_roadops_build_map_snapshot_v0_1.py:127"],
+      "coverage_rules": [
+        {"path": "id", "match": "exact", "transform": "정적 대시보드 ID"},
+        {"path": "title", "match": "exact", "transform": "표시 제목"},
+        {"path": "generatedAt", "match": "exact", "transform": "검토된 스냅샷 생성시각"},
+        {"path": "status", "match": "exact", "transform": "reviewed_local_snapshot 상태 고정"},
+        {"path": "surface", "match": "exact", "transform": "dashboard 표시면"},
+        {"path": "filters", "match": "prefix", "transform": "초기 필터 메타데이터"},
+        {"path": "buildStatus", "match": "exact", "transform": "웹 빌드 상태"},
+        {"path": "exportPreferences", "match": "prefix", "transform": "클라이언트 내보내기 초기값"},
+        {"path": "queries.map_metadata", "match": "prefix", "transform": "신선도·위험·시나리오·이동시간 의미 요약"},
+        {"path": "queries.road_background", "match": "prefix", "transform": "국토부 링크 WKT를 WGS84 주요도로 배경 형상으로 그룹화"},
+        {"path": "queries.risk_links", "match": "prefix", "transform": "risk_forecasts를 링크·시간지평별로 집계하고 형상·점수·구간·품질 결합"},
+        {"path": "queries.field_tasks", "match": "prefix", "transform": "Agent 현장 업무 필드 투영"},
+        {"path": "queries.teams", "match": "prefix", "transform": "운영자 자원 시나리오의 팀·차량·근무·장비 투영"},
+        {"path": "queries.plan_routes", "match": "prefix", "transform": "최적화 assignments와 route_link_ids를 실제 도로 형상으로 연결"},
+        {"path": "queries.plan_metrics", "match": "prefix", "transform": "안전/균형 대안의 커버리지·이동시간·소요시간·위반 지표 투영"},
+        {"path": "queries.replan_routes", "match": "prefix", "transform": "영향팀의 재계획 전/후 assignments와 도로 형상 결합"},
+        {"path": "queries.scenario_summary", "match": "prefix", "transform": "부분 재계획의 영향팀·비영향팀·변경이유·지표차를 요약"},
+        {"path": "queries.scenario_impacts", "match": "prefix", "transform": "통제·폭우 What-if 영향 링크와 형상 투영"},
+        {"path": "queries.data_availability", "match": "prefix", "transform": "기상·교통·관문 레이어의 연결·미연결과 점수 반영 여부를 명시"}
+      ]
+    }
+  ],
+  "safety_policies": [
+    "Missing evidence is never silently imputed as zero.",
+    "Excluded spatial matches cannot receive an effective link or score.",
+    "Gateway API failures remain unavailable and contribute no fabricated pressure.",
+    "Future horizons do not copy current ITS traffic or C-ITS road-sensor observations.",
+    "Risk values are operational inspection priorities, not accident probabilities.",
+    "Every allocation requires manual approval before field dispatch."
+  ]
+}

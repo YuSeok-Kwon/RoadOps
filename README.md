@@ -81,6 +81,15 @@ Validate the submission source, Prompt/Tool contract, secret exclusion, and one-
   --strict
 ```
 
+19개 원천부터 Agent와 지도 출력까지의 데이터 계보와 592개 필드·JSON leaf path를 검증합니다.
+
+Validate the lineage from 19 sources to the Agent and map outputs, covering 592 fields and JSON leaf paths.
+
+```bash
+.venv/bin/python 07_scripts/20261116_roadops_validate_data_lineage_v0_1.py \
+  --strict
+```
+
 ## 첫 데이터 스파이크 / First data spike
 
 ```bash
@@ -202,6 +211,7 @@ The documented C-ITS/ITS operational URLs use HTTP and may transmit API keys in 
 - [장애·복구 평가 v0.1 / Resilience evaluation v0.1](./04_docs/evaluation/20261116_roadops_resilience_evaluation_v0_1.md)
 - [센터 실행환경 검증 v0.1 / Center environment validation v0.1](./04_docs/deployment/20261116_roadops_center_environment_validation_v0_1.md)
 - [실행·사용자 매뉴얼 v0.1 / Execution and user manual v0.1](./04_docs/deployment/20261116_roadops_execution_user_manual_v0_1.md)
+- [데이터 활용·필드 계보 명세 v0.1 / Data usage and field lineage v0.1](./04_docs/deployment/20261116_roadops_data_usage_lineage_v0_1.md)
 - [평가 연계 작업표 / Evaluation-aligned work plan](./04_docs/planning/20261112_roadops_evaluation_workplan_v0_1.md)
 - [실제 제주 도로망 품질 검증 / Real Jeju road-network quality validation](./04_docs/data_feasibility/20261026_roadops_real_road_network_quality_v0_2.md)
 - [실시간 링크 호환성 검증 / Live-link compatibility validation](./04_docs/data_feasibility/20261026_roadops_live_link_compatibility_v0_3.md)
