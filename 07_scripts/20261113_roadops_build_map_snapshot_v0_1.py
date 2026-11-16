@@ -74,7 +74,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--build-status",
-        choices=["creating", "complete", "paused"],
+        choices=["creating", "updating", "complete", "paused"],
         default="creating",
     )
     parser.add_argument(
@@ -207,7 +207,7 @@ def build_data_app_snapshot(
     }
     return {
         "id": "roadops:jeju-field-operations-map:v0.1",
-        "title": "RoadOps 제주 현장 운영 지도",
+        "title": "RoadOps 제주 현장 운영 워크벤치",
         "generatedAt": generated_at,
         "status": "reviewed_local_snapshot",
         "surface": "dashboard",

@@ -373,16 +373,37 @@ def build_map_snapshot(
     )
 
     field_tasks = [dict(item) for item in allocation.get("field_tasks", [])]
+    vehicles = {
+        str(vehicle.get("vehicle_id")): vehicle
+        for vehicle in resources.get("vehicles", [])
+        if vehicle.get("vehicle_id")
+    }
+    planning = resources.get("planning", {})
     teams = [
         {
             "team_id": team.get("team_id"),
             "team_name": team.get("team_name"),
             "vehicle_id": team.get("vehicle_id"),
+            "vehicle_type": vehicles.get(str(team.get("vehicle_id")), {}).get(
+                "vehicle_type"
+            ),
+            "vehicle_status": vehicles.get(str(team.get("vehicle_id")), {}).get(
+                "status"
+            ),
+            "vehicle_personnel_capacity": vehicles.get(
+                str(team.get("vehicle_id")), {}
+            ).get("personnel_capacity"),
+            "vehicle_equipment": vehicles.get(
+                str(team.get("vehicle_id")), {}
+            ).get("equipment", []),
             "personnel_count": team.get("personnel_count"),
             "start_latitude": team.get("start_latitude"),
             "start_longitude": team.get("start_longitude"),
             "shift_start_at": team.get("shift_start_at"),
             "shift_end_at": team.get("shift_end_at"),
+            "skills": team.get("skills", []),
+            "equipment": team.get("equipment", []),
+            "max_tasks_per_team": planning.get("max_tasks_per_team"),
         }
         for team in resources.get("teams", [])
     ]

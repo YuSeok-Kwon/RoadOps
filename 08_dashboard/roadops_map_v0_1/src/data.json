@@ -1,7 +1,7 @@
 {
   "id": "roadops:jeju-field-operations-map:v0.1",
-  "title": "RoadOps 제주 현장 운영 지도",
-  "generatedAt": "2026-11-13T18:09:18.379568+09:00",
+  "title": "RoadOps 제주 현장 운영 워크벤치",
+  "generatedAt": "2026-11-16T17:36:28.508199+09:00",
   "status": "reviewed_local_snapshot",
   "surface": "dashboard",
   "filters": [],
@@ -10,9 +10,9 @@
       "rows": [
         {
           "snapshot_version": "roadops-map-snapshot-v0.1",
-          "generated_at": "2026-11-13T18:09:18.379568+09:00",
+          "generated_at": "2026-11-16T17:36:28.508199+09:00",
           "latest_risk_target_at": "2026-11-13T04:00:00+09:00",
-          "snapshot_age_minutes": 849.3,
+          "snapshot_age_minutes": 5136.5,
           "freshness_status": "stale_snapshot",
           "risk_semantics": "operational_priority_scenario_not_accident_probability",
           "travel_semantics": "network_free_flow_estimate_not_live_eta",
@@ -1635,31 +1635,65 @@
           "team_id": "team-east",
           "team_name": "동부 순찰팀",
           "vehicle_id": "patrol-east-01",
+          "vehicle_type": "patrol_car",
+          "vehicle_status": "available",
+          "vehicle_personnel_capacity": 2,
+          "vehicle_equipment": [
+            "traffic_cones",
+            "road_weather_kit"
+          ],
           "personnel_count": 2,
           "start_latitude": 33.35,
           "start_longitude": 126.6,
           "shift_start_at": "2026-11-12T22:00:00+09:00",
-          "shift_end_at": "2026-11-13T00:11:25+09:00"
+          "shift_end_at": "2026-11-13T00:11:25+09:00",
+          "skills": [
+            "general_patrol"
+          ],
+          "equipment": [],
+          "max_tasks_per_team": 3
         },
         {
           "team_id": "team-north",
           "team_name": "북부 순찰팀",
           "vehicle_id": "patrol-north-01",
+          "vehicle_type": "patrol_car",
+          "vehicle_status": "available",
+          "vehicle_personnel_capacity": 2,
+          "vehicle_equipment": [
+            "traffic_cones"
+          ],
           "personnel_count": 2,
           "start_latitude": 33.5,
           "start_longitude": 126.53,
           "shift_start_at": "2026-11-12T22:00:00+09:00",
-          "shift_end_at": "2026-11-13T00:11:25+09:00"
+          "shift_end_at": "2026-11-13T00:11:25+09:00",
+          "skills": [
+            "general_patrol"
+          ],
+          "equipment": [],
+          "max_tasks_per_team": 3
         },
         {
           "team_id": "team-west",
           "team_name": "서부 순찰팀",
           "vehicle_id": "patrol-west-01",
+          "vehicle_type": "patrol_car",
+          "vehicle_status": "available",
+          "vehicle_personnel_capacity": 2,
+          "vehicle_equipment": [
+            "traffic_cones"
+          ],
           "personnel_count": 2,
           "start_latitude": 33.38,
           "start_longitude": 126.37,
           "shift_start_at": "2026-11-12T22:00:00+09:00",
-          "shift_end_at": "2026-11-13T00:11:25+09:00"
+          "shift_end_at": "2026-11-13T00:11:25+09:00",
+          "skills": [
+            "general_patrol"
+          ],
+          "equipment": [],
+          "max_tasks_per_team": 3
         }
       ],
       "source": {

@@ -81,12 +81,25 @@ def test_build_map_snapshot_aggregates_risk_and_marks_unavailable_gateway():
         "scenario_results": [],
     }
     resources = {
+        "planning": {"max_tasks_per_team": 3},
+        "vehicles": [
+            {
+                "vehicle_id": "patrol-east-01",
+                "vehicle_type": "patrol_car",
+                "personnel_capacity": 2,
+                "status": "available",
+                "equipment": ["traffic_cones"],
+            }
+        ],
         "teams": [
             {
                 "team_id": "team-east",
                 "team_name": "동부팀",
+                "vehicle_id": "patrol-east-01",
+                "personnel_count": 2,
                 "start_latitude": 33.4,
                 "start_longitude": 126.6,
+                "skills": ["general_patrol"],
             }
         ]
     }
@@ -128,6 +141,9 @@ def test_build_map_snapshot_aggregates_risk_and_marks_unavailable_gateway():
     assert json.loads(risk["geometry_json"])[0][0] == [126.3, 33.3]
     assert queries["data_availability"][0]["status"] == "unavailable"
     assert queries["map_metadata"][0]["freshness_status"] == "stale_snapshot"
+    assert queries["teams"][0]["vehicle_status"] == "available"
+    assert queries["teams"][0]["vehicle_personnel_capacity"] == 2
+    assert queries["teams"][0]["max_tasks_per_team"] == 3
 
 
 def test_build_map_snapshot_reports_missing_required_geometry():

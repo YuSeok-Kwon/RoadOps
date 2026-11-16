@@ -7,6 +7,7 @@ import {
   useDataApp,
   useDashboardTabs,
 } from "../../data-app-public.jsx";
+import { WorkflowPanel } from "./WorkflowPanel.jsx";
 import "./dashboard.css";
 
 const HORIZONS = [0, 1, 3, 6];
@@ -222,7 +223,10 @@ function RoadMap({
         {teamRows.map((row) => {
           const [x, y] = project(row.start_longitude, row.start_latitude);
           return <g key={row.team_id} transform={`translate(${x} ${y})`}>
-            <circle r="11" style={{ fill: TEAM_COLORS[row.team_id] || "#475569" }} />
+            <circle r="11" data-available={row.available === false ? "false" : "true"}
+              style={{ fill: TEAM_COLORS[row.team_id] || "#475569" }}>
+              <title>{`${row.team_name} · ${row.available === false ? "비가용" : "가용"}`}</title>
+            </circle>
             <text y="4">{row.team_name?.slice(0, 1) || "팀"}</text>
           </g>;
         })}
@@ -329,6 +333,7 @@ export function DashboardContent() {
   const [selectedPlan, setSelectedPlan] = useState("safety_first");
   const [scenarioId, setScenarioId] = useState("none");
   const [selectedRiskId, setSelectedRiskId] = useState(null);
+  const [workflowState, setWorkflowState] = useState(null);
   const horizon = HORIZONS[horizonIndex] ?? 0;
 
   useEffect(() => {
@@ -344,7 +349,27 @@ export function DashboardContent() {
     ?? null;
   const planMetrics = rows("plan_metrics");
   const selectedMetrics = planMetrics.find((row) => row.alternative_id === selectedPlan) ?? {};
-  const routeRows = rows("plan_routes").filter((row) => row.alternative_id === selectedPlan);
+  const workflowTasks = new Map((workflowState?.tasks ?? []).map((task) => [task.taskId, task]));
+  const workflowResources = new Map((workflowState?.resources ?? []).map((resource) => [resource.teamId, resource]));
+  const effectiveTaskRows = rows("field_tasks").map((row) => {
+    const decision = workflowTasks.get(String(row.task_id));
+    return decision ? {
+      ...row,
+      excluded: decision.excluded,
+      fixed_team_id: decision.fixed ? decision.assignedTeamId : null,
+      assigned_team_id: decision.assignedTeamId,
+    } : row;
+  });
+  const effectiveTeamRows = rows("teams").map((row) => ({
+    ...row,
+    available: workflowResources.get(String(row.team_id))?.available ?? true,
+  }));
+  const routeRows = rows("plan_routes")
+    .filter((row) => row.alternative_id === selectedPlan)
+    .filter((row) => {
+      const decision = workflowTasks.get(String(row.task_id));
+      return !decision || (!decision.excluded && decision.assignedTeamId === row.team_id);
+    });
   const replanRows = rows("replan_routes").filter((row) => row.scenario_id === scenarioId);
   const impactRows = rows("scenario_impacts").filter((row) => row.scenario_id === scenarioId);
   const highRiskCount = riskRows.filter((row) => ["high", "critical"].includes(row.risk_level)).length;
@@ -407,7 +432,7 @@ export function DashboardContent() {
             { field: "scenario_id", label: "재계획 시나리오", value: scenarioId },
           ]} className="roadops-map-card">
           <RoadMap backgroundRows={rows("road_background")} riskRows={riskRows}
-            taskRows={rows("field_tasks")} teamRows={rows("teams")} routeRows={routeRows}
+            taskRows={effectiveTaskRows} teamRows={effectiveTeamRows} routeRows={routeRows}
             replanRows={replanRows} impactRows={impactRows} selectedRisk={selectedRisk}
             onSelectRisk={(row) => setSelectedRiskId(row.link_id)} scenarioId={scenarioId} />
         </DataComponent>
@@ -415,8 +440,11 @@ export function DashboardContent() {
       </section>
 
       <aside className="roadops-inspector">
+        <WorkflowPanel teams={rows("teams")} tasks={rows("field_tasks")}
+          routes={rows("plan_routes")} planMetrics={planMetrics} metadata={metadata}
+          selectedPlan={selectedPlan} scenarioId={scenarioId} onStateChange={setWorkflowState} />
         <RiskDetail row={selectedRisk} sourceRows={allRiskRows} horizon={horizon} />
-        <TaskQueue rows={rows("field_tasks")} selectedLinkId={selectedRisk?.link_id} onSelect={selectTask} />
+        <TaskQueue rows={effectiveTaskRows} selectedLinkId={selectedRisk?.link_id} onSelect={selectTask} />
         <PlanComparison rows={planMetrics} selectedPlan={selectedPlan} onSelect={setSelectedPlan} />
         <DataComponent variant="plain" id="gateway-availability" queryId="data_availability" kind="custom"
           title="외부 유입압력" description="공항·항만 유입압력 데이터의 연결 상태입니다."
