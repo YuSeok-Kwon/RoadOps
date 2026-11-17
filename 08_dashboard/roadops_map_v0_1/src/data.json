@@ -1,7 +1,7 @@
 {
   "id": "roadops:jeju-field-operations-map:v0.1",
   "title": "RoadOps 제주 현장 운영 워크벤치",
-  "generatedAt": "2026-11-17T21:44:19.362153+09:00",
+  "generatedAt": "2026-11-17T21:46:21.639006+09:00",
   "status": "reviewed_local_snapshot",
   "surface": "dashboard",
   "filters": [],
@@ -10,7 +10,7 @@
       "rows": [
         {
           "snapshot_version": "roadops-map-snapshot-v0.1",
-          "generated_at": "2026-11-17T21:44:19.362153+09:00",
+          "generated_at": "2026-11-17T21:46:21.639006+09:00",
           "latest_risk_target_at": "2026-11-18T03:00:00+09:00",
           "snapshot_age_minutes": 0.0,
           "freshness_status": "recent_snapshot",
@@ -659,6 +659,36 @@
               {
                 "tables": [
                   "02_outputs/data/complaint_hotspots_v0_1/complaint_hotspots.json"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "crime_caution_overlay": {
+      "rows": [],
+      "source": {
+        "label": "Safety Map 2025 crime-caution WMS",
+        "caveats": [
+          "The layer is displayed only after provider authorization and remains separate from the RoadOps risk score.",
+          "It is an annual police density-analysis image, not a real-time crime feed or an exact incident location map.",
+          "Korea Open Government License Type 4 applies: attribution, no commercial use, and no modification."
+        ],
+        "tables": [
+          "02_outputs/data/safemap_crime_v0_1/crime_caution_overlay.json"
+        ],
+        "metricDefinitions": [
+          {
+            "label": "Safety Map 2025 crime-caution WMS",
+            "definition": "Repository-local reviewed snapshot generated deterministically from the listed source artifacts.",
+            "componentIds": [
+              "roadops-map"
+            ],
+            "sourceLineage": [
+              {
+                "tables": [
+                  "02_outputs/data/safemap_crime_v0_1/crime_caution_overlay.json"
                 ]
               }
             ]

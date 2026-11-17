@@ -99,6 +99,11 @@ def parse_args() -> argparse.Namespace:
         / "02_outputs/data/complaint_hotspots_v0_1/complaint_hotspots.json",
     )
     parser.add_argument(
+        "--crime-caution-overlay",
+        type=Path,
+        default=PROJECT_ROOT / "02_outputs/data/safemap_crime_v0_1/crime_caution_overlay.json",
+    )
+    parser.add_argument(
         "--reverse-geocode",
         type=Path,
         default=PROJECT_ROOT
@@ -253,6 +258,16 @@ def build_data_app_snapshot(
                 "Only coarse cells with at least three complaints are displayed and the layer is not added to the risk score.",
             ],
         ),
+        "crime_caution_overlay": source(
+            "Safety Map 2025 crime-caution WMS",
+            [inputs["crime_caution_overlay"]],
+            ["roadops-map"],
+            [
+                "The layer is displayed only after provider authorization and remains separate from the RoadOps risk score.",
+                "It is an annual police density-analysis image, not a real-time crime feed or an exact incident location map.",
+                "Korea Open Government License Type 4 applies: attribution, no commercial use, and no modification.",
+            ],
+        ),
         "road_background": source(
             "MOLIT Jeju standard road-link geometry",
             [inputs["road_links"]],
@@ -359,6 +374,7 @@ def main() -> int:
         "historical_similarity": args.historical_similarity,
         "crime_statistics": args.crime_statistics,
         "complaint_hotspots": args.complaint_hotspots,
+        "crime_caution_overlay": args.crime_caution_overlay,
         "reverse_geocode": args.reverse_geocode,
         "jeju_ai_platform_quality": args.jeju_ai_platform_quality,
         "gateway_audit": args.gateway_audit,
@@ -379,6 +395,7 @@ def main() -> int:
         historical_similarity_rows=read_json(args.historical_similarity).get("records", []),
         crime_statistic_rows=read_json(args.crime_statistics).get("records", []),
         complaint_hotspot_rows=read_json(args.complaint_hotspots).get("records", []),
+        crime_caution_overlay_rows=read_json(args.crime_caution_overlay).get("records", []),
         reverse_geocode_rows=read_json(args.reverse_geocode).get("records", []),
         jeju_ai_platform_quality=read_json(args.jeju_ai_platform_quality),
         gateway_quality=read_json(args.gateway_audit),

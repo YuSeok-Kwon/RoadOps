@@ -449,6 +449,28 @@
         "intersection_name_available": false,
         "fallback_provider": "OpenStreetMap Nominatim"
       }
+    },
+    {
+      "id": "safemap_crime_caution_wms",
+      "name": "Safety Map crime-caution zones",
+      "name_ko": "생활안전지도 범죄주의구간(전체)",
+      "documentation_url": "https://www.safemap.go.kr/opna/data/dataViewRenew.do?objtId=205",
+      "endpoint_url": "https://www.safemap.go.kr/openapi2/IF_0087_WMS",
+      "kind": "wms_image_api",
+      "authentication": {
+        "environment_variable": "SAFEMAP_API_KEY",
+        "query_parameter": "serviceKey",
+        "provider_approval_note": "Location-based service authorization may be required."
+      },
+      "join_key": "Jeju WGS84 bounding box",
+      "coordinate_system": "EPSG:4326",
+      "expected_fields": ["transparent PNG WMS image"],
+      "quality_contract": {
+        "analysis_year": 2025,
+        "refresh_cycle": "annual",
+        "license": "Korea Open Government License Type 4",
+        "risk_score_input": false
+      }
     }
   ]
 }
