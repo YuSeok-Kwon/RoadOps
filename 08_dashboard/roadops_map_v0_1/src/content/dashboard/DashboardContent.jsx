@@ -72,6 +72,13 @@ const QUALITY_LABELS = {
   "scenario:event_persistence_without_end_time": "종료 시각이 없는 위험정보를 계속 유효한 것으로 보았습니다.",
   "hold:insufficient_evidence_coverage": "사용할 수 있는 근거가 부족해 현장 확인 전에 추가 검토가 필요합니다.",
 };
+const EVENT_LABELS = {
+  road_weather: "노면기상",
+  road_event: "도로 돌발상황",
+  road_closure: "도로 통제",
+  road_work: "도로 작업",
+  traffic_accident: "교통사고",
+};
 
 function geometry(value) {
   if (Array.isArray(value)) return value;
@@ -117,6 +124,27 @@ function parseDriver(value) {
 
 function qualityMessage(flag) {
   return QUALITY_LABELS[flag] || "일부 데이터의 최신성 또는 연결 상태를 추가로 확인해야 합니다.";
+}
+
+function priorityReasons(row) {
+  const eventTypes = Array.isArray(row.event_types)
+    ? row.event_types
+    : String(row.event_types || "").split(/[|,]/).map((value) => value.trim()).filter(Boolean);
+  const reasons = [];
+  if (["critical", "high"].includes(row.risk_level)) {
+    reasons.push(`위험 단계가 '${RISK_LABELS[row.risk_level]}'입니다.`);
+  }
+  if (Number(row.event_count) > 0) {
+    const labels = eventTypes.map((value) => EVENT_LABELS[value] || "현장 위험정보").join("·");
+    reasons.push(`${labels} ${number(row.event_count, 0)}건이 반영됐습니다.`);
+  }
+  if (row.mandatory) reasons.push("반드시 확인해야 하는 필수 점검 구간입니다.");
+  reasons.push(`현장 확인 우선순위 ${number(row.priority_score)}점입니다.`);
+  return reasons.slice(0, 3);
+}
+
+function routeKey(row) {
+  return row ? `${row.alternative_id}:${row.team_id}:${row.task_id}:${row.sequence}` : null;
 }
 
 function pathFor(parts, project) {
@@ -170,20 +198,54 @@ function Metric({ label, value, note, tone = "neutral" }) {
 function MapLegend({ showScenario }) {
   return <div className="roadops-map-legend" aria-label="지도 범례">
     <div className="legend-group">
-      <span className="legend-title">도로 위험도</span>
-      <span><i data-risk="high" />먼저 확인</span>
-      <span><i data-risk="moderate" />주의 확인</span>
-      <span><i data-risk="low" />일반 확인</span>
+      <span className="legend-title">점검 우선순위</span>
+      <span><i data-risk="high" />빨강 실선·가장 먼저</span>
+      <span><i data-risk="moderate" />주황 실선·주의</span>
+      <span><i data-risk="low" />파랑 실선·일반</span>
     </div>
     <div className="legend-group">
-      <span className="legend-title">현장 표시</span>
-      <span><i className="legend-line" />순찰팀 이동</span>
-      <span><i className="legend-point" />점검 위치</span>
-      <span><i className="legend-uncertain" />데이터 확인 필요</span>
+      <span className="legend-title">순찰 코스</span>
+      <span><i className="legend-line" />팀 색 점선·이동</span>
+      <span><i className="legend-start"> 출 </i>출발</span>
+      <span><i className="legend-point">1</i>점검 순서</span>
+      <span><i className="legend-end">끝</i>마지막 지점</span>
       {showScenario && <span><i className="legend-before" />변경 전</span>}
       {showScenario && <span><i className="legend-after" />변경 후</span>}
     </div>
   </div>;
+}
+
+function RouteDetail({ route, routeRows, taskRows, teamRows, onClose }) {
+  if (!route) return null;
+  const team = teamRows.find((row) => row.team_id === route.team_id);
+  const course = routeRows.filter((row) => row.team_id === route.team_id)
+    .sort((left, right) => Number(left.sequence) - Number(right.sequence));
+  const routeIndex = course.findIndex((row) => routeKey(row) === routeKey(route));
+  const previous = routeIndex > 0 ? course[routeIndex - 1] : null;
+  const task = taskRows.find((row) => row.task_id === route.task_id);
+  return <aside className="map-route-detail" aria-label="선택한 순찰 경로 상세">
+    <div className="route-detail-head">
+      <div><span>선택한 이동 경로</span><strong>{team?.team_name || route.team_id} · {route.sequence}번째</strong></div>
+      <button type="button" onClick={onClose} aria-label="경로 상세 닫기">닫기</button>
+    </div>
+    <dl className="route-detail-grid">
+      <div><dt>출발</dt><dd>{previous ? previous.road_name : `${team?.team_name || "순찰팀"} 출발 위치`}</dd></div>
+      <div><dt>도착·점검</dt><dd>{route.road_name}</dd></div>
+      <div><dt>이동 예상</dt><dd>{number(route.travel_minutes)}분</dd></div>
+      <div><dt>현장 점검</dt><dd>{number(route.service_minutes, 0)}분</dd></div>
+      <div><dt>누적 예상</dt><dd>{number(route.cumulative_minutes)}분</dd></div>
+      <div><dt>도착지 위험</dt><dd>{RISK_LABELS[task?.risk_level] || "확인"} · {number(task?.priority_score)}점</dd></div>
+    </dl>
+    <div className="route-course-list">
+      <span>전체 순찰 코스</span>
+      <ol>
+        <li><b>출</b>{team?.team_name || "순찰팀"}</li>
+        {course.map((item, index) => <li key={routeKey(item)} data-current={routeKey(item) === routeKey(route) || undefined}>
+          <b>{index + 1}</b>{item.road_name}<small>{number(item.travel_minutes)}분 이동</small>
+        </li>)}
+      </ol>
+    </div>
+  </aside>;
 }
 
 function RoadMap({
@@ -195,13 +257,24 @@ function RoadMap({
   replanRows,
   impactRows,
   selectedRisk,
+  selectedRoute,
   onSelectRisk,
+  onSelectTask,
+  onSelectRoute,
+  onCloseRoute,
   scenarioId,
 }) {
   const overlayRows = [...riskRows, ...routeRows, ...replanRows, ...impactRows];
   const { width, height, project } = useProjection(backgroundRows, overlayRows);
   const scenarioActive = scenarioId !== "none";
   const affectedTeams = new Set(replanRows.map((row) => row.team_id));
+  const taskById = new Map(taskRows.map((row) => [String(row.task_id), row]));
+  const sequenceByTask = new Map(routeRows.map((row) => [String(row.task_id), Number(row.sequence)]));
+  const lastRouteByTeam = new Map();
+  routeRows.forEach((row) => {
+    const current = lastRouteByTeam.get(row.team_id);
+    if (!current || Number(row.sequence) > Number(current.sequence)) lastRouteByTeam.set(row.team_id, row);
+  });
 
   return <div className="roadops-map-wrap">
     {selectedRisk && <div className="map-focus-panel" data-risk={selectedRisk.risk_level}>
@@ -237,21 +310,6 @@ function RoadMap({
           d={pathFor(geometry(row.geometry_json), project)} />)}
       </g>}
 
-      <g className="plan-routes" data-reviewed-rows="plan_routes">
-        {routeRows.filter((row) => !scenarioActive || !affectedTeams.has(row.team_id)).map((row) => <path
-          key={`${row.alternative_id}-${row.team_id}-${row.sequence}`}
-          d={pathFor(geometry(row.geometry_json), project)}
-          style={{ "--team-color": TEAM_COLORS[row.team_id] || "#475569" }} />)}
-      </g>
-
-      {scenarioActive && <g className="replan-routes" data-reviewed-rows="replan_routes">
-        {replanRows.map((row) => <path
-          key={`${row.scenario_id}-${row.plan_stage}-${row.team_id}-${row.sequence}`}
-          className={`replan-${row.plan_stage}`}
-          d={pathFor(geometry(row.geometry_json), project)}
-          style={{ "--team-color": TEAM_COLORS[row.team_id] || "#475569" }} />)}
-      </g>}
-
       <g className="risk-links" data-reviewed-rows="risk_links">
         {riskRows.map((row) => {
           const selected = selectedRisk?.link_id === row.link_id;
@@ -269,18 +327,53 @@ function RoadMap({
               "--risk-width": `${Math.max(4, Math.min(10, 3 + (Number(row.priority_score) || 0) / 10))}px`,
               "--risk-opacity": String(Math.max(.48, Number(row.evidence_coverage_ratio) || .48)),
               filter: selected ? "url(#selected-glow)" : undefined,
-              strokeDasharray: Number(row.uncertainty_width) > 0 ? "8 5" : undefined,
             }} />;
         })}
       </g>
 
+      <g className="plan-routes" data-reviewed-rows="plan_routes">
+        {routeRows.filter((row) => !scenarioActive || !affectedTeams.has(row.team_id)).map((row) => {
+          const selected = routeKey(selectedRoute) === routeKey(row);
+          const path = pathFor(geometry(row.geometry_json), project);
+          const select = () => onSelectRoute(row);
+          return <g key={routeKey(row)} className={selected ? "route-segment selected" : "route-segment"}>
+            <path className="route-hit-target" d={path} role="button" tabIndex={0}
+              aria-label={`${teamRows.find((team) => team.team_id === row.team_id)?.team_name || row.team_id}, ${row.road_name}까지 ${number(row.travel_minutes)}분`}
+              onClick={select} onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") select();
+              }} />
+            <path className="route-line" d={path} aria-hidden="true"
+              style={{ "--team-color": TEAM_COLORS[row.team_id] || "#475569" }} />
+          </g>;
+        })}
+      </g>
+
+      {scenarioActive && <g className="replan-routes" data-reviewed-rows="replan_routes">
+        {replanRows.map((row) => <path
+          key={`${row.scenario_id}-${row.plan_stage}-${row.team_id}-${row.sequence}`}
+          className={`replan-${row.plan_stage}`}
+          d={pathFor(geometry(row.geometry_json), project)}
+          style={{ "--team-color": TEAM_COLORS[row.team_id] || "#475569" }} />)}
+      </g>}
+
       <g className="task-points" data-reviewed-rows="field_tasks">
         {taskRows.map((row) => {
           const [x, y] = project(row.longitude, row.latitude);
-          return <circle key={row.task_id} cx={x} cy={y} r={row.mandatory ? 7 : 5}
-            data-excluded={row.excluded || undefined} data-mandatory={row.mandatory || undefined}>
+          const sequence = sequenceByTask.get(String(row.task_id));
+          const selected = selectedRisk?.link_id === row.link_id;
+          const select = () => onSelectTask(row.link_id);
+          return <g key={row.task_id} className={selected ? "task-point selected" : "task-point"}
+            transform={`translate(${x} ${y})`} role="button" tabIndex={0}
+            aria-label={`${row.road_name}, ${sequence ? `${sequence}번째 점검` : "배분 전"}`}
+            onClick={select} onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") select();
+            }}>
+            <circle r={row.mandatory ? 9 : 8}
+              data-excluded={row.excluded || undefined} data-mandatory={row.mandatory || undefined}>
             <title>{`${row.road_name} · ${row.task_id}`}</title>
-          </circle>;
+            </circle>
+            <text y="3.5">{sequence || "?"}</text>
+          </g>;
         })}
       </g>
 
@@ -288,15 +381,31 @@ function RoadMap({
         {teamRows.map((row) => {
           const [x, y] = project(row.start_longitude, row.start_latitude);
           return <g key={row.team_id} transform={`translate(${x} ${y})`}>
-            <circle r="11" data-available={row.available === false ? "false" : "true"}
+            <circle r="12" data-available={row.available === false ? "false" : "true"}
               style={{ fill: TEAM_COLORS[row.team_id] || "#475569" }}>
               <title>{`${row.team_name} · ${row.available === false ? "비가용" : "가용"}`}</title>
             </circle>
-            <text y="4">{row.team_name?.slice(0, 1) || "팀"}</text>
+            <text y="4">출</text>
+            <text className="team-start-name" x="16" y="4">{row.team_name?.replace(" 순찰팀", "") || "순찰팀"}</text>
+          </g>;
+        })}
+      </g>
+
+      <g className="route-end-points" aria-label="팀별 마지막 점검 지점">
+        {[...lastRouteByTeam.values()].map((route) => {
+          const task = taskById.get(String(route.task_id));
+          if (!task) return null;
+          const [x, y] = project(task.longitude, task.latitude);
+          return <g key={`end-${route.team_id}`} transform={`translate(${x + 15} ${y - 14})`}>
+            <rect x="-11" y="-7" width="22" height="14" rx="4"
+              style={{ "--team-color": TEAM_COLORS[route.team_id] || "#475569" }} />
+            <text y="3">끝</text>
           </g>;
         })}
       </g>
     </svg>
+    <RouteDetail route={selectedRoute} routeRows={routeRows} taskRows={taskRows}
+      teamRows={teamRows} onClose={onCloseRoute} />
     <div className="map-place-label map-place-label--jeju">제주시</div>
     <div className="map-place-label map-place-label--seogwipo">서귀포시</div>
     <MapLegend showScenario={scenarioActive} />
@@ -407,6 +516,10 @@ function TaskQueue({ rows, selectedLinkId, onSelect }) {
         <span className="task-copy"><strong>{row.road_name}</strong><small>{row.administrative_city || "구역 미확인"} · {row.managing_agency_name || row.link_id}</small></span>
         <span className="task-risk-tag" data-risk={row.risk_level}>{RISK_LABELS[row.risk_level] || "확인"}</span>
         <span className="task-score">{number(row.priority_score)}</span>
+        <span className="task-hover-reason" role="tooltip">
+          <strong>왜 먼저 확인하나요?</strong>
+          {priorityReasons(row).map((reason) => <span key={reason}>{reason}</span>)}
+        </span>
       </button>)}
     </div>
   </DataComponent>;
@@ -461,6 +574,7 @@ export function DashboardContent() {
   const [selectedPlan, setSelectedPlan] = useState("safety_first");
   const [scenarioId, setScenarioId] = useState("none");
   const [selectedRiskId, setSelectedRiskId] = useState(/** @type {any} */ (null));
+  const [selectedRouteKey, setSelectedRouteKey] = useState(/** @type {any} */ (null));
   const [workflowState, setWorkflowState] = useState(/** @type {any} */ (null));
   const [inspectorTab, setInspectorTab] = useState("priorities");
   const [mapGuideOpen, setMapGuideOpen] = useState(false);
@@ -480,6 +594,10 @@ export function DashboardContent() {
     localStorage.setItem("roadops-color-mode", colorMode);
     return () => { delete root.dataset.roadopsColorMode; };
   }, [colorMode]);
+
+  useEffect(() => {
+    setSelectedRouteKey(null);
+  }, [selectedPlan, horizon, scenarioId]);
 
   const rows = (queryId) => queries[queryId]?.rows ?? [];
   const metadata = /** @type {any} */ (rows("map_metadata")[0] ?? {});
@@ -520,6 +638,7 @@ export function DashboardContent() {
       ?? allRouteRows.find((row) => row.task_id === task.task_id && row.team_id === assignedTeamId);
     return candidate ? [{ ...candidate, alternative_id: selectedPlan }] : [];
   });
+  const selectedRoute = routeRows.find((row) => routeKey(row) === selectedRouteKey) ?? null;
   const replanRows = rows("replan_routes").filter((row) => row.scenario_id === scenarioId);
   const impactRows = rows("scenario_impacts").filter((row) => row.scenario_id === scenarioId);
   const highRiskCount = riskRows.filter((row) => ["high", "critical"].includes(row.risk_level)).length;
@@ -538,6 +657,11 @@ export function DashboardContent() {
   const selectRisk = (row) => {
     setSelectedRiskId(row.link_id);
     setInspectorTab("segment");
+  };
+
+  const selectRoute = (row) => {
+    setSelectedRouteKey(routeKey(row));
+    setSelectedRiskId(row.link_id);
   };
 
   return <article className="roadops-page" data-dashboard-layout="viewport" data-color-mode={colorMode}>
@@ -613,14 +737,16 @@ export function DashboardContent() {
           </button>
           {mapGuideOpen && <div className="map-reading-guide" aria-label="지도 표시 설명">
             <p>제주 전체 도로망이 아니라 운영 데모에 사용하는 주요 간선도로와 현장 대상만 표시합니다.</p>
-            <span><i data-guide="risk" /><b>위험 도로선</b> 빨강 먼저 · 주황 주의 · 파랑 일반</span>
-            <span><i data-guide="route" /><b>팀 경로선</b> 보라 동부 · 파랑 북부 · 초록 서부</span>
-            <span><i data-guide="point" /><b>흰 원</b> 현장 점검 위치</span>
+            <span><i data-guide="risk" /><b>굵은 실선</b> 도로 점검 우선순위를 빨강·주황·파랑으로 표시</span>
+            <span><i data-guide="route" /><b>팀 색 점선</b> 순찰팀이 실제로 이동할 경로로, 누르면 소요시간과 전체 코스를 표시</span>
+            <span><i data-guide="point" /><b>숫자 원</b> 점검 순서 · '출'은 출발 · '끝'은 마지막 지점</span>
           </div>}
           <RoadMap backgroundRows={rows("road_background")} riskRows={riskRows}
             taskRows={effectiveTaskRows} teamRows={effectiveTeamRows} routeRows={routeRows}
             replanRows={replanRows} impactRows={impactRows} selectedRisk={selectedRisk}
-            onSelectRisk={selectRisk} scenarioId={scenarioId} />
+            selectedRoute={selectedRoute} onSelectRisk={selectRisk} onSelectTask={selectTask}
+            onSelectRoute={selectRoute} onCloseRoute={() => setSelectedRouteKey(null)}
+            scenarioId={scenarioId} />
         </DataComponent>
         <ReplanSummary rows={rows("scenario_summary")} scenarioId={scenarioId} />
       </section>
