@@ -191,6 +191,7 @@ The documented C-ITS/ITS operational URLs use HTTP and may transmit API keys in 
 - [프로젝트 정의 / Project brief](./PROJECT_BRIEF.md)
 - [콘텐츠 가이드 / Content guide](./CONTENT_GUIDE.md)
 - [제주 행정·도로관리 체계와 현장 대응 절차 조사 / Jeju road administration and field-response research](./04_docs/research/20261117_jeju_road_administration_field_response_v0_1.md)
+- [기관·관할 기반 운영 모델 v0.1 / Institution-aware operations v0.1](./04_docs/model/20261117_roadops_institution_aware_operations_v0_1.md)
 - [데이터 실현 가능성 점검 / Data feasibility spike](./04_docs/data_feasibility/20261026_roadops_data_feasibility_v0_1.md)
 - [TAAS 링크 위험지수 품질 감사 / TAAS link-risk quality audit](./04_docs/data_quality/20261026_taas_link_risk_audit_v0_1.md)
 - [TAAS 감사 노트북 / TAAS audit notebook](./03_notebooks/20261026_taas_link_risk_audit_v0_1.ipynb)

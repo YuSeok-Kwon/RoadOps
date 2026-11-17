@@ -1,4 +1,4 @@
-"""Validate RoadOps patrol-resource and operator-constraint inputs.
+"""Validate RoadOps field-resource, governance, and operator-constraint inputs.
 
 팀·차량·근무시간·장비·고정·제외 조건을 결정적 자원 모델로 정규화합니다.
 """
@@ -13,6 +13,17 @@ from roadops.spatial import normalize_link_id
 
 RESOURCE_SCHEMA_VERSION = 1
 ALLOWED_HORIZONS = {0, 1, 3, 6}
+ALLOWED_AGENCY_TYPES = {
+    "province",
+    "administrative_city",
+    "police",
+    "fire",
+    "disaster_headquarters",
+    "other",
+}
+ALLOWED_HANDOFF_TYPES = {"police", "fire"}
+ALLOWED_HANDOFF_LEVELS = {"none", "notify", "coordinate", "transfer"}
+ALLOWED_CHANNEL_STATUSES = {"active", "unavailable"}
 
 
 def _text(value: Any) -> str | None:
@@ -36,6 +47,19 @@ def _number(value: Any) -> float | None:
         return float(str(value).strip())
     except (TypeError, ValueError):
         return None
+
+
+def _boolean(value: Any, *, default: bool | None = None) -> bool | None:
+    if value is None or value == "":
+        return default
+    if isinstance(value, bool):
+        return value
+    normalized = str(value).strip().lower()
+    if normalized in {"1", "true", "yes", "y"}:
+        return True
+    if normalized in {"0", "false", "no", "n"}:
+        return False
+    return None
 
 
 def _datetime(value: Any) -> datetime | None:
@@ -67,6 +91,29 @@ def _point(latitude: Any, longitude: Any) -> tuple[float, float] | None:
 
 def _error(errors: list[dict[str, str]], field: str, code: str) -> None:
     errors.append({"field": field, "code": code})
+
+
+def institutional_eligibility(
+    team: Mapping[str, Any], task: Mapping[str, Any]
+) -> dict[str, Any]:
+    """Return deterministic agency and jurisdiction eligibility for one assignment."""
+
+    reasons: list[str] = []
+    if task.get("road_team_dispatch_eligible") is False:
+        reasons.append("external_handoff_only")
+
+    task_agency = _text(task.get("managing_agency_id"))
+    team_agency = _text(team.get("managing_agency_id"))
+    support_agencies = set(_string_set(team.get("support_agency_ids")))
+    if task_agency and task_agency not in ({team_agency} | support_agencies):
+        reasons.append("managing_agency_not_authorized")
+
+    jurisdiction = _text(task.get("road_jurisdiction"))
+    authorized = set(_string_set(team.get("authorized_road_jurisdictions")))
+    if jurisdiction and "*" not in authorized and jurisdiction not in authorized:
+        reasons.append("road_jurisdiction_not_authorized")
+
+    return {"eligible": not reasons, "reasons": reasons}
 
 
 def validate_resource_plan(
@@ -110,6 +157,186 @@ def validate_resource_plan(
         "baseline_speed_kph": average_speed,
         "max_tasks_per_team": max_tasks,
         "distance_semantics": "straight_line_baseline_not_route_time",
+    }
+
+    governance_input = payload.get("governance")
+    governance_enabled = (
+        isinstance(governance_input, Mapping)
+        and bool(governance_input)
+        and governance_input.get("mode") != "legacy_unscoped"
+    )
+    if not governance_enabled:
+        governance_input = {}
+        warnings.append(
+            {"field": "governance", "code": "legacy_unscoped_governance"}
+        )
+
+    agency_inputs = governance_input.get("agencies", [])
+    if not isinstance(agency_inputs, list):
+        agency_inputs = []
+        _error(errors, "governance.agencies", "list_required")
+    agencies: list[dict[str, Any]] = []
+    agency_ids: set[str] = set()
+    agency_type_by_id: dict[str, str] = {}
+    for index, source in enumerate(agency_inputs):
+        field = f"governance.agencies[{index}]"
+        if not isinstance(source, Mapping):
+            _error(errors, field, "object_required")
+            continue
+        agency_id = _text(source.get("agency_id"))
+        agency_type = _text(source.get("agency_type"))
+        if agency_id is None:
+            _error(errors, f"{field}.agency_id", "required")
+        elif agency_id in agency_ids:
+            _error(errors, f"{field}.agency_id", "duplicate")
+        else:
+            agency_ids.add(agency_id)
+        if agency_type not in ALLOWED_AGENCY_TYPES:
+            _error(errors, f"{field}.agency_type", "unsupported_agency_type")
+        if agency_id and agency_type:
+            agency_type_by_id[agency_id] = agency_type
+        agencies.append(
+            {
+                "agency_id": agency_id,
+                "agency_name": _text(source.get("agency_name")) or agency_id,
+                "agency_type": agency_type,
+            }
+        )
+    if governance_enabled and not agencies:
+        _error(errors, "governance.agencies", "non_empty_list_required")
+
+    approver_inputs = governance_input.get("approvers", [])
+    if not isinstance(approver_inputs, list):
+        approver_inputs = []
+        _error(errors, "governance.approvers", "list_required")
+    approvers: list[dict[str, Any]] = []
+    approver_ids: set[str] = set()
+    active_approver_ids: set[str] = set()
+    for index, source in enumerate(approver_inputs):
+        field = f"governance.approvers[{index}]"
+        if not isinstance(source, Mapping):
+            _error(errors, field, "object_required")
+            continue
+        approver_id = _text(source.get("approver_id"))
+        agency_id = _text(source.get("agency_id"))
+        active = _boolean(source.get("active"), default=True)
+        if approver_id is None:
+            _error(errors, f"{field}.approver_id", "required")
+        elif approver_id in approver_ids:
+            _error(errors, f"{field}.approver_id", "duplicate")
+        else:
+            approver_ids.add(approver_id)
+        if agency_id not in agency_ids:
+            _error(errors, f"{field}.agency_id", "unknown_agency")
+        if active is None:
+            _error(errors, f"{field}.active", "boolean_required")
+        elif active and approver_id:
+            active_approver_ids.add(approver_id)
+        approvers.append(
+            {
+                "approver_id": approver_id,
+                "agency_id": agency_id,
+                "role": _text(source.get("role")),
+                "active": active,
+            }
+        )
+
+    channel_inputs = governance_input.get("handoff_channels", [])
+    if not isinstance(channel_inputs, list):
+        channel_inputs = []
+        _error(errors, "governance.handoff_channels", "list_required")
+    handoff_channels: list[dict[str, Any]] = []
+    channel_ids: set[str] = set()
+    channel_index: dict[str, dict[str, Any]] = {}
+    for index, source in enumerate(channel_inputs):
+        field = f"governance.handoff_channels[{index}]"
+        if not isinstance(source, Mapping):
+            _error(errors, field, "object_required")
+            continue
+        channel_id = _text(source.get("channel_id"))
+        handoff_type = _text(source.get("handoff_type"))
+        target_agency_id = _text(source.get("target_agency_id"))
+        status = _text(source.get("status")) or "active"
+        if channel_id is None:
+            _error(errors, f"{field}.channel_id", "required")
+        elif channel_id in channel_ids:
+            _error(errors, f"{field}.channel_id", "duplicate")
+        else:
+            channel_ids.add(channel_id)
+        if handoff_type not in ALLOWED_HANDOFF_TYPES:
+            _error(errors, f"{field}.handoff_type", "unsupported_handoff_type")
+        if target_agency_id not in agency_ids:
+            _error(errors, f"{field}.target_agency_id", "unknown_agency")
+        elif handoff_type and agency_type_by_id.get(str(target_agency_id)) != handoff_type:
+            _error(errors, f"{field}.target_agency_id", "agency_type_mismatch")
+        if status not in ALLOWED_CHANNEL_STATUSES:
+            _error(errors, f"{field}.status", "unsupported_status")
+        normalized_channel = {
+            "channel_id": channel_id,
+            "handoff_type": handoff_type,
+            "target_agency_id": target_agency_id,
+            "status": status,
+            "contact_method": _text(source.get("contact_method")) or "operator_defined",
+        }
+        handoff_channels.append(normalized_channel)
+        if channel_id:
+            channel_index[channel_id] = normalized_channel
+
+    defaults_input = governance_input.get("defaults", {})
+    if not isinstance(defaults_input, Mapping):
+        defaults_input = {}
+        _error(errors, "governance.defaults", "object_required")
+    default_agency_id = _text(defaults_input.get("managing_agency_id"))
+    default_jurisdiction = _text(defaults_input.get("road_jurisdiction"))
+    default_jurisdiction_basis = _text(defaults_input.get("jurisdiction_basis"))
+    approval_required = _boolean(
+        defaults_input.get("dispatch_approval_required"), default=governance_enabled
+    )
+    default_approver_id = _text(defaults_input.get("dispatch_approver_id"))
+    if governance_enabled and default_agency_id not in agency_ids:
+        _error(errors, "governance.defaults.managing_agency_id", "unknown_agency")
+    if governance_enabled and default_jurisdiction is None:
+        _error(errors, "governance.defaults.road_jurisdiction", "required")
+    if governance_enabled and default_jurisdiction_basis is None:
+        _error(errors, "governance.defaults.jurisdiction_basis", "required")
+    if approval_required is None:
+        _error(errors, "governance.defaults.dispatch_approval_required", "boolean_required")
+    if default_approver_id and default_approver_id not in active_approver_ids:
+        _error(errors, "governance.defaults.dispatch_approver_id", "unknown_or_inactive_approver")
+    if approval_required and default_approver_id is None:
+        _error(errors, "governance.defaults.dispatch_approver_id", "unknown_or_inactive_approver")
+
+    defaults: dict[str, Any] = {
+        "managing_agency_id": default_agency_id,
+        "road_jurisdiction": default_jurisdiction,
+        "jurisdiction_basis": default_jurisdiction_basis,
+        "dispatch_approval_required": approval_required,
+        "dispatch_approver_id": default_approver_id,
+    }
+    for handoff_type in sorted(ALLOWED_HANDOFF_TYPES):
+        level_field = f"{handoff_type}_handoff_level"
+        channel_field = f"{handoff_type}_handoff_channel_id"
+        level = _text(defaults_input.get(level_field)) or "none"
+        channel_id = _text(defaults_input.get(channel_field))
+        if level not in ALLOWED_HANDOFF_LEVELS:
+            _error(errors, f"governance.defaults.{level_field}", "unsupported_handoff_level")
+        if level != "none":
+            channel = channel_index.get(str(channel_id)) if channel_id else None
+            if channel is None or channel.get("handoff_type") != handoff_type:
+                _error(errors, f"governance.defaults.{channel_field}", "valid_handoff_channel_required")
+            elif channel.get("status") != "active":
+                _error(errors, f"governance.defaults.{channel_field}", "handoff_channel_unavailable")
+        defaults[level_field] = level
+        defaults[channel_field] = channel_id
+
+    governance = {
+        "mode": "institution_aware" if governance_enabled else "legacy_unscoped",
+        "agencies": sorted(agencies, key=lambda row: str(row.get("agency_id"))),
+        "approvers": sorted(approvers, key=lambda row: str(row.get("approver_id"))),
+        "handoff_channels": sorted(
+            handoff_channels, key=lambda row: str(row.get("channel_id"))
+        ),
+        "defaults": defaults,
     }
 
     vehicle_inputs = payload.get("vehicles")
@@ -207,6 +434,23 @@ def validate_resource_plan(
         team_equipment = set(_string_set(source.get("equipment")))
         if vehicle is not None:
             team_equipment.update(vehicle["equipment"])
+        managing_agency_id = _text(source.get("managing_agency_id"))
+        support_agency_ids = _string_set(source.get("support_agency_ids"))
+        authorized_jurisdictions = _string_set(
+            source.get("authorized_road_jurisdictions")
+        )
+        if governance_enabled:
+            if managing_agency_id not in agency_ids:
+                _error(errors, f"{field}.managing_agency_id", "unknown_agency")
+            for agency_id in support_agency_ids:
+                if agency_id not in agency_ids:
+                    _error(errors, f"{field}.support_agency_ids", "unknown_agency")
+            if not authorized_jurisdictions:
+                _error(
+                    errors,
+                    f"{field}.authorized_road_jurisdictions",
+                    "non_empty_list_required",
+                )
         teams.append(
             {
                 "team_id": team_id,
@@ -219,6 +463,9 @@ def validate_resource_plan(
                 "shift_end_at": shift_end.isoformat() if shift_end else None,
                 "skills": _string_set(source.get("skills")),
                 "equipment": sorted(team_equipment),
+                "managing_agency_id": managing_agency_id,
+                "support_agency_ids": support_agency_ids,
+                "authorized_road_jurisdictions": authorized_jurisdictions,
             }
         )
 
@@ -298,6 +545,52 @@ def validate_resource_plan(
             normalized_minutes = _number(custom_minutes)
             if normalized_minutes is None or not 0 < normalized_minutes <= 180:
                 _error(errors, f"{field}.service_minutes", "out_of_range")
+        managing_agency_id = _text(source.get("managing_agency_id"))
+        road_jurisdiction = _text(source.get("road_jurisdiction"))
+        jurisdiction_basis = _text(source.get("jurisdiction_basis"))
+        dispatch_approval_required = (
+            _boolean(source.get("dispatch_approval_required"))
+            if "dispatch_approval_required" in source
+            else None
+        )
+        dispatch_approver_id = _text(source.get("dispatch_approver_id"))
+        if managing_agency_id and managing_agency_id not in agency_ids:
+            _error(errors, f"{field}.managing_agency_id", "unknown_agency")
+        if "dispatch_approval_required" in source and dispatch_approval_required is None:
+            _error(errors, f"{field}.dispatch_approval_required", "boolean_required")
+        if dispatch_approver_id and dispatch_approver_id not in active_approver_ids:
+            _error(errors, f"{field}.dispatch_approver_id", "unknown_or_inactive_approver")
+        effective_approval_required = (
+            approval_required
+            if dispatch_approval_required is None
+            else dispatch_approval_required
+        )
+        effective_approver_id = dispatch_approver_id or default_approver_id
+        if effective_approval_required and effective_approver_id not in active_approver_ids:
+            _error(errors, f"{field}.dispatch_approver_id", "unknown_or_inactive_approver")
+
+        handoff_values: dict[str, Any] = {}
+        for handoff_type in sorted(ALLOWED_HANDOFF_TYPES):
+            level_field = f"{handoff_type}_handoff_level"
+            channel_field = f"{handoff_type}_handoff_channel_id"
+            level = _text(source.get(level_field))
+            channel_id = _text(source.get(channel_field))
+            if level and level not in ALLOWED_HANDOFF_LEVELS:
+                _error(errors, f"{field}.{level_field}", "unsupported_handoff_level")
+            effective_level = level or str(defaults.get(level_field) or "none")
+            effective_channel_id = channel_id or defaults.get(channel_field)
+            if effective_level != "none":
+                channel = (
+                    channel_index.get(str(effective_channel_id))
+                    if effective_channel_id
+                    else None
+                )
+                if channel is None or channel.get("handoff_type") != handoff_type:
+                    _error(errors, f"{field}.{channel_field}", "valid_handoff_channel_required")
+                elif channel.get("status") != "active":
+                    _error(errors, f"{field}.{channel_field}", "handoff_channel_unavailable")
+            handoff_values[level_field] = level
+            handoff_values[channel_field] = channel_id
         task_overrides.append(
             {
                 "link_id": link_id,
@@ -306,6 +599,12 @@ def validate_resource_plan(
                 "required_equipment": _string_set(
                     source.get("required_equipment")
                 ),
+                "managing_agency_id": managing_agency_id,
+                "road_jurisdiction": road_jurisdiction,
+                "jurisdiction_basis": jurisdiction_basis,
+                "dispatch_approval_required": dispatch_approval_required,
+                "dispatch_approver_id": dispatch_approver_id,
+                **handoff_values,
             }
         )
 
@@ -322,6 +621,7 @@ def validate_resource_plan(
         "schema_version": RESOURCE_SCHEMA_VERSION,
         "scenario_id": scenario_id,
         "planning": planning,
+        "governance": governance,
         "teams": sorted(teams, key=lambda row: str(row.get("team_id"))),
         "vehicles": sorted(vehicles, key=lambda row: str(row.get("vehicle_id"))),
         "constraints": constraints,
@@ -339,6 +639,10 @@ def validate_resource_plan(
         "excluded_link_count": len(excluded_links),
         "fixed_assignment_count": len(fixed_assignments),
         "task_override_count": len(task_overrides),
+        "governance_mode": governance["mode"],
+        "agency_count": len(agencies),
+        "approver_count": len(approvers),
+        "handoff_channel_count": len(handoff_channels),
         "errors": errors,
         "warnings": warnings,
     }

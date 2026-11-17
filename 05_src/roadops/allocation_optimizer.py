@@ -14,7 +14,7 @@ from datetime import datetime
 from statistics import pvariance
 from typing import Any, Iterable, Iterator, Mapping
 
-from roadops.resources import validate_resource_plan
+from roadops.resources import institutional_eligibility, validate_resource_plan
 
 
 OPTIMIZER_VERSION = "roadops-constraint-allocation-v0.1"
@@ -55,9 +55,12 @@ def _number(value: Any) -> float | None:
 
 
 def _task_capable(team: Mapping[str, Any], task: Mapping[str, Any]) -> bool:
-    return set(task.get("required_skills", [])).issubset(team.get("skills", [])) and set(
-        task.get("required_equipment", [])
-    ).issubset(team.get("equipment", []))
+    capability_match = set(task.get("required_skills", [])).issubset(
+        team.get("skills", [])
+    ) and set(task.get("required_equipment", [])).issubset(
+        team.get("equipment", [])
+    )
+    return capability_match and institutional_eligibility(team, task)["eligible"]
 
 
 def _available_minutes(resource_plan: Mapping[str, Any]) -> dict[str, float]:
@@ -288,6 +291,19 @@ def _task_unassigned_reason(
     routes: Mapping[tuple[str, str], Mapping[str, Any]],
 ) -> str:
     task = tasks[task_index]
+    capability_matched = [
+        team
+        for team in teams
+        if set(task.get("required_skills", [])).issubset(team.get("skills", []))
+        and set(task.get("required_equipment", [])).issubset(
+            team.get("equipment", [])
+        )
+    ]
+    if capability_matched and not any(
+        institutional_eligibility(team, task)["eligible"]
+        for team in capability_matched
+    ):
+        return "no_team_with_institutional_authority"
     capable = [team for team in teams if _task_capable(team, task)]
     if not capable:
         return "no_team_with_required_capability"
@@ -344,11 +360,19 @@ def _constraint_violations(
                     }
                 )
             if not _task_capable(team_index[option.team_id], tasks[task_index]):
+                institutional = institutional_eligibility(
+                    team_index[option.team_id], tasks[task_index]
+                )
                 violations.append(
                     {
-                        "code": "task_capability_violation",
+                        "code": (
+                            "institutional_authority_violation"
+                            if not institutional["eligible"]
+                            else "task_capability_violation"
+                        ),
                         "task_id": tasks[task_index]["task_id"],
                         "team_id": option.team_id,
+                        "reasons": institutional["reasons"],
                     }
                 )
     for task_index in mandatory_indices:
@@ -408,6 +432,18 @@ def _serialize_plan(
                     "mandatory": task_index in mandatory_indices,
                     "fixed_assignment": fixed_by_task.get(task_index)
                     == option.team_id,
+                    "managing_agency_id": task.get("managing_agency_id"),
+                    "road_jurisdiction": task.get("road_jurisdiction"),
+                    "jurisdiction_basis": task.get("jurisdiction_basis"),
+                    "dispatch_approval_required": task.get(
+                        "dispatch_approval_required"
+                    ),
+                    "dispatch_approver_id": task.get("dispatch_approver_id"),
+                    "dispatch_approval_status": task.get(
+                        "dispatch_approval_status"
+                    ),
+                    "response_mode": task.get("response_mode"),
+                    "handoff_actions": list(task.get("handoff_actions", [])),
                     **leg,
                 }
             )
@@ -538,7 +574,28 @@ def build_constraint_allocation(
             },
         )
 
-    tasks = [dict(task) for task in field_tasks if not bool(task.get("excluded"))]
+    all_tasks = [dict(task) for task in field_tasks]
+    handoff_queue = [
+        {
+            "task_id": task.get("task_id"),
+            "link_id": task.get("link_id"),
+            "road_name": task.get("road_name"),
+            "priority_score": task.get("priority_score"),
+            "managing_agency_id": task.get("managing_agency_id"),
+            "road_jurisdiction": task.get("road_jurisdiction"),
+            "response_mode": task.get("response_mode"),
+            "handoff_actions": list(task.get("handoff_actions", [])),
+        }
+        for task in all_tasks
+        if not bool(task.get("excluded"))
+        and not task.get("road_team_dispatch_eligible", True)
+    ]
+    tasks = [
+        task
+        for task in all_tasks
+        if not bool(task.get("excluded"))
+        and task.get("road_team_dispatch_eligible", True)
+    ]
     tasks.sort(key=lambda task: str(task["task_id"]))
     if len(tasks) > MAX_EXACT_TASKS:
         return (
@@ -750,10 +807,13 @@ def build_constraint_allocation(
             "mandatory_tasks_assigned",
             "fixed_team_assignments_honored",
             "team_skill_and_equipment_requirements",
+            "managing_agency_and_road_jurisdiction_authority",
             "maximum_tasks_per_team",
             "shift_time_with_network_travel_and_service",
             "unavailable_or_closed_routes_not_used",
         ],
+        "handoff_queue": handoff_queue,
+        "manual_approval_required": True,
         "alternatives": alternatives,
         "comparison": {
             plan["alternative_id"]: plan["metrics"] for plan in alternatives
@@ -765,6 +825,7 @@ def build_constraint_allocation(
         "optimizer_version": OPTIMIZER_VERSION,
         "resource_validation": resource_report,
         "task_count": len(tasks),
+        "handoff_queue_count": len(handoff_queue),
         "team_count": len(teams),
         "route_option_counts": {
             key: len(value) for key, value in sorted(options_by_team.items())

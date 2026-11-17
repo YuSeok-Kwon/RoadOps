@@ -328,6 +328,7 @@ def _subproblem(
         "schema_version": 1,
         "scenario_id": f"{resource_plan['scenario_id']}:partial-replan",
         "planning": planning,
+        "governance": copy.deepcopy(resource_plan.get("governance", {})),
         "vehicles": vehicles,
         "teams": teams,
         "constraints": {

@@ -8,6 +8,70 @@
     "baseline_speed_kph": 40,
     "max_tasks_per_team": 3
   },
+  "governance": {
+    "agencies": [
+      {
+        "agency_id": "jeju-province-road-management",
+        "agency_name": "Jeju Province Road Management",
+        "agency_type": "province"
+      },
+      {
+        "agency_id": "jeju-city-road-management",
+        "agency_name": "Jeju City Road Management",
+        "agency_type": "administrative_city"
+      },
+      {
+        "agency_id": "seogwipo-city-road-management",
+        "agency_name": "Seogwipo City Road Management",
+        "agency_type": "administrative_city"
+      },
+      {
+        "agency_id": "jeju-police",
+        "agency_name": "Jeju Police",
+        "agency_type": "police"
+      },
+      {
+        "agency_id": "jeju-fire",
+        "agency_name": "Jeju Fire and Safety Headquarters",
+        "agency_type": "fire"
+      }
+    ],
+    "approvers": [
+      {
+        "approver_id": "province-road-duty-officer",
+        "agency_id": "jeju-province-road-management",
+        "role": "road_duty_officer",
+        "active": true
+      }
+    ],
+    "handoff_channels": [
+      {
+        "channel_id": "jeju-police-traffic-coordination",
+        "handoff_type": "police",
+        "target_agency_id": "jeju-police",
+        "status": "active",
+        "contact_method": "situation_room_operator"
+      },
+      {
+        "channel_id": "jeju-fire-119-coordination",
+        "handoff_type": "fire",
+        "target_agency_id": "jeju-fire",
+        "status": "active",
+        "contact_method": "119_situation_room_operator"
+      }
+    ],
+    "defaults": {
+      "managing_agency_id": "jeju-province-road-management",
+      "road_jurisdiction": "demo_provincial_road_management_area",
+      "jurisdiction_basis": "operator_demo_assumption_not_official_road_register",
+      "dispatch_approval_required": true,
+      "dispatch_approver_id": "province-road-duty-officer",
+      "police_handoff_level": "none",
+      "police_handoff_channel_id": "jeju-police-traffic-coordination",
+      "fire_handoff_level": "none",
+      "fire_handoff_channel_id": "jeju-fire-119-coordination"
+    }
+  },
   "vehicles": [
     {
       "vehicle_id": "patrol-east-01",
@@ -42,7 +106,10 @@
       "shift_start_at": "2026-11-12T22:00:00+09:00",
       "shift_end_at": "2026-11-13T00:11:25+09:00",
       "skills": ["general_patrol"],
-      "equipment": []
+      "equipment": [],
+      "managing_agency_id": "jeju-province-road-management",
+      "support_agency_ids": [],
+      "authorized_road_jurisdictions": ["demo_provincial_road_management_area"]
     },
     {
       "team_id": "team-north",
@@ -54,7 +121,10 @@
       "shift_start_at": "2026-11-12T22:00:00+09:00",
       "shift_end_at": "2026-11-13T00:11:25+09:00",
       "skills": ["general_patrol"],
-      "equipment": []
+      "equipment": [],
+      "managing_agency_id": "jeju-province-road-management",
+      "support_agency_ids": [],
+      "authorized_road_jurisdictions": ["demo_provincial_road_management_area"]
     },
     {
       "team_id": "team-west",
@@ -66,7 +136,10 @@
       "shift_start_at": "2026-11-12T22:00:00+09:00",
       "shift_end_at": "2026-11-13T00:11:25+09:00",
       "skills": ["general_patrol"],
-      "equipment": []
+      "equipment": [],
+      "managing_agency_id": "jeju-province-road-management",
+      "support_agency_ids": [],
+      "authorized_road_jurisdictions": ["demo_provincial_road_management_area"]
     }
   ],
   "constraints": {
@@ -83,7 +156,15 @@
         "link_id": "4050418600",
         "service_minutes": 20,
         "required_skills": ["general_patrol"],
-        "required_equipment": ["road_weather_kit"]
+        "required_equipment": ["road_weather_kit"],
+        "managing_agency_id": "jeju-province-road-management",
+        "road_jurisdiction": "demo_provincial_road_management_area",
+        "jurisdiction_basis": "operator_demo_assumption_not_official_road_register",
+        "dispatch_approval_required": true,
+        "dispatch_approver_id": "province-road-duty-officer",
+        "police_handoff_level": "coordinate",
+        "police_handoff_channel_id": "jeju-police-traffic-coordination",
+        "fire_handoff_level": "none"
       }
     ]
   }

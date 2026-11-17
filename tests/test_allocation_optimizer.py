@@ -211,3 +211,89 @@ def test_optimizer_is_deterministic_for_identical_inputs():
     )
 
     assert first == second
+
+
+def _institution_scoped_resources():
+    resources = _resources(fixed=False, mandatory=[])
+    resources["governance"] = {
+        "agencies": [
+            {
+                "agency_id": "agency-a",
+                "agency_name": "Agency A",
+                "agency_type": "province",
+            },
+            {
+                "agency_id": "agency-b",
+                "agency_name": "Agency B",
+                "agency_type": "administrative_city",
+            },
+        ],
+        "approvers": [],
+        "handoff_channels": [],
+        "defaults": {
+            "managing_agency_id": "agency-a",
+            "road_jurisdiction": "jurisdiction-a",
+            "jurisdiction_basis": "test_fixture",
+            "dispatch_approval_required": False,
+            "police_handoff_level": "none",
+            "fire_handoff_level": "none",
+        },
+    }
+    for team in resources["teams"]:
+        team["managing_agency_id"] = "agency-a"
+        team["support_agency_ids"] = []
+        team["authorized_road_jurisdictions"] = ["jurisdiction-a"]
+    return resources
+
+
+def test_optimizer_does_not_cross_agency_or_jurisdiction_authority():
+    tasks = _tasks()
+    tasks[2].update(
+        {
+            "managing_agency_id": "agency-b",
+            "road_jurisdiction": "jurisdiction-b",
+            "road_team_dispatch_eligible": True,
+        }
+    )
+
+    result, report = build_constraint_allocation(
+        _institution_scoped_resources(), tasks, _matrix()
+    )
+
+    assert report["status"] == "pass"
+    for plan in result["alternatives"]:
+        unassigned = next(
+            row for row in plan["unassigned_tasks"] if row["task_id"] == "task-3"
+        )
+        assert unassigned["reason"] == "no_team_with_institutional_authority"
+        assert plan["metrics"]["constraint_violation_count"] == 0
+
+
+def test_optimizer_separates_external_handoff_from_road_team_dispatch():
+    tasks = _tasks()
+    tasks[2].update(
+        {
+            "road_team_dispatch_eligible": False,
+            "response_mode": "external_handoff",
+            "handoff_actions": [
+                {
+                    "handoff_type": "police",
+                    "level": "transfer",
+                    "channel_id": "police-channel",
+                    "target_agency_id": "police",
+                    "status": "pending",
+                }
+            ],
+        }
+    )
+
+    result, report = build_constraint_allocation(_resources(), tasks, _matrix())
+
+    assert report["status"] == "pass"
+    assert report["handoff_queue_count"] == 1
+    assert result["handoff_queue"][0]["task_id"] == "task-3"
+    assert all(
+        assignment["task_id"] != "task-3"
+        for plan in result["alternatives"]
+        for assignment in plan["assignments"]
+    )

@@ -423,6 +423,14 @@ def _explain(
                 "constraint_violation_count": metrics[
                     "constraint_violation_count"
                 ],
+                "pending_dispatch_approval_count": sum(
+                    row.get("dispatch_approval_status") == "pending"
+                    for row in plan["assignments"]
+                ),
+                "handoff_action_count": sum(
+                    len(row.get("handoff_actions", []))
+                    for row in plan["assignments"]
+                ),
                 "team_routes": [
                     {
                         "team_id": team["team_id"],
@@ -473,6 +481,7 @@ def _explain(
             "quality_status": quality_status,
         },
         "alternatives": alternatives,
+        "external_handoff_queue": list(allocation.get("handoff_queue", [])),
         "suggested_review_order": [
             alternative_id
             for alternative_id in ("safety_first", "balanced_operations")
@@ -574,7 +583,16 @@ def run_agent_flow(
         horizon_hours=int(parsed["horizon_hours"]),
         resource_plan=resource_plan,
     )
-    active_tasks = [task for task in tasks if not task["excluded"]]
+    active_tasks = [
+        task
+        for task in tasks
+        if not task["excluded"] and task.get("road_team_dispatch_eligible", True)
+    ]
+    handoff_only_tasks = [
+        task
+        for task in tasks
+        if not task["excluded"] and not task.get("road_team_dispatch_eligible", True)
+    ]
     task_status = "pass" if active_tasks else "fail"
     trace.append(
         _trace(
@@ -589,7 +607,8 @@ def run_agent_flow(
             output_summary={
                 **task_report,
                 "active_task_count": len(active_tasks),
-                "excluded_task_count": len(tasks) - len(active_tasks),
+                "excluded_task_count": sum(task["excluded"] for task in tasks),
+                "handoff_only_task_count": len(handoff_only_tasks),
             },
         )
     )

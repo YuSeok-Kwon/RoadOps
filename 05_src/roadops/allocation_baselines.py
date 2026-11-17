@@ -11,7 +11,7 @@ from math import asin, cos, radians, sin, sqrt
 from statistics import pvariance
 from typing import Any, Iterable, Mapping
 
-from roadops.resources import validate_resource_plan
+from roadops.resources import institutional_eligibility, validate_resource_plan
 from roadops.spatial import normalize_link_id
 
 
@@ -40,6 +40,13 @@ def _integer(value: Any) -> int | None:
 
 def _truthy(value: Any) -> bool:
     return str(value or "").strip().lower() in {"1", "true", "yes", "y"}
+
+
+def _override_or_default(
+    override: Mapping[str, Any], defaults: Mapping[str, Any], field: str
+) -> Any:
+    value = override.get(field)
+    return defaults.get(field) if value is None else value
 
 
 def _datetime(value: Any) -> datetime:
@@ -128,6 +135,14 @@ def build_field_tasks(
     default_service = float(
         resource_plan["planning"]["default_service_minutes"]
     )
+    governance_defaults = resource_plan.get("governance", {}).get("defaults", {})
+    channel_index = {
+        str(row["channel_id"]): row
+        for row in resource_plan.get("governance", {}).get(
+            "handoff_channels", []
+        )
+        if row.get("channel_id")
+    }
     tasks: list[dict[str, Any]] = []
     for link_id, members in grouped.items():
         ranked = sorted(
@@ -162,6 +177,47 @@ def build_field_tasks(
         )
         override = override_index.get(link_id, {})
         service_minutes = override.get("service_minutes") or default_service
+        handoff_actions: list[dict[str, Any]] = []
+        handoff_levels: dict[str, str] = {}
+        for handoff_type in ("police", "fire"):
+            level = str(
+                _override_or_default(
+                    override,
+                    governance_defaults,
+                    f"{handoff_type}_handoff_level",
+                )
+                or "none"
+            )
+            channel_id = _override_or_default(
+                override,
+                governance_defaults,
+                f"{handoff_type}_handoff_channel_id",
+            )
+            handoff_levels[handoff_type] = level
+            if level != "none":
+                channel = channel_index.get(str(channel_id), {})
+                handoff_actions.append(
+                    {
+                        "handoff_type": handoff_type,
+                        "level": level,
+                        "channel_id": channel_id,
+                        "target_agency_id": channel.get("target_agency_id"),
+                        "status": "pending",
+                    }
+                )
+        if "transfer" in handoff_levels.values():
+            response_mode = "external_handoff"
+        elif "coordinate" in handoff_levels.values():
+            response_mode = "joint_response"
+        else:
+            response_mode = "road_team_dispatch"
+        approval_required = bool(
+            _override_or_default(
+                override,
+                governance_defaults,
+                "dispatch_approval_required",
+            )
+        )
         tasks.append(
             {
                 "task_id": f"link:{link_id}:h{horizon_hours}",
@@ -204,6 +260,25 @@ def build_field_tasks(
                 "required_equipment": list(
                     override.get("required_equipment", [])
                 ),
+                "managing_agency_id": _override_or_default(
+                    override, governance_defaults, "managing_agency_id"
+                ),
+                "road_jurisdiction": _override_or_default(
+                    override, governance_defaults, "road_jurisdiction"
+                ),
+                "jurisdiction_basis": _override_or_default(
+                    override, governance_defaults, "jurisdiction_basis"
+                ),
+                "dispatch_approval_required": approval_required,
+                "dispatch_approver_id": _override_or_default(
+                    override, governance_defaults, "dispatch_approver_id"
+                ),
+                "dispatch_approval_status": (
+                    "pending" if approval_required else "not_required"
+                ),
+                "response_mode": response_mode,
+                "road_team_dispatch_eligible": response_mode != "external_handoff",
+                "handoff_actions": handoff_actions,
             }
         )
 
@@ -221,6 +296,19 @@ def build_field_tasks(
             mandatory_links - set(grouped)
         ),
         "fixed_links_missing_from_tasks": sorted(set(fixed_index) - set(grouped)),
+        "institution_scoped_task_count": sum(
+            bool(task.get("managing_agency_id") and task.get("road_jurisdiction"))
+            for task in tasks
+        ),
+        "approval_required_task_count": sum(
+            bool(task.get("dispatch_approval_required")) for task in tasks
+        ),
+        "handoff_action_count": sum(
+            len(task.get("handoff_actions", [])) for task in tasks
+        ),
+        "external_handoff_task_count": sum(
+            task.get("response_mode") == "external_handoff" for task in tasks
+        ),
     }
     return tasks, report
 
@@ -268,6 +356,13 @@ def _feasibility(
             "reason": "team_capability_missing",
             "missing_skills": missing_skills,
             "missing_equipment": missing_equipment,
+        }
+    institutional = institutional_eligibility(team, task)
+    if not institutional["eligible"]:
+        return {
+            "feasible": False,
+            "reason": "institutional_authority_mismatch",
+            "institutional_reasons": institutional["reasons"],
         }
     if int(state["assignment_count"]) >= max_tasks:
         return {"feasible": False, "reason": "team_task_limit_reached"}
@@ -336,6 +431,14 @@ def _assign(
         "cumulative_minutes": round(state["elapsed_minutes"], 3),
         "task_latitude": task["latitude"],
         "task_longitude": task["longitude"],
+        "managing_agency_id": task.get("managing_agency_id"),
+        "road_jurisdiction": task.get("road_jurisdiction"),
+        "jurisdiction_basis": task.get("jurisdiction_basis"),
+        "dispatch_approval_required": task.get("dispatch_approval_required"),
+        "dispatch_approver_id": task.get("dispatch_approver_id"),
+        "dispatch_approval_status": task.get("dispatch_approval_status"),
+        "response_mode": task.get("response_mode"),
+        "handoff_actions": list(task.get("handoff_actions", [])),
         "selection_reason": (
             "operator_fixed_assignment"
             if fixed
@@ -368,6 +471,8 @@ def _unassigned_reason(
         reason = "task_coordinates_missing"
     elif reasons.get("team_capability_missing") == len(states):
         reason = "no_capable_team"
+    elif reasons.get("institutional_authority_mismatch") == len(states):
+        reason = "no_team_with_institutional_authority"
     elif reasons.get("team_task_limit_reached") == len(states):
         reason = "all_teams_at_task_limit"
     else:
@@ -452,6 +557,16 @@ def _constraint_violations(
                     "link_id": row["link_id"],
                 }
             )
+        institutional = institutional_eligibility(team, task)
+        if not institutional["eligible"]:
+            violations.append(
+                {
+                    "code": "institutional_authority_violation",
+                    "link_id": row["link_id"],
+                    "team_id": row["team_id"],
+                    "reasons": institutional["reasons"],
+                }
+            )
     return violations
 
 
@@ -462,7 +577,11 @@ def _plan_metrics(
     states: Mapping[str, Mapping[str, Any]],
     violations: list[Mapping[str, Any]],
 ) -> dict[str, Any]:
-    candidates = [task for task in tasks if not task["excluded"]]
+    candidates = [
+        task
+        for task in tasks
+        if not task["excluded"] and task.get("road_team_dispatch_eligible", True)
+    ]
     total_priority = sum(float(task["priority_score"]) for task in candidates)
     assigned_priority = sum(float(row["priority_score"]) for row in assignments)
     workloads = [int(state["assignment_count"]) for state in states.values()]
@@ -470,13 +589,16 @@ def _plan_metrics(
         row
         for row in unassigned
         if not row.get("excluded")
+        and row.get("reason") != "external_handoff_required"
         and float(row.get("priority_score") or 0) >= HIGH_PRIORITY_SCORE
     ]
     return {
         "candidate_task_count": len(candidates),
         "assigned_task_count": len(assignments),
         "unassigned_candidate_task_count": sum(
-            not row.get("excluded") for row in unassigned
+            not row.get("excluded")
+            and row.get("reason") != "external_handoff_required"
+            for row in unassigned
         ),
         "excluded_task_count": sum(task["excluded"] for task in tasks),
         "high_priority_unassigned_count": len(high_unassigned),
@@ -527,7 +649,9 @@ def _build_plan(
     speed = float(resource_plan["planning"]["baseline_speed_kph"])
     max_tasks = int(resource_plan["planning"]["max_tasks_per_team"])
     remaining = {
-        str(task["link_id"]): task for task in tasks if not task["excluded"]
+        str(task["link_id"]): task
+        for task in tasks
+        if not task["excluded"] and task.get("road_team_dispatch_eligible", True)
     }
     assignments: list[dict[str, Any]] = []
     unassigned: list[dict[str, Any]] = [
@@ -544,6 +668,22 @@ def _build_plan(
         for task in tasks
         if task["excluded"]
     ]
+    unassigned.extend(
+        {
+            "task_id": task["task_id"],
+            "link_id": task["link_id"],
+            "priority_score": task["priority_score"],
+            "mandatory": task["mandatory"],
+            "excluded": False,
+            "fixed_team_id": task["fixed_team_id"],
+            "reason": "external_handoff_required",
+            "team_feasibility_reasons": {},
+            "handoff_actions": list(task.get("handoff_actions", [])),
+        }
+        for task in tasks
+        if not task["excluded"]
+        and not task.get("road_team_dispatch_eligible", True)
+    )
 
     for fixed in resource_plan["constraints"]["fixed_assignments"]:
         link_id = str(fixed["link_id"])
@@ -766,6 +906,7 @@ def build_allocation_baselines(
         "team_shift_exceeded",
         "required_skill_missing",
         "required_equipment_missing",
+        "institutional_authority_violation",
     }
     hard_violations = [
         {"strategy": plan["strategy"], **violation}
