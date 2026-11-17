@@ -975,7 +975,9 @@ export function DashboardContent() {
         <div><span className="eyebrow">ROADOPS / JEJU</span><strong>도로 현장 운영 상황판</strong></div>
         <div className="data-status-group">
           <span className="roadops-freshness-badge stored">저장된 데이터 · 기준 {dateTime(metadata.latest_risk_target_at)}</span>
-          <small>현재 자동 갱신 안 함</small>
+          <small>{Number(metadata.automatic_refresh_interval_minutes) > 0
+            ? `운영 데이터 ${Number(metadata.automatic_refresh_interval_minutes)}분마다 자동 갱신`
+            : "자동 갱신 일정 미설정"}</small>
         </div>
       </div>
       <div className="toolbar-controls">

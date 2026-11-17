@@ -740,6 +740,8 @@ def build_map_snapshot(
                 if snapshot_age_minutes is None or snapshot_age_minutes > 120
                 else "recent_snapshot"
             ),
+            "automatic_refresh_interval_minutes": 10,
+            "automatic_refresh_mechanism": "macos_launchd_operational_pipeline",
             "risk_semantics": "operational_priority_scenario_not_accident_probability",
             "travel_semantics": travel_semantics,
             "live_eta_available": live_eta,
