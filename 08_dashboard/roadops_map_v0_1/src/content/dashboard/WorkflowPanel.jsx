@@ -156,6 +156,7 @@ function ApprovalStep({
   onFieldChange,
   onValidate,
   onApprove,
+  liveEtaAvailable,
 }) {
   const stateLabel = approvalCurrent
     ? "확정 완료"
@@ -191,7 +192,9 @@ function ApprovalStep({
       <label><input type="checkbox" checked={state.acknowledgements.dataQuality}
         onChange={(event) => onAcknowledgement("dataQuality", event.target.checked)} />데이터 신선도와 품질 플래그를 확인했습니다.</label>
       <label><input type="checkbox" checked={state.acknowledgements.travelEstimate}
-        onChange={(event) => onAcknowledgement("travelEstimate", event.target.checked)} />이동시간이 실시간 ETA가 아님을 확인했습니다.</label>
+        onChange={(event) => onAcknowledgement("travelEstimate", event.target.checked)} />{liveEtaAvailable
+          ? "ITS 실시간 속도와 미관측 구간의 보완 방식을 확인했습니다."
+          : "이동시간이 실시간 ETA가 아님을 확인했습니다."}</label>
       <label><input type="checkbox" checked={state.acknowledgements.fieldCheck}
         onChange={(event) => onAcknowledgement("fieldCheck", event.target.checked)} />현장 지시 전 통제·기상 상황을 다시 확인합니다.</label>
     </fieldset>
@@ -417,6 +420,7 @@ export function WorkflowPanel({
         onNext={() => setActiveTab("approval")} />}
       {activeTab === "approval" && <ApprovalStep state={state} validation={validation}
         validationFresh={validationFresh} approvalCurrent={approvalCurrent} approvalRecord={approvalRecord}
+        liveEtaAvailable={Boolean(metadata.live_eta_available)}
         onAcknowledgement={updateAcknowledgement} onFieldChange={updateField}
         onValidate={validate} onApprove={approve} />}
       {activeTab === "audit" && <AuditStep rows={auditLog} />}

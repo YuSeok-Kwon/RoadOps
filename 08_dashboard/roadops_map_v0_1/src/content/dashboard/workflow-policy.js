@@ -300,7 +300,11 @@ export function validateWorkflow({
   if ((/** @type {any} */ (metadata)).freshness_status !== "recent_snapshot") {
     warnings.push(issue("STALE_SNAPSHOT", "저장된 스냅샷이므로 현장 지시 전 최신 데이터를 다시 확인해야 합니다."));
   }
-  warnings.push(issue("FREE_FLOW_ESTIMATE", "이동시간은 실시간 ETA가 아닌 자유흐름 추정치입니다."));
+  if ((/** @type {any} */ (metadata)).live_eta_available) {
+    warnings.push(issue("LIVE_ETA_PARTIAL_COVERAGE", "ITS 실시간 속도를 반영했으며, 미관측 도로는 제한속도 기준으로 계산했습니다."));
+  } else {
+    warnings.push(issue("FREE_FLOW_ESTIMATE", "이동시간은 실시간 ETA가 아닌 자유흐름 추정치입니다."));
+  }
   if (state.tasks.some((task) => !task.excluded && task.dispatchApproverVerificationStatus === "operator_configuration_required")) {
     warnings.push(issue("APPROVER_CONFIGURATION_REQUIRED", "최종 확인 직무는 지정됐지만 현재 당직 책임자의 실명은 운영기관 확인이 필요합니다."));
   }

@@ -4,8 +4,10 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 from roadops.travel_time import (
+    LIVE_ROUTE_SEMANTICS,
     ROUTE_SEMANTICS,
     build_travel_time_matrix,
+    current_traffic_speeds_by_link,
     recheck_allocation_plans,
     replay_cached_travel_matrix,
     travel_matrix_cache_key,
@@ -148,6 +150,60 @@ def test_travel_matrix_uses_directed_fastest_path_and_preserves_semantics():
     ]
     assert route["travel_time_minutes"] > 0
     assert route["destination_coordinate_offset_meters"] < 1
+
+
+def test_live_its_speed_changes_fastest_path_and_reports_route_coverage():
+    observed = {
+        "4050000101": 5,
+        "4050000102": 5,
+        "4050000103": 60,
+        "4050000104": 60,
+        "4050000105": 30,
+    }
+
+    result, report = build_travel_time_matrix(
+        _resources(),
+        _tasks(),
+        _nodes(),
+        _links(),
+        observed_speed_by_link=observed,
+        traffic_profile={"status": "available"},
+        generated_at=NOW,
+    )
+
+    route = _team_route(result)
+    assert report["route_semantics"] == LIVE_ROUTE_SEMANTICS
+    assert route["route_link_ids"] == [
+        "4050000103",
+        "4050000104",
+        "4050000105",
+    ]
+    assert route["live_speed_link_count"] == 3
+    assert route["live_speed_coverage"] == 1.0
+    assert report["graph"]["observed_speed_link_count"] == 5
+
+
+def test_current_traffic_speeds_exclude_stale_future_and_zero_values():
+    records = [
+        {"link_id": "4050000101", "prcn_dt": "20261113115000", "sped": 22},
+        {"link_id": "4050000102", "prcn_dt": "20261113110000", "sped": 35},
+        {"link_id": "4050000103", "prcn_dt": "20261113115500", "sped": 0},
+        {"link_id": "4050000104", "prcn_dt": "20261113121000", "sped": 40},
+    ]
+
+    speeds, profile = current_traffic_speeds_by_link(
+        records,
+        as_of=NOW,
+        freshness_max_minutes=30,
+    )
+
+    assert speeds == {"4050000101": 22.0}
+    assert profile["fresh_speed_link_count"] == 1
+    assert profile["excluded_counts"] == {
+        "future_timestamp": 1,
+        "non_positive_speed": 1,
+        "stale": 1,
+    }
 
 
 def test_closed_link_is_removed_and_route_uses_slower_detour():

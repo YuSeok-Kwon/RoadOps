@@ -24,8 +24,9 @@ from roadops.spatial import (
 )
 
 
-TRAVEL_TIME_VERSION = "roadops-road-network-travel-time-v0.1"
+TRAVEL_TIME_VERSION = "roadops-road-network-travel-time-v0.2"
 ROUTE_SEMANTICS = "free_flow_speed_limit_estimate_not_live_eta"
+LIVE_ROUTE_SEMANTICS = "its_live_speed_eta_with_speed_limit_fallback"
 
 
 @dataclass(frozen=True)
@@ -36,6 +37,7 @@ class NetworkLink:
     length_meters: float
     speed_kph: float
     travel_minutes: float
+    speed_source: str
     geometry_parts: tuple[tuple[GeoPoint, ...], ...]
 
 
@@ -143,12 +145,85 @@ def _speed(value: Any, *, default_speed_kph: float) -> float:
     return min(max(speed, 10.0), 110.0)
 
 
+def _traffic_observed_at(value: Any) -> datetime | None:
+    text = str(value or "").strip()
+    if not text:
+        return None
+    if text.isdigit() and len(text) == 14:
+        try:
+            return datetime.strptime(text, "%Y%m%d%H%M%S")
+        except ValueError:
+            return None
+    try:
+        return datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+
+def current_traffic_speeds_by_link(
+    records: Iterable[Mapping[str, Any]],
+    *,
+    as_of: datetime,
+    freshness_max_minutes: float = 30.0,
+) -> tuple[dict[str, float], dict[str, Any]]:
+    """Select fresh positive ITS speeds without treating zero as measured movement."""
+
+    if freshness_max_minutes <= 0:
+        raise ValueError("freshness_max_minutes must be positive")
+    selected: dict[str, tuple[datetime, float]] = {}
+    counters: Counter[str] = Counter()
+    source_row_count = 0
+    for row in records:
+        source_row_count += 1
+        link_id = normalize_link_id(row.get("link_id"))
+        observed_at = _traffic_observed_at(
+            row.get("prcn_dt") or row.get("observed_at")
+        )
+        speed = _number(row.get("sped") if "sped" in row else row.get("speed_kph"))
+        if link_id is None:
+            counters["invalid_link"] += 1
+            continue
+        if observed_at is None:
+            counters["invalid_timestamp"] += 1
+            continue
+        comparison_as_of = as_of
+        if observed_at.tzinfo is None and comparison_as_of.tzinfo is not None:
+            observed_at = observed_at.replace(tzinfo=comparison_as_of.tzinfo)
+        elif observed_at.tzinfo is not None and comparison_as_of.tzinfo is None:
+            comparison_as_of = comparison_as_of.replace(tzinfo=observed_at.tzinfo)
+        elif observed_at.tzinfo is not None and comparison_as_of.tzinfo is not None:
+            comparison_as_of = comparison_as_of.astimezone(observed_at.tzinfo)
+        age_minutes = (comparison_as_of - observed_at).total_seconds() / 60
+        if age_minutes < -5:
+            counters["future_timestamp"] += 1
+            continue
+        if age_minutes > freshness_max_minutes:
+            counters["stale"] += 1
+            continue
+        if speed is None or speed <= 0:
+            counters["non_positive_speed"] += 1
+            continue
+        previous = selected.get(link_id)
+        if previous is None or observed_at > previous[0]:
+            selected[link_id] = (observed_at, min(max(speed, 5.0), 110.0))
+    return (
+        {link_id: value[1] for link_id, value in selected.items()},
+        {
+            "source_row_count": source_row_count,
+            "fresh_speed_link_count": len(selected),
+            "freshness_max_minutes": freshness_max_minutes,
+            "excluded_counts": dict(sorted(counters.items())),
+        },
+    )
+
+
 def build_network_graph(
     node_rows: Iterable[Mapping[str, Any]],
     link_rows: Iterable[Mapping[str, Any]],
     *,
     closed_link_ids: Iterable[str] = (),
     default_speed_kph: float = 30.0,
+    observed_speed_by_link: Mapping[str, Any] | None = None,
 ) -> tuple[
     dict[str, GeoPoint],
     dict[str, NetworkLink],
@@ -180,6 +255,8 @@ def build_network_graph(
     links: dict[str, NetworkLink] = {}
     adjacency: defaultdict[str, list[NetworkLink]] = defaultdict(list)
     fallback_speed_count = 0
+    observed_speed_count = 0
+    observed_speeds = observed_speed_by_link or {}
     for row in link_rows:
         link_id = normalize_link_id(row.get("link_id"))
         start_node_id = normalize_node_id(row.get("start_node_id"))
@@ -203,13 +280,20 @@ def build_network_graph(
         if length <= 0:
             issue_counts["zero_length_link"] += 1
             continue
-        raw_speed = _number(row.get("maximum_speed_limit"))
-        if raw_speed is None or raw_speed <= 0:
-            fallback_speed_count += 1
-        speed = _speed(
-            row.get("maximum_speed_limit"),
-            default_speed_kph=default_speed_kph,
-        )
+        observed_speed = _number(observed_speeds.get(link_id))
+        if observed_speed is not None and observed_speed > 0:
+            speed = min(max(observed_speed, 5.0), 110.0)
+            speed_source = "its_live_observation"
+            observed_speed_count += 1
+        else:
+            raw_speed = _number(row.get("maximum_speed_limit"))
+            if raw_speed is None or raw_speed <= 0:
+                fallback_speed_count += 1
+            speed = _speed(
+                row.get("maximum_speed_limit"),
+                default_speed_kph=default_speed_kph,
+            )
+            speed_source = "speed_limit_or_default"
         link = NetworkLink(
             link_id=link_id,
             start_node_id=start_node_id,
@@ -217,6 +301,7 @@ def build_network_graph(
             length_meters=length,
             speed_kph=speed,
             travel_minutes=(length / 1000) / speed * 60,
+            speed_source=speed_source,
             geometry_parts=geometry,
         )
         links[link_id] = link
@@ -233,6 +318,10 @@ def build_network_graph(
         "known_closed_link_count": len(closed & set(links)),
         "unknown_closed_link_ids": sorted(closed - set(links)),
         "fallback_speed_link_count": fallback_speed_count,
+        "observed_speed_link_count": observed_speed_count,
+        "observed_speed_coverage": (
+            round(observed_speed_count / len(links), 6) if links else 0.0
+        ),
         "issue_counts": dict(sorted(issue_counts.items())),
     }
     return nodes, links, dict(adjacency), report
@@ -363,7 +452,9 @@ def _task_origins(
         along = location[0] if location else 0.0
         exit_distance = max(0.0, link.length_meters - along) if link else 0.0
         exit_minutes = (
-            (exit_distance / 1000) / link.speed_kph * 60 if link else 0.0
+            (exit_distance / link.length_meters) * link.travel_minutes
+            if link and link.length_meters > 0
+            else 0.0
         )
         origins.append(
             RouteOrigin(
@@ -402,8 +493,8 @@ def _destinations(
         offset = location[1] if location else None
         entry_distance = 0.0 if approach_only and along is not None else along
         entry_minutes = (
-            (entry_distance / 1000) / link.speed_kph * 60
-            if link and entry_distance is not None
+            (entry_distance / link.length_meters) * link.travel_minutes
+            if link and entry_distance is not None and link.length_meters > 0
             else None
         )
         destinations.append(
@@ -480,6 +571,8 @@ def _failed_route(
     origin: RouteOrigin,
     destination: RouteDestination,
     reason: str,
+    *,
+    route_semantics: str,
 ) -> dict[str, Any]:
     return {
         "route_id": _route_id(origin.origin_id, destination.task_id),
@@ -490,7 +583,7 @@ def _failed_route(
         "status": "unavailable",
         "failure_reason": reason,
         "source_mode": "network_compute",
-        "route_semantics": ROUTE_SEMANTICS,
+        "route_semantics": route_semantics,
         "travel_time_minutes": None,
         "distance_km": None,
         "network_travel_minutes": None,
@@ -505,6 +598,8 @@ def _failed_route(
         "destination_approach_only": destination.approach_only,
         "route_link_ids": [],
         "route_link_count": 0,
+        "live_speed_link_count": 0,
+        "live_speed_coverage": 0.0,
     }
 
 
@@ -515,6 +610,8 @@ def _build_route(
     times: Mapping[str, float],
     distances: Mapping[str, float],
     predecessor: Mapping[str, tuple[str, str]],
+    links: Mapping[str, NetworkLink],
+    route_semantics: str,
 ) -> dict[str, Any]:
     if origin.origin_type == "field_task" and origin.origin_id == destination.task_id:
         route_links: list[str] = []
@@ -526,20 +623,45 @@ def _build_route(
         destination_entry_distance = 0.0
     else:
         if origin.failure_reason:
-            return _failed_route(origin, destination, origin.failure_reason)
+            return _failed_route(
+                origin,
+                destination,
+                origin.failure_reason,
+                route_semantics=route_semantics,
+            )
         if destination.failure_reason:
-            return _failed_route(origin, destination, destination.failure_reason)
+            return _failed_route(
+                origin,
+                destination,
+                destination.failure_reason,
+                route_semantics=route_semantics,
+            )
         if origin.node_id is None or destination.node_id is None:
-            return _failed_route(origin, destination, "route_endpoint_missing")
+            return _failed_route(
+                origin,
+                destination,
+                "route_endpoint_missing",
+                route_semantics=route_semantics,
+            )
         network_minutes = times.get(destination.node_id)
         network_distance = distances.get(destination.node_id)
         if network_minutes is None or network_distance is None:
-            return _failed_route(origin, destination, "no_directed_network_path")
+            return _failed_route(
+                origin,
+                destination,
+                "no_directed_network_path",
+                route_semantics=route_semantics,
+            )
         path = _path_link_ids(
             origin.node_id, destination.node_id, predecessor
         )
         if path is None:
-            return _failed_route(origin, destination, "path_reconstruction_failed")
+            return _failed_route(
+                origin,
+                destination,
+                "path_reconstruction_failed",
+                route_semantics=route_semantics,
+            )
         route_links = list(path)
         origin_exit_minutes = origin.origin_link_exit_minutes
         origin_exit_distance = origin.origin_link_exit_meters
@@ -566,6 +688,13 @@ def _build_route(
         + network_distance
         + destination_entry_distance
     )
+    counted_links = [links[link_id] for link_id in route_links if link_id in links]
+    live_speed_link_count = sum(
+        link.speed_source == "its_live_observation" for link in counted_links
+    )
+    live_speed_coverage = (
+        live_speed_link_count / len(counted_links) if counted_links else 0.0
+    )
     return {
         "route_id": _route_id(origin.origin_id, destination.task_id),
         "origin_id": origin.origin_id,
@@ -575,7 +704,7 @@ def _build_route(
         "status": "ok_approach_only" if destination.approach_only else "ok",
         "failure_reason": None,
         "source_mode": "network_compute",
-        "route_semantics": ROUTE_SEMANTICS,
+        "route_semantics": route_semantics,
         "travel_time_minutes": round(total_minutes, 3),
         "distance_km": round(total_distance / 1000, 3),
         "network_travel_minutes": round(network_minutes, 3),
@@ -596,6 +725,8 @@ def _build_route(
         "destination_approach_only": destination.approach_only,
         "route_link_ids": route_links,
         "route_link_count": len(route_links),
+        "live_speed_link_count": live_speed_link_count,
+        "live_speed_coverage": round(live_speed_coverage, 6),
     }
 
 
@@ -651,7 +782,7 @@ def _quality_report(
         "schema_version": 1,
         "status": status,
         "travel_time_version": TRAVEL_TIME_VERSION,
-        "route_semantics": ROUTE_SEMANTICS,
+        "route_semantics": result.get("route_semantics", ROUTE_SEMANTICS),
         "resource_validation": dict(resource_validation),
         "graph": dict(graph_report),
         "origin_count": int(result.get("origin_count", 0)),
@@ -679,6 +810,8 @@ def build_travel_time_matrix(
     connector_speed_kph: float = 20.0,
     max_snap_distance_meters: float = 2_000.0,
     connectivity_snap_tolerance_meters: float = 250.0,
+    observed_speed_by_link: Mapping[str, Any] | None = None,
+    traffic_profile: Mapping[str, Any] | None = None,
     generated_at: datetime | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     """Build team/task-to-task route times on the directed Jeju road graph."""
@@ -722,6 +855,12 @@ def build_travel_time_matrix(
         link_rows,
         closed_link_ids=closed,
         default_speed_kph=default_speed_kph,
+        observed_speed_by_link=observed_speed_by_link,
+    )
+    route_semantics = (
+        LIVE_ROUTE_SEMANTICS
+        if int(graph_report.get("observed_speed_link_count", 0)) > 0
+        else ROUTE_SEMANTICS
     )
     destinations = _destinations(tasks, links, closed)
     destination_reachable_node_ids = _nodes_reaching_destinations(
@@ -755,6 +894,8 @@ def build_travel_time_matrix(
                     times=times,
                     distances=distances,
                     predecessor=predecessor,
+                    links=links,
+                    route_semantics=route_semantics,
                 )
             )
     routes.sort(key=lambda row: (row["origin_id"], row["destination_task_id"]))
@@ -765,7 +906,7 @@ def build_travel_time_matrix(
         "scenario_id": resource_plan["scenario_id"],
         "generated_at": timestamp,
         "status": "pending_quality_check",
-        "route_semantics": ROUTE_SEMANTICS,
+        "route_semantics": route_semantics,
         "execution": {
             "mode": "network_compute",
             "cache_key": None,
@@ -780,10 +921,15 @@ def build_travel_time_matrix(
             ),
             "directed_graph": True,
             "turn_restrictions_applied": False,
+            "traffic_profile": dict(traffic_profile or {}),
         },
         "limitations": [
-            "speed_limits_are_free_flow_estimates_not_live_traffic_eta",
-            "turn_restrictions_are_not_applied_in_v0.1",
+            *(
+                ["unobserved_links_use_speed_limit_or_default_fallback"]
+                if route_semantics == LIVE_ROUTE_SEMANTICS
+                else ["speed_limits_are_free_flow_estimates_not_live_traffic_eta"]
+            ),
+            "turn_restrictions_are_not_applied_in_v0.2",
             "team_start_snap_prefers_a_nearby_node_that_reaches_a_task",
             "team_start_connector_is_a_straight_line_estimate",
         ],

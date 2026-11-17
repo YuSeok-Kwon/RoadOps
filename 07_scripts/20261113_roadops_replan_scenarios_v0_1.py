@@ -27,7 +27,10 @@ from roadops.replanning import (  # noqa: E402
     apply_heavy_rain_scenario,
     build_partial_replan,
 )
-from roadops.travel_time import build_travel_time_matrix  # noqa: E402
+from roadops.travel_time import (  # noqa: E402
+    build_travel_time_matrix,
+    current_traffic_speeds_by_link,
+)
 
 
 DEFAULT_COMPLETED_TASK = "link:4060438807:h0"
@@ -71,6 +74,12 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=PROJECT_ROOT
         / "02_outputs/interim/molit_nodelink_jeju_20261014/jeju_links.csv",
+    )
+    parser.add_argument(
+        "--traffic",
+        type=Path,
+        default=PROJECT_ROOT
+        / "02_outputs/data/integrated_field_events_v0_1/enrichments/jeju_its_realtime_traffic.json",
     )
     parser.add_argument(
         "--output-dir",
@@ -192,6 +201,18 @@ def main() -> int:
     ]
     rain_links = args.rain_link_id or list(DEFAULT_RAIN_LINKS)
     generated_at = _generated_at(args.as_of)
+    traffic_speeds: dict[str, float] = {}
+    traffic_profile: dict = {"status": "missing_input"}
+    if args.traffic.exists():
+        traffic_payload = _read(args.traffic)
+        traffic_speeds, traffic_profile = current_traffic_speeds_by_link(
+            traffic_payload.get("records", []),
+            as_of=generated_at,
+            freshness_max_minutes=30,
+        )
+        traffic_profile["status"] = (
+            "available" if traffic_speeds else "unavailable_no_fresh_positive_speed"
+        )
 
     closure_started = time.perf_counter()
     closure_matrix, closure_matrix_report = build_travel_time_matrix(
@@ -200,6 +221,8 @@ def main() -> int:
         nodes,
         links,
         closed_link_ids=[args.closed_link_id],
+        observed_speed_by_link=traffic_speeds,
+        traffic_profile=traffic_profile,
         generated_at=generated_at,
     )
     closure_matrix_seconds = time.perf_counter() - closure_started

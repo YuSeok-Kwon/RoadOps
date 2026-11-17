@@ -515,6 +515,7 @@ def build_map_snapshot(
     replanning: Mapping[str, Any],
     resources: Mapping[str, Any],
     allocation: Mapping[str, Any],
+    travel_time: Mapping[str, Any] | None = None,
     link_rows: Iterable[Mapping[str, Any]],
     generated_at: str,
 ) -> tuple[dict[str, list[dict[str, Any]]], dict[str, Any]]:
@@ -636,7 +637,25 @@ def build_map_snapshot(
         if latest_target and generated_dt.tzinfo and latest_target.tzinfo
         else None
     )
+    travel_time = travel_time or {}
+    travel_semantics = str(
+        travel_time.get("route_semantics")
+        or "free_flow_speed_limit_estimate_not_live_eta"
+    )
+    live_eta = travel_semantics == "its_live_speed_eta_with_speed_limit_fallback"
+    traffic_profile = travel_time.get("parameters", {}).get("traffic_profile", {})
     availability = [
+        {
+            "data_layer": "its_live_eta",
+            "display_name": "ITS 실시간 이동시간",
+            "status": "available" if live_eta else "unavailable",
+            "reason": (
+                f"제주 ITS 최신 속도 {int(traffic_profile.get('fresh_speed_link_count') or 0):,}개 링크를 적용하고 미관측 링크는 제한속도로 보완"
+                if live_eta
+                else "신선한 ITS 속도를 확보하지 못해 제한속도 기반 이동시간을 사용"
+            ),
+            "score_contribution": None,
+        },
         {
             "data_layer": "gateway_inflow_pressure",
             "display_name": "공항·항만 유입압력",
@@ -659,7 +678,16 @@ def build_map_snapshot(
                 else "recent_snapshot"
             ),
             "risk_semantics": "operational_priority_scenario_not_accident_probability",
-            "travel_semantics": "network_free_flow_estimate_not_live_eta",
+            "travel_semantics": travel_semantics,
+            "live_eta_available": live_eta,
+            "live_eta_speed_link_count": int(
+                traffic_profile.get("fresh_speed_link_count") or 0
+            ),
+            "live_eta_fallback_note": (
+                "ITS 미관측 링크는 제한속도 또는 기본속도를 사용"
+                if live_eta
+                else "전체 경로가 제한속도 또는 기본속도 추정"
+            ),
             "scenario_semantics": "what_if_not_observed",
             "governance_effective_at": governance.get("effective_at"),
             "authority_semantics": (
@@ -712,7 +740,11 @@ def build_map_snapshot(
         "route_rows_without_geometry": route_rows_without_geometry,
         "limitations": [
             "snapshot_not_live_feed",
-            "travel_time_is_free_flow_estimate_not_live_eta",
+            *(
+                ["its_unobserved_links_use_speed_limit_fallback"]
+                if live_eta
+                else ["travel_time_is_free_flow_estimate_not_live_eta"]
+            ),
             "replanning_layers_are_what_if_scenarios",
             "gateway_inflow_pressure_unavailable_not_scored",
             "manual_approval_required_before_field_dispatch",

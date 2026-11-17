@@ -1021,8 +1021,14 @@ def build_partial_replan(
                 "단정하지 않습니다."
             ),
             (
-                "도로시간은 제한속도 기반 자유흐름 추정치이며 "
-                "실시간 ETA가 아닙니다."
+                "제주 ITS 실시간 속도를 반영했으며, 미관측 도로는 "
+                "제한속도 기준으로 보완했습니다."
+                if scenario_matrix.get("route_semantics")
+                == "its_live_speed_eta_with_speed_limit_fallback"
+                else (
+                    "도로시간은 제한속도 기반 자유흐름 추정치이며 "
+                    "실시간 ETA가 아닙니다."
+                )
             ),
             "담당자 승인 전에는 현장 지시로 사용하지 않습니다.",
         ],

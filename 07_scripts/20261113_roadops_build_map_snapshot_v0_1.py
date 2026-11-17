@@ -69,6 +69,12 @@ def parse_args() -> argparse.Namespace:
         / "02_outputs/interim/molit_nodelink_jeju_20261014/jeju_links.csv",
     )
     parser.add_argument(
+        "--travel-time",
+        type=Path,
+        default=PROJECT_ROOT
+        / "02_outputs/data/travel_time_matrix_v0_1/travel_time_matrix.json",
+    )
+    parser.add_argument(
         "--output-dir",
         type=Path,
         default=PROJECT_ROOT / "02_outputs/data/map_snapshot_v0_1",
@@ -137,10 +143,19 @@ def build_data_app_snapshot(
     build_status: str,
     inputs: dict[str, Path],
 ) -> dict[str, Any]:
+    travel_time = read_json(inputs["travel_time"])
+    live_eta = (
+        travel_time.get("route_semantics")
+        == "its_live_speed_eta_with_speed_limit_fallback"
+    )
     shared_caveats = [
         "This is a repository-local snapshot, not a continuously refreshed live feed.",
         "Risk values are operational priority scenarios, not accident probabilities.",
-        "Travel time is a road-network free-flow estimate, not a live ETA.",
+        (
+            "Travel time uses fresh Jeju ITS speeds with speed-limit fallback on unobserved links."
+            if live_eta
+            else "Travel time is a road-network free-flow estimate, not a live ETA."
+        ),
         "Replanning layers are What-if scenarios and require operator approval.",
     ]
     query_sources = {
@@ -260,6 +275,7 @@ def main() -> int:
         "resources": args.resources,
         "allocation": args.allocation,
         "road_links": args.road_links,
+        "travel_time": args.travel_time,
     }
     for name, path in inputs.items():
         if not path.exists():
@@ -272,6 +288,7 @@ def main() -> int:
         replanning=read_json(args.replanning),
         resources=read_json(args.resources),
         allocation=read_json(args.allocation),
+        travel_time=read_json(args.travel_time),
         link_rows=read_csv(args.road_links),
         generated_at=generated_at,
     )

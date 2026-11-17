@@ -451,10 +451,16 @@ def _explain(
             and row.get("target_at")
         }
     )
+    travel_semantics = str(travel_matrix.get("route_semantics") or "")
     warnings = [
         (
-            "도로 이동시간은 제한속도 기반 자유흐름 추정치이며 "
-            "실시간 ETA가 아닙니다."
+            "제주 ITS 실시간 속도를 반영했으며, 미관측 도로는 "
+            "제한속도 기준으로 보완했습니다."
+            if travel_semantics == "its_live_speed_eta_with_speed_limit_fallback"
+            else (
+                "도로 이동시간은 제한속도 기반 자유흐름 추정치이며 "
+                "실시간 ETA가 아닙니다."
+            )
         ),
         "결과는 담당자 승인 전에는 현장 지시로 사용하지 않습니다.",
     ]
