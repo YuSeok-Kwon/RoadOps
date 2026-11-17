@@ -212,7 +212,7 @@ export function validateWorkflow({
   }
   warnings.push(issue("FREE_FLOW_ESTIMATE", "이동시간은 실시간 ETA가 아닌 자유흐름 추정치입니다."));
   if (state.tasks.some((task) => !task.excluded && task.dispatchApproverVerificationStatus === "operator_configuration_required")) {
-    warnings.push(issue("APPROVER_CONFIGURATION_REQUIRED", "도로관리과 승인 직무는 지정됐지만 현재 당직자 실명은 운영기관 확인이 필요합니다."));
+    warnings.push(issue("APPROVER_CONFIGURATION_REQUIRED", "최종 확인 직무는 지정됐지만 현재 당직 책임자의 실명은 운영기관 확인이 필요합니다."));
   }
   if (scenarioId !== "none") {
     warnings.push(issue("WHAT_IF_SCENARIO", "선택한 통제·폭우 시나리오는 실제 발생 사실이 아닌 What-if입니다."));

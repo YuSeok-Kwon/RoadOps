@@ -398,10 +398,14 @@ function TaskQueue({ rows, selectedLinkId, onSelect }) {
     title="먼저 확인할 도로" description="점수가 높은 순서입니다. 도로를 누르면 이유와 담당기관을 확인할 수 있습니다."
     sourceRows={rows} displayRows={sorted} className="task-queue-card">
     <div className="task-queue-list">
+      <div className="task-queue-head" aria-hidden="true">
+        <span>순위</span><span>도로·담당</span><span>상태</span><span>점수</span>
+      </div>
       {sorted.slice(0, 6).map((row, index) => <button type="button" key={row.task_id}
         className={selectedLinkId === row.link_id ? "selected" : ""} onClick={() => onSelect(row.link_id)}>
         <span className="task-rank">{String(index + 1).padStart(2, "0")}</span>
         <span className="task-copy"><strong>{row.road_name}</strong><small>{row.administrative_city || "구역 미확인"} · {row.managing_agency_name || row.link_id}</small></span>
+        <span className="task-risk-tag" data-risk={row.risk_level}>{RISK_LABELS[row.risk_level] || "확인"}</span>
         <span className="task-score">{number(row.priority_score)}</span>
       </button>)}
     </div>
@@ -438,7 +442,7 @@ function ReplanSummary({ rows, scenarioId }) {
     scopeFilters={[{ field: "scenario_id", label: "시나리오", value: scenarioId }]}
     className="replan-summary-card">
     <div className="replan-summary-head">
-      <span className="approval-badge">승인 필요</span>
+      <span className="approval-badge">책임자 확인 필요</span>
       <strong>{row.summary}</strong>
     </div>
     <p>{row.change_reasons}</p>
@@ -554,7 +558,7 @@ export function DashboardContent() {
           <Metric label="점검 대상" value={riskRows.length} note={horizon === 0 ? "현재 확인 후보" : `${horizon}시간 후 확인 후보`} />
           <Metric label="먼저 확인" value={highRiskCount} note="위험 단계가 높은 도로" tone={highRiskCount ? "warning" : "neutral"} />
           <Metric label="배분 완료" value={`${selectedMetrics.assigned_task_count ?? "—"}/${selectedMetrics.candidate_task_count ?? "—"}`} note="제외 조건 통과 업무" tone="positive" />
-          <Metric label="제약 위반" value={number(selectedMetrics.constraint_violation_count, 0)} note={scenarioId === "none" ? "기본 배분안" : "가정 상황 · 담당자 승인 필요"} tone="positive" />
+          <Metric label="제약 위반" value={number(selectedMetrics.constraint_violation_count, 0)} note={scenarioId === "none" ? "기본 배분안" : "가정 상황 · 책임자 확인 필요"} tone="positive" />
         </div>
       </DataComponent>
     </section>
@@ -586,7 +590,7 @@ export function DashboardContent() {
 
       <aside className="roadops-inspector">
         <div className="inspector-tabs" role="tablist" aria-label="현장 운영 정보">
-          {[{ id: "priorities", label: "우선순위 목록" }, { id: "segment", label: "선택 구간" }, { id: "plan", label: "배분·승인" }].map((tab) =>
+          {[{ id: "priorities", label: "우선순위 목록" }, { id: "segment", label: "선택 구간" }, { id: "plan", label: "출동계획" }].map((tab) =>
             <button type="button" role="tab" key={tab.id} aria-selected={inspectorTab === tab.id}
               onClick={() => setInspectorTab(tab.id)}>{tab.label}</button>)}
         </div>
@@ -616,7 +620,7 @@ export function DashboardContent() {
     </div>
 
     <footer className="roadops-disclaimer">
-      운영 우선순위 시나리오이며 사고확률이 아닙니다. 모든 배분·재계획 결과는 현장 지시 전 담당자 승인이 필요합니다.
+      운영 우선순위 시나리오이며 사고확률이 아닙니다. 모든 배분·재계획 결과는 현장 지시 전 책임자의 확인과 확정이 필요합니다.
     </footer>
   </article>;
 }

@@ -12,10 +12,10 @@ import {
 } from "./workflow-policy.js";
 
 const TAB_LABELS = {
-  resources: "1 자원",
-  tasks: "2 업무",
-  approval: "3 승인",
-  audit: "감사 로그",
+  resources: "1 출동팀",
+  tasks: "2 도로 배정",
+  approval: "3 확인·확정",
+  audit: "처리 기록",
 };
 
 const TEAM_SHORT_LABELS = {
@@ -55,15 +55,15 @@ function ResourceStep({ state, onChange }) {
         <strong>{resource.teamName}</strong>
         <span>{resource.managingAgencyName} · {resource.vehicleId} · 정원 {resource.vehicleCapacity}명</span>
       </div>
-      <Switch label="가용" checked={resource.available} size="compact"
+      <Switch label="출동 가능" checked={resource.available} size="compact"
         onChange={(checked) => onChange(resource.teamId, "available", checked)} />
-      <label>인원<input type="number" min="1" max={resource.vehicleCapacity}
+      <label>출동 인원<input type="number" min="1" max={resource.vehicleCapacity}
         value={resource.personnelCount}
         onChange={(event) => onChange(resource.teamId, "personnelCount", Number(event.target.value))} /></label>
-      <label>근무분<input type="number" min="1" step="5" value={resource.shiftMinutes}
+      <label>가용 시간(분)<input type="number" min="1" step="5" value={resource.shiftMinutes}
         onChange={(event) => onChange(resource.teamId, "shiftMinutes", Number(event.target.value))} /></label>
     </div>)}
-    <p className="workflow-inline-note">자원 조건을 바꾸면 기존 이동경로는 자동 승인되지 않고 재계획 필요 상태로 전환됩니다.</p>
+    <p className="workflow-inline-note">출동팀·인원·가용 시간을 바꾸면 이동 경로를 다시 계산해야 합니다.</p>
   </div>;
 }
 
@@ -84,13 +84,14 @@ function TaskStep({ state, onChange }) {
           </option>)}
         </select>
       </label>
-      <Switch label="고정" checked={task.fixed} disabled={task.excluded} size="compact"
+      <Switch label="팀 고정" checked={task.fixed} disabled={task.excluded} size="compact"
         onChange={(checked) => onChange(task.taskId, "fixed", checked)} />
-      <Switch label={task.mandatory ? "필수" : "제외"} checked={task.excluded}
-        disabled={task.mandatory} size="compact"
-        onChange={(checked) => onChange(task.taskId, "excluded", checked)} />
+      {task.mandatory
+        ? <span className="workflow-mandatory-tag">필수 점검</span>
+        : <Switch label="점검 제외" checked={task.excluded} size="compact"
+          onChange={(checked) => onChange(task.taskId, "excluded", checked)} />}
     </div>)}
-    <p className="workflow-inline-note">개별 담당팀 변경·업무 제외는 지도에서 해당 기존 경로를 숨기고, 새 경로가 계산될 때까지 승인을 차단합니다.</p>
+    <p className="workflow-inline-note">담당팀을 바꾸거나 점검을 제외하면 새 경로가 계산될 때까지 계획을 확정할 수 없습니다.</p>
   </div>;
 }
 
@@ -106,19 +107,19 @@ function ApprovalStep({
   onApprove,
 }) {
   const stateLabel = approvalCurrent
-    ? "승인 완료"
+    ? "확정 완료"
     : validationFresh && validation.technicalValid
-      ? "검증 통과"
+      ? "제약조건 통과"
       : validation.errors.length
-        ? "재계획 필요"
-        : "검증 대기";
+        ? "재계산 필요"
+        : "확인 전";
   const activeTasks = state.tasks.filter((task) => !task.excluded);
   const approverRoles = [...new Set(activeTasks.map((task) => task.dispatchApproverRole).filter(Boolean))];
   const pendingHandoffs = activeTasks.flatMap((task) => task.handoffStatuses || [])
     .filter((handoff) => handoff.status === "pending");
   return <div className="workflow-approval-step">
     <div className="workflow-validation-head" data-status={approvalCurrent ? "approved" : validation.technicalValid ? "valid" : "blocked"}>
-      <div><span>현재 상태</span><strong>{stateLabel}</strong></div>
+      <div><span>출동계획 상태</span><strong>{stateLabel}</strong></div>
       <span>{validation.errors.length} 오류 · {validation.warnings.length} 주의</span>
     </div>
 
@@ -130,12 +131,12 @@ function ApprovalStep({
     </ul>
 
     <div className="workflow-authority-summary">
-      <div><span>승인 직무</span><strong>{approverRoles.join(" / ") || "운영기관 확인 필요"}</strong></div>
+      <div><span>최종 확인 직무</span><strong>{approverRoles.join(" / ") || "운영기관 확인 필요"}</strong></div>
       <div><span>경찰·소방 인계</span><strong>{pendingHandoffs.length ? `${pendingHandoffs.length}건 협조 요청 대기` : "현재 인계 요청 없음"}</strong></div>
     </div>
 
     <fieldset className="workflow-acknowledgements">
-      <legend>현장 확인</legend>
+      <legend>출동 전 필수 확인</legend>
       <label><input type="checkbox" checked={state.acknowledgements.dataQuality}
         onChange={(event) => onAcknowledgement("dataQuality", event.target.checked)} />데이터 신선도와 품질 플래그를 확인했습니다.</label>
       <label><input type="checkbox" checked={state.acknowledgements.travelEstimate}
@@ -145,18 +146,18 @@ function ApprovalStep({
     </fieldset>
 
     <div className="workflow-approval-fields">
-      <label>승인자 실명(운영기관 확인)<input type="text" value={state.approverName} placeholder="현재 당직·승인자 실명"
+      <label>최종 확인자<input type="text" value={state.approverName} placeholder="현재 당직·책임자 실명"
         onChange={(event) => onFieldChange("approverName", event.target.value)} /></label>
-      <label>승인 사유<textarea rows={2} value={state.approvalReason} placeholder="현장 확인 내용과 승인 사유"
+      <label>현장 확인 메모<textarea rows={2} value={state.approvalReason} placeholder="통제·기상·협조 요청 확인 내용"
         onChange={(event) => onFieldChange("approvalReason", event.target.value)} /></label>
     </div>
 
     <div className="workflow-approval-actions">
-      <Button variant="secondary" onClick={onValidate}>변경안 검증</Button>
+      <Button variant="secondary" onClick={onValidate}>제약조건 확인</Button>
       <Button variant="primary" disabled={!validationFresh || !validation.approvalReady || approvalCurrent}
-        onClick={onApprove}>{approvalCurrent ? "승인 완료" : "계획 승인"}</Button>
+        onClick={onApprove}>{approvalCurrent ? "확정 완료" : "출동계획 확정"}</Button>
     </div>
-    {!validationFresh && <p className="workflow-action-hint">현재 입력값을 승인하려면 변경안 검증을 먼저 실행하세요.</p>}
+    {!validationFresh && <p className="workflow-action-hint">팀·업무 조건을 확인한 뒤 ‘제약조건 확인’을 먼저 누르세요.</p>}
     {approvalRecord && <div className="workflow-approval-record" data-current={approvalCurrent || undefined}>
       <span>{approvalCurrent ? "현재 계획 승인 기록" : "이전 계획 승인 기록"}</span>
       <strong>{approvalRecord.approverName} · {localDateTime(approvalRecord.approvedAt)}</strong>
@@ -305,16 +306,19 @@ export function WorkflowPanel({
     map_metadata: [metadata],
   };
   return <DataComponent variant="plain" id="operations-workflow" queryId="teams"
-    queryIds={Object.keys(sourceRowsByQuery)} kind="custom" title="운영 계획 승인"
-    description="검증된 대안을 기준으로 자원과 업무 조건을 확인하고, 안전 확인 후 담당자가 승인합니다."
+    queryIds={Object.keys(sourceRowsByQuery)} kind="custom" title="출동계획 확정"
+    description="AI가 만든 배분안을 실제 현장 지시 전에 사람이 확인하는 단계입니다."
     sourceRows={teams} displayRows={teams} sourceRowsByQuery={sourceRowsByQuery}
     className="workflow-panel-card">
+    <div className="workflow-purpose">
+      <strong>이 화면에서 하는 일</strong>
+      <p>출동 가능팀 확인 → 도로별 담당팀 확인 → 안전조건 점검 → 책임자 확정</p>
+    </div>
     <div className="workflow-summary-bar">
       <span data-state={approvalCurrent ? "approved" : validation.errors.length ? "blocked" : "draft"}>
-        {approvalCurrent ? "승인 완료" : validation.errors.length ? "재계획 필요" : "승인 전"}
+        {approvalCurrent ? "확정 완료" : validation.errors.length ? "재계산 필요" : "확정 전"}
       </span>
       <p>{planLabel(state.planId)} · 자원 변경 {changes.resources} · 업무 변경 {changes.tasks}</p>
-      <code>{fingerprint}</code>
     </div>
     <div className="workflow-tabs" role="tablist" aria-label="운영 계획 단계">
       {Object.entries(TAB_LABELS).map(([id, label]) => <button type="button" role="tab"
