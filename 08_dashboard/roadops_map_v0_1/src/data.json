@@ -1,7 +1,7 @@
 {
   "id": "roadops:jeju-field-operations-map:v0.1",
   "title": "RoadOps 제주 현장 운영 워크벤치",
-  "generatedAt": "2026-11-17T21:36:41.776435+09:00",
+  "generatedAt": "2026-11-17T21:40:17.598948+09:00",
   "status": "reviewed_local_snapshot",
   "surface": "dashboard",
   "filters": [],
@@ -10,7 +10,7 @@
       "rows": [
         {
           "snapshot_version": "roadops-map-snapshot-v0.1",
-          "generated_at": "2026-11-17T21:36:41.776435+09:00",
+          "generated_at": "2026-11-17T21:40:17.598948+09:00",
           "latest_risk_target_at": "2026-11-18T03:00:00+09:00",
           "snapshot_age_minutes": 0.0,
           "freshness_status": "recent_snapshot",
@@ -629,6 +629,36 @@
               {
                 "tables": [
                   "02_outputs/data/crime_statistics_v0_1/crime_statistics.json"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "complaint_hotspots": {
+      "rows": [],
+      "source": {
+        "label": "Sanitized Jeju road-complaint administrative export",
+        "caveats": [
+          "The layer remains empty until an authorized Jeju 120, Saeol, or Safety Report export is supplied.",
+          "Reporter information, free text, complaint IDs, and exact input coordinates are never published.",
+          "Only coarse cells with at least three complaints are displayed and the layer is not added to the risk score."
+        ],
+        "tables": [
+          "02_outputs/data/complaint_hotspots_v0_1/complaint_hotspots.json"
+        ],
+        "metricDefinitions": [
+          {
+            "label": "Sanitized Jeju road-complaint administrative export",
+            "definition": "Repository-local reviewed snapshot generated deterministically from the listed source artifacts.",
+            "componentIds": [
+              "roadops-map"
+            ],
+            "sourceLineage": [
+              {
+                "tables": [
+                  "02_outputs/data/complaint_hotspots_v0_1/complaint_hotspots.json"
                 ]
               }
             ]

@@ -23,6 +23,13 @@ def test_dry_run_does_not_execute_provider_calls():
     assert all(row["status"] == "planned" for row in report["stages"])
 
 
+def test_full_refresh_finishes_with_dashboard_after_reference_sources():
+    stage_ids = [stage_id for stage_id, _ in commands(PROJECT_ROOT, "full")]
+    assert stage_ids.index("crime_statistics") < stage_ids.index("dashboard_snapshot")
+    assert stage_ids.index("gateway_api_audit") < stage_ids.index("dashboard_snapshot")
+    assert stage_ids[-1] == "dashboard_snapshot"
+
+
 def test_lock_rejects_overlapping_refresh(tmp_path):
     lock = tmp_path / "refresh.lock"
     with exclusive_lock(lock):

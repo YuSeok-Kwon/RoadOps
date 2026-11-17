@@ -318,7 +318,7 @@ function WeatherForecastStrip({ rows, horizon, onSelect }) {
   </DataComponent>;
 }
 
-function MapLegend({ showScenario, showAccidentHotspots }) {
+function MapLegend({ showScenario, showAccidentHotspots, showComplaintHotspots }) {
   return <div className="roadops-map-legend" aria-label="지도 범례">
     <div className="legend-group">
       <span className="legend-title">점검 우선순위</span>
@@ -329,6 +329,10 @@ function MapLegend({ showScenario, showAccidentHotspots }) {
     {showAccidentHotspots && <div className="legend-group">
       <span className="legend-title">과거 사고</span>
       <span><i className="legend-accident" />공단 선정 사고다발지역</span>
+    </div>}
+    {showComplaintHotspots && <div className="legend-group">
+      <span className="legend-title">도로 민원</span>
+      <span><i className="legend-complaint" />3건 이상 비식별 집계 구역</span>
     </div>}
     <div className="legend-group">
       <span className="legend-title">순찰 코스</span>
@@ -390,7 +394,9 @@ function RoadMap({
   replanRows,
   impactRows,
   accidentRows,
+  complaintRows,
   showAccidentHotspots,
+  showComplaintHotspots,
   selectedRisk,
   selectedRoute,
   onSelectRisk,
@@ -494,6 +500,20 @@ function RoadMap({
           d={pathFor(geometry(row.geometry_json), project)}>
           <title>{`${row.location_name} · ${row.analysis_year}년 사고 ${row.accident_count}건·사상 ${row.casualty_count}명`}</title>
         </path>)}
+      </g>}
+
+      {showComplaintHotspots && <g className="complaint-hotspots" data-reviewed-rows="complaint_hotspots">
+        {complaintRows.map((row) => {
+          const [x, y] = project(row.longitude, row.latitude);
+          const category = row.top_categories?.[0]?.category || "도로 민원";
+          const radius = Math.min(15, 6 + Math.sqrt(Number(row.complaint_count) || 0));
+          return <g key={row.hotspot_id} transform={`translate(${x} ${y}) scale(${markerScale})`}>
+            <circle r={radius}>
+              <title>{`${category} 중심 · ${number(row.complaint_count, 0)}건 · 약 500m 격자 비식별 집계`}</title>
+            </circle>
+            <text y="3">{number(row.complaint_count, 0)}</text>
+          </g>;
+        })}
       </g>}
 
       {scenarioActive && <g className="scenario-impact" data-reviewed-rows="scenario_impacts">
@@ -608,7 +628,8 @@ function RoadMap({
       teamRows={teamRows} onClose={onCloseRoute} />
     <a className="map-attribution" href="https://www.openstreetmap.org/copyright"
       target="_blank" rel="noopener">© OpenStreetMap contributors</a>
-    <MapLegend showScenario={scenarioActive} showAccidentHotspots={showAccidentHotspots} />
+    <MapLegend showScenario={scenarioActive} showAccidentHotspots={showAccidentHotspots}
+      showComplaintHotspots={showComplaintHotspots} />
   </div>;
 }
 
@@ -833,7 +854,7 @@ export function DashboardContent() {
   const [workflowState, setWorkflowState] = useState(/** @type {any} */ (null));
   const [inspectorTab, setInspectorTab] = useState("priorities");
   const [mapGuideOpen, setMapGuideOpen] = useState(false);
-  const [mapLayers, setMapLayers] = useState({ accidentHotspots: true });
+  const [mapLayers, setMapLayers] = useState({ accidentHotspots: true, complaintHotspots: true });
   const [colorMode, setColorMode] = useState(() => {
     if (typeof localStorage === "undefined") return "dark";
     return localStorage.getItem("roadops-color-mode") === "light" ? "light" : "dark";
@@ -903,7 +924,7 @@ export function DashboardContent() {
   const impactRows = rows("scenario_impacts").filter((row) => row.scenario_id === scenarioId);
   const highRiskCount = riskRows.filter((row) => ["high", "critical"].includes(row.risk_level)).length;
   const scenarioChoices = ["none", ...rows("scenario_summary").map((row) => row.scenario_id)];
-  const mapQueryIds = ["risk_links", "road_background", "accident_hotspots", "field_tasks", "governance_authorities", "teams", "plan_routes", "replan_routes", "scenario_impacts"];
+  const mapQueryIds = ["risk_links", "road_background", "accident_hotspots", "complaint_hotspots", "field_tasks", "governance_authorities", "teams", "plan_routes", "replan_routes", "scenario_impacts"];
   const sourceRowsByQuery = Object.fromEntries(mapQueryIds.map((queryId) => [queryId, rows(queryId)]));
 
   const selectTask = (linkId) => {
@@ -1012,6 +1033,12 @@ export function DashboardContent() {
             <label><input type="checkbox" checked={mapLayers.accidentHotspots}
               onChange={(event) => setMapLayers((current) => ({ ...current, accidentHotspots: event.target.checked }))} />
               사고다발지역 <b>{rows("accident_hotspots").length}</b></label>
+            <label title={rows("complaint_hotspots").length ? "비식별 도로민원 다발지역을 표시합니다." : "승인된 제주 도로민원 내보내기 자료가 필요합니다."}>
+              <input type="checkbox" checked={mapLayers.complaintHotspots}
+                disabled={!rows("complaint_hotspots").length}
+                onChange={(event) => setMapLayers((current) => ({ ...current, complaintHotspots: event.target.checked }))} />
+              민원 다발지역 <b>{rows("complaint_hotspots").length || "자료 대기"}</b>
+            </label>
           </div>
           <button type="button" className="map-guide-toggle" aria-expanded={mapGuideOpen}
             onClick={() => setMapGuideOpen((open) => !open)}>
@@ -1025,11 +1052,14 @@ export function DashboardContent() {
             <span><i data-guide="unassigned" /><b>‘미’ 원</b> 현재 근무시간·경로 제약 안에서 배정되지 않은 후보</span>
             <span><i data-guide="excluded" /><b>‘제’ 원</b> 담당자가 설정한 점검 제외 조건이 적용된 후보</span>
             <span><i data-guide="accident" /><b>빗금 영역</b> 한국도로교통공단이 선정한 2025년 사고다발지역</span>
+            <span><i data-guide="complaint" /><b>보라색 원</b> 신고자 정보를 제거하고 3건 이상만 묶은 약 500m 도로민원 집계</span>
           </div>}
           <RoadMap backgroundRows={rows("road_background")} riskRows={riskRows}
             taskRows={effectiveTaskRows} teamRows={effectiveTeamRows} routeRows={routeRows}
             replanRows={replanRows} impactRows={impactRows} selectedRisk={selectedRisk}
             accidentRows={rows("accident_hotspots")} showAccidentHotspots={mapLayers.accidentHotspots}
+            complaintRows={rows("complaint_hotspots")}
+            showComplaintHotspots={mapLayers.complaintHotspots && rows("complaint_hotspots").length > 0}
             selectedRoute={selectedRoute} onSelectRisk={selectRisk} onSelectTask={selectTask}
             onSelectRoute={selectRoute} onCloseRoute={() => setSelectedRouteKey(null)}
             scenarioId={scenarioId} />

@@ -32,6 +32,7 @@ OPERATIONAL_STAGES = (
     ("optimized_allocation", "20261113_roadops_optimize_allocation_v0_1.py"),
     ("partial_replanning", "20261113_roadops_replan_scenarios_v0_1.py"),
     ("historical_similarity", "20261117_roadops_build_historical_similarity_v0_1.py"),
+    ("complaint_hotspots", "20261117_roadops_collect_complaint_hotspots_v0_1.py"),
     ("dashboard_snapshot", "20261113_roadops_build_map_snapshot_v0_1.py", "--build-status", "complete"),
 )
 
@@ -43,7 +44,11 @@ REFERENCE_STAGES = (
 
 
 def commands(project_root: Path, profile: str) -> list[tuple[str, list[str]]]:
-    stages = OPERATIONAL_STAGES + (REFERENCE_STAGES if profile == "full" else ())
+    stages = (
+        OPERATIONAL_STAGES[:-1] + REFERENCE_STAGES + OPERATIONAL_STAGES[-1:]
+        if profile == "full"
+        else OPERATIONAL_STAGES
+    )
     python = project_root / ".venv/bin/python"
     executable = str(python if python.exists() else Path(sys.executable))
     return [

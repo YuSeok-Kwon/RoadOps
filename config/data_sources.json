@@ -387,6 +387,26 @@
       "join_key": "administrative_city",
       "coordinate_system": null,
       "expected_fields": ["범죄대분류", "범죄중분류", "제주 제주시", "제주 서귀포시"]
+    },
+    {
+      "id": "jeju_road_complaint_administrative_export",
+      "name": "Jeju road complaint administrative export",
+      "name_ko": "제주 도로민원 행정시스템 비식별 내보내기",
+      "documentation_url": "https://bigdata.epeople.go.kr/",
+      "endpoint_url": null,
+      "kind": "authorized_sanitized_csv_import",
+      "authentication": {
+        "required_authorization": "Jeju 120, Saeol, or Safety Report operating agency export approval"
+      },
+      "join_key": "approximately 500 m anonymous grid cell",
+      "coordinate_system": "EPSG:4326 input; coarse grid output",
+      "expected_fields": ["received_at", "category", "latitude", "longitude", "status", "responsible_agency"],
+      "prohibited_fields": ["reporter name", "phone", "email", "free-text complaint content", "exact address"],
+      "quality_contract": {
+        "minimum_complaints_per_published_cell": 3,
+        "exact_coordinates_retained": false,
+        "complaint_ids_retained": false
+      }
     }
   ]
 }

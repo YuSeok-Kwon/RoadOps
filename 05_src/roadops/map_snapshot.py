@@ -519,6 +519,7 @@ def build_map_snapshot(
     accident_rows: Iterable[Mapping[str, Any]] = (),
     historical_similarity_rows: Iterable[Mapping[str, Any]] = (),
     crime_statistic_rows: Iterable[Mapping[str, Any]] = (),
+    complaint_hotspot_rows: Iterable[Mapping[str, Any]] = (),
     reverse_geocode_rows: Iterable[Mapping[str, Any]] = (),
     link_rows: Iterable[Mapping[str, Any]],
     generated_at: str,
@@ -530,6 +531,7 @@ def build_map_snapshot(
     accident_hotspots = [dict(row) for row in accident_rows]
     historical_similarity = [dict(row) for row in historical_similarity_rows]
     crime_statistics = [dict(row) for row in crime_statistic_rows]
+    complaint_hotspots = [dict(row) for row in complaint_hotspot_rows]
     location_by_link = {
         str(row.get("link_id")): dict(row)
         for row in reverse_geocode_rows
@@ -765,6 +767,7 @@ def build_map_snapshot(
             "accident_hotspot_count": len(accident_hotspots),
             "historical_similarity_match_count": len(historical_similarity),
             "crime_statistic_city_count": len(crime_statistics),
+            "complaint_hotspot_count": len(complaint_hotspots),
             "reverse_geocoded_link_count": len(location_by_link),
         },
         "missing_required_link_ids": missing_required,
@@ -791,6 +794,7 @@ def build_map_snapshot(
         "accident_hotspots": accident_hotspots,
         "historical_similarity": historical_similarity,
         "crime_statistics": crime_statistics,
+        "complaint_hotspots": complaint_hotspots,
         "road_background": background_rows,
         "risk_links": risk_links,
         "field_tasks": field_tasks,

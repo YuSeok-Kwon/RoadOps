@@ -93,6 +93,12 @@ def parse_args() -> argparse.Namespace:
         / "02_outputs/data/crime_statistics_v0_1/crime_statistics.json",
     )
     parser.add_argument(
+        "--complaint-hotspots",
+        type=Path,
+        default=PROJECT_ROOT
+        / "02_outputs/data/complaint_hotspots_v0_1/complaint_hotspots.json",
+    )
+    parser.add_argument(
         "--reverse-geocode",
         type=Path,
         default=PROJECT_ROOT
@@ -227,6 +233,16 @@ def build_data_app_snapshot(
                 "Detailed crime caution zones require separate Safety Map authorization.",
             ],
         ),
+        "complaint_hotspots": source(
+            "Sanitized Jeju road-complaint administrative export",
+            [inputs["complaint_hotspots"]],
+            ["roadops-map"],
+            [
+                "The layer remains empty until an authorized Jeju 120, Saeol, or Safety Report export is supplied.",
+                "Reporter information, free text, complaint IDs, and exact input coordinates are never published.",
+                "Only coarse cells with at least three complaints are displayed and the layer is not added to the risk score.",
+            ],
+        ),
         "road_background": source(
             "MOLIT Jeju standard road-link geometry",
             [inputs["road_links"]],
@@ -332,6 +348,7 @@ def main() -> int:
         "accident_hotspots": args.accident_hotspots,
         "historical_similarity": args.historical_similarity,
         "crime_statistics": args.crime_statistics,
+        "complaint_hotspots": args.complaint_hotspots,
         "reverse_geocode": args.reverse_geocode,
     }
     for name, path in inputs.items():
@@ -349,6 +366,7 @@ def main() -> int:
         accident_rows=read_json(args.accident_hotspots).get("records", []),
         historical_similarity_rows=read_json(args.historical_similarity).get("records", []),
         crime_statistic_rows=read_json(args.crime_statistics).get("records", []),
+        complaint_hotspot_rows=read_json(args.complaint_hotspots).get("records", []),
         reverse_geocode_rows=read_json(args.reverse_geocode).get("records", []),
         link_rows=read_csv(args.road_links),
         generated_at=generated_at,

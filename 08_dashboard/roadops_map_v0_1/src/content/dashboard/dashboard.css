@@ -157,10 +157,13 @@
 .map-reading-guide i[data-guide="unassigned"] { width: 9px; height: 9px; border: 2px dashed var(--secondary); border-radius: 99px; background: var(--surface); }
 .map-reading-guide i[data-guide="excluded"] { width: 9px; height: 9px; border: 2px dashed var(--negative); border-radius: 99px; background: var(--surface); }
 .map-reading-guide i[data-guide="accident"] { width: 16px; height: 12px; border: 2px solid #e5484d; border-radius: 99px; background: color-mix(in srgb, #e5484d 20%, transparent); }
+.map-reading-guide i[data-guide="complaint"] { width: 12px; height: 12px; border: 2px solid #7c3aed; border-radius: 99px; background: color-mix(in srgb, #7c3aed 20%, transparent); }
 .map-layer-controls { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; color: var(--secondary); font-size: 10px; }
 .map-layer-controls > span { color: var(--text); font-weight: 750; }
 .map-layer-controls label { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
 .map-layer-controls input { width: 14px; height: 14px; accent-color: #e5484d; }
+.map-layer-controls input:disabled { cursor: not-allowed; opacity: .45; }
+.map-layer-controls label:has(input:disabled) { cursor: help; opacity: .65; }
 .map-layer-controls b { min-width: 17px; padding: 1px 5px; border-radius: 99px; color: var(--text); background: var(--muted); font-family: Poppins, var(--font-sans); font-size: 8px; text-align: center; }
 .roadops-map-wrap {
   position: relative;
@@ -190,6 +193,9 @@
 .map-background path { fill: none; stroke: color-mix(in srgb, var(--chart-1) 25%, transparent); stroke-width: 1.15; opacity: .48; vector-effect: non-scaling-stroke; }
 .accident-hotspots path { fill: color-mix(in srgb, #e5484d 18%, transparent); stroke: #e5484d; stroke-width: 2; opacity: .8; pointer-events: all; vector-effect: non-scaling-stroke; }
 .accident-hotspots path:hover { fill: color-mix(in srgb, #e5484d 32%, transparent); stroke-width: 3; opacity: 1; }
+.complaint-hotspots circle { fill: color-mix(in srgb, #7c3aed 20%, transparent); stroke: #7c3aed; stroke-width: 2; opacity: .85; vector-effect: non-scaling-stroke; }
+.complaint-hotspots circle:hover { fill: color-mix(in srgb, #7c3aed 36%, transparent); opacity: 1; }
+.complaint-hotspots text { fill: var(--text); font-family: Poppins, var(--font-sans); font-size: 7px; font-weight: 750; text-anchor: middle; pointer-events: none; }
 .plan-routes .route-line { fill: none; stroke: var(--team-color); stroke-width: 3.5; stroke-linecap: round; stroke-dasharray: 8 7; opacity: .92; pointer-events: none; vector-effect: non-scaling-stroke; }
 .plan-routes .route-hit-target { fill: none; stroke: transparent; stroke-width: 18; cursor: pointer; pointer-events: stroke; vector-effect: non-scaling-stroke; }
 .plan-routes .route-segment:hover .route-line,
@@ -298,6 +304,7 @@
 .legend-group .legend-unassigned { border-color: var(--secondary); border-style: dashed; color: var(--secondary); }
 .legend-group .legend-excluded { border-color: var(--negative); border-style: dashed; color: var(--negative); }
 .legend-group .legend-accident { width: 15px; height: 11px; box-sizing: border-box; border: 2px solid #e5484d; background: color-mix(in srgb, #e5484d 20%, transparent); }
+.legend-group .legend-complaint { width: 12px; height: 12px; box-sizing: border-box; border: 2px solid #7c3aed; border-radius: 50%; background: color-mix(in srgb, #7c3aed 20%, transparent); }
 .legend-start svg { width: 11px; height: 11px; fill: currentColor; }
 .legend-group .legend-before { border-top-color: var(--secondary); border-top-style: dashed; }
 .legend-group .legend-after { border-top-color: #008f7a; }
