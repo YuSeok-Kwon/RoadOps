@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from statistics import median
 from typing import Any, Iterable, Mapping
 
+from roadops.gateway_pressure import gateway_contribution
 from roadops.risk_scoring import score_risk_event
 
 
@@ -61,6 +62,7 @@ RISK_FORECAST_FIELDS = (
     "traffic_assumption",
     "gateway_inflow_status",
     "gateway_inflow_pressure",
+    "gateway_score",
     "weather_row_status",
     "weather_evidence_kind",
     "weather_source_id",
@@ -266,12 +268,23 @@ def _distribution(values: Iterable[Any]) -> dict[str, Any]:
     }
 
 
+def _risk_level(score: float) -> str:
+    if score >= 75:
+        return "critical"
+    if score >= 50:
+        return "high"
+    if score >= 25:
+        return "moderate"
+    return "low"
+
+
 def build_risk_forecasts(
     events: Iterable[Mapping[str, Any]],
     weather_rows: Iterable[Mapping[str, Any]],
     *,
     generated_at: datetime,
     horizons: Iterable[int] = DEFAULT_HORIZONS,
+    gateway_pressure: Mapping[str, Any] | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """Build one inspectable priority scenario per event and horizon."""
 
@@ -309,7 +322,27 @@ def build_risk_forecasts(
                 allow_event_persistence_scenario=horizon > 0,
             )
             limitations = set(weather_metadata.pop("limitations"))
-            limitations.add("gateway_inflow:unavailable_not_scored")
+            gateway = gateway_contribution(event, gateway_pressure, target_at=target_at)
+            gateway_points = float(gateway.get("contribution") or 0)
+            priority_score = _number(scored.get("risk_score"))
+            lower_bound = _number(scored.get("risk_score_lower_bound"))
+            upper_bound = _number(scored.get("risk_score_upper_bound"))
+            if scored.get("score_available") and gateway_points > 0:
+                priority_score = min(100.0, float(priority_score or 0) + gateway_points)
+                lower_bound = min(100.0, float(lower_bound or 0) + gateway_points)
+                upper_bound = min(100.0, float(upper_bound or 0) + gateway_points)
+                risk_drivers = " | ".join(
+                    value for value in (
+                        str(scored.get("risk_drivers") or ""),
+                        f"gateway:airport_inflow_pressure:{gateway_points:.3f}",
+                    ) if value
+                )
+            else:
+                risk_drivers = scored.get("risk_drivers")
+            if gateway["status"] == "unavailable":
+                limitations.add("gateway_inflow:unavailable_not_scored")
+            elif gateway["status"] != "applied":
+                limitations.add(f"gateway_inflow:{gateway['status']}")
             forecast_row = {
                 "forecast_id": _forecast_id(event_id, horizon, target_at),
                 "generated_at": generated_at.isoformat(),
@@ -328,17 +361,15 @@ def build_risk_forecasts(
                 "score_available": scored.get("score_available"),
                 "ranking_eligible": scored.get("ranking_eligible"),
                 "forecast_rank": None,
-                "forecast_priority_score": scored.get("risk_score"),
-                "forecast_score_lower_bound": scored.get(
-                    "risk_score_lower_bound"
+                "forecast_priority_score": round(priority_score, 3) if priority_score is not None else None,
+                "forecast_score_lower_bound": round(lower_bound, 3) if lower_bound is not None else None,
+                "forecast_score_upper_bound": round(upper_bound, 3) if upper_bound is not None else None,
+                "forecast_uncertainty_width": (
+                    round(upper_bound - lower_bound, 3)
+                    if upper_bound is not None and lower_bound is not None
+                    else None
                 ),
-                "forecast_score_upper_bound": scored.get(
-                    "risk_score_upper_bound"
-                ),
-                "forecast_uncertainty_width": scored.get(
-                    "risk_uncertainty_width"
-                ),
-                "risk_level": scored.get("risk_level"),
+                "risk_level": _risk_level(priority_score) if priority_score is not None else scored.get("risk_level"),
                 "evidence_coverage_ratio": scored.get("evidence_coverage_ratio"),
                 "risk_delta_from_current": None,
                 "risk_direction": None,
@@ -352,14 +383,15 @@ def build_risk_forecasts(
                     if horizon == 0
                     else "unavailable_no_future_model"
                 ),
-                "gateway_inflow_status": "unavailable",
-                "gateway_inflow_pressure": None,
+                "gateway_inflow_status": gateway["status"],
+                "gateway_inflow_pressure": gateway.get("pressure"),
+                "gateway_score": gateway_points if gateway["status"] == "applied" else 0.0,
                 **weather_metadata,
                 "event_score": scored.get("event_score"),
                 "structural_score": scored.get("structural_score"),
                 "weather_road_score": scored.get("weather_road_score"),
                 "traffic_score": scored.get("traffic_score"),
-                "risk_drivers": scored.get("risk_drivers"),
+                "risk_drivers": risk_drivers,
                 "quality_flags": scored.get("quality_flags"),
                 "forecast_limitations": "|".join(sorted(limitations)),
             }
@@ -427,7 +459,7 @@ def build_risk_forecasts(
         for row in output
     ):
         failed_checks.append("future_traffic_leakage")
-    if any(
+    if not gateway_pressure and any(
         row["gateway_inflow_status"] != "unavailable" for row in output
     ):
         failed_checks.append("gateway_status_mismatch")
@@ -469,7 +501,7 @@ def build_risk_forecasts(
         "scored_rows_by_horizon": dict(sorted(score_counts.items())),
         "score_distributions_by_horizon": score_distributions,
         "duplicate_weather_rows": duplicate_weather_rows,
-        "gateway_inflow_status": "unavailable",
+        "gateway_inflow_status": str((gateway_pressure or {}).get("status") or "unavailable"),
         "forecast_semantics": "operational_priority_scenario_not_accident_probability",
         "failed_checks": failed_checks,
     }

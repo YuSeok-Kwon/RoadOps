@@ -54,6 +54,7 @@ const DRIVER_LABELS = {
   "weather_road:kma_wind_speed": "강풍 위험",
   "weather_road:cits_visibility": "시야 확보 상태",
   "weather_road:cits_friction": "노면 미끄럼 위험",
+  "gateway:airport_inflow_pressure": "제주공항 시간대별 유입 압력",
 };
 const QUALITY_LABELS = {
   cits_source_timestamp_unavailable: "도로 위험정보의 발생시각을 확인해야 합니다.",

@@ -52,6 +52,11 @@ def parse_args() -> argparse.Namespace:
         default=PROJECT_ROOT / "02_outputs/data/risk_forecasts_v0_1",
     )
     parser.add_argument(
+        "--gateway-pressure",
+        type=Path,
+        default=PROJECT_ROOT / "02_outputs/data/gateway_pressure_v0_1/gateway_pressure.json",
+    )
+    parser.add_argument(
         "--horizons",
         type=int,
         nargs="+",
@@ -129,6 +134,11 @@ def main() -> int:
         weather_rows,
         generated_at=generated_at,
         horizons=args.horizons,
+        gateway_pressure=(
+            json.loads(args.gateway_pressure.read_text(encoding="utf-8"))
+            if args.gateway_pressure.exists()
+            else None
+        ),
     )
 
     forecast_path = args.output_dir / "risk_forecasts.csv"
@@ -137,6 +147,7 @@ def main() -> int:
     report["inputs"] = {
         "integrated_events": _relative(args.integrated_events),
         "weather_timeline": _relative(args.weather_timeline),
+        "gateway_pressure": _relative(args.gateway_pressure),
     }
     report["outputs"] = {
         "risk_forecasts": _relative(forecast_path),

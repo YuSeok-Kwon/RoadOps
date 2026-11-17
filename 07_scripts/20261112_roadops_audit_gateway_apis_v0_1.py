@@ -46,6 +46,11 @@ def parse_args() -> argparse.Namespace:
             / "02_outputs/data/gateway_api_audit_v0_1/quality_report.json"
         ),
     )
+    parser.add_argument(
+        "--records-output",
+        type=Path,
+        default=PROJECT_ROOT / "02_outputs/data/gateway_api_audit_v0_1/gateway_records.json",
+    )
     parser.add_argument("--as-of", type=str, default=None)
     parser.add_argument("--timeout", type=float, default=30.0)
     parser.add_argument("--strict", action="store_true")
@@ -98,6 +103,7 @@ def main() -> int:
         raise SystemExit(f"Missing gateway source specs: {', '.join(missing_specs)}")
 
     source_results: list[dict[str, Any]] = []
+    source_records: list[dict[str, Any]] = []
     for source_id in GATEWAY_SOURCE_ROLES:
         spec = specs[source_id]
         records: list[Mapping[str, Any]] = []
@@ -119,6 +125,7 @@ def main() -> int:
                 fetch_result=fetch_result,
             )
         )
+        source_records.append({"source_id": source_id, "records": [dict(record) for record in records]})
 
     report = build_gateway_audit_report(
         source_results,
@@ -126,6 +133,15 @@ def main() -> int:
     )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     write_json_atomic(args.output, report)
+    write_json_atomic(
+        args.records_output,
+        {
+            "schema_version": 1,
+            "dataset": "jeju_gateway_api_records",
+            "generated_at": generated_at.isoformat(),
+            "sources": source_records,
+        },
+    )
 
     receipt = {
         "status": report["status"],

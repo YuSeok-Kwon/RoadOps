@@ -27,6 +27,8 @@ OPERATIONAL_STAGES = (
     ),
     ("risk_scores", "20261112_roadops_build_risk_scores_v0_1.py"),
     ("weather_timeline", "20261112_roadops_build_weather_timeline_v0_1.py"),
+    ("gateway_api_audit", "20261112_roadops_audit_gateway_apis_v0_1.py"),
+    ("gateway_pressure", "20261117_roadops_build_gateway_pressure_v0_1.py"),
     ("risk_forecasts", "20261112_roadops_build_risk_forecasts_v0_1.py"),
     ("reverse_geocode", "20261117_roadops_reverse_geocode_links_v0_1.py"),
     ("allocation_baselines", "20261112_roadops_build_allocation_baselines_v0_1.py"),
@@ -41,7 +43,6 @@ OPERATIONAL_STAGES = (
 REFERENCE_STAGES = (
     ("accident_hotspots", "20261117_roadops_collect_accident_hotspots_v0_1.py"),
     ("crime_statistics", "20261117_roadops_collect_crime_statistics_v0_1.py"),
-    ("gateway_api_audit", "20261112_roadops_audit_gateway_apis_v0_1.py"),
 )
 
 

@@ -162,3 +162,27 @@ def test_duplicate_weather_grain_fails_the_structural_report():
 
     assert report["status"] == "fail"
     assert "weather_grid_horizon_uniqueness" in report["failed_checks"]
+
+
+def test_validated_gateway_pressure_only_affects_nearby_target_hour():
+    pressure = {
+        "status": "partial",
+        "airport": {
+            "hourly_pressure": [
+                {"hour": 18, "pressure_index": 1.0, "passenger_count": 200, "baseline_hourly_passengers": 100}
+            ],
+            "disruption_ratio": 0,
+        },
+    }
+    event = _event(event_latitude="33.51", event_longitude="126.49")
+    rows, report = build_risk_forecasts(
+        [event],
+        _weather_rows(),
+        generated_at=NOW,
+        gateway_pressure=pressure,
+    )
+    current = next(row for row in rows if row["horizon_hours"] == 0)
+    assert current["gateway_inflow_status"] == "applied"
+    assert current["gateway_score"] > 0
+    assert "gateway:airport_inflow_pressure" in current["risk_drivers"]
+    assert report["failed_checks"] == []
