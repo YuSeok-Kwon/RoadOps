@@ -727,6 +727,25 @@ function HistoricalSimilarity({ rows, selectedLinkId }) {
   </DataComponent>;
 }
 
+function CrimeContext({ rows, administrativeCity }) {
+  const row = rows.find((item) => item.administrative_city === administrativeCity);
+  if (!row) return null;
+  const categories = Array.isArray(row.top_categories) ? row.top_categories : [];
+  return <DataComponent variant="plain" id="crime-context" queryId="crime_statistics"
+    kind="custom" title={`${row.administrative_city} 범죄 통계`}
+    description={`${row.analysis_year}년 경찰청 비식별 행정시 통계입니다.`}
+    sourceRows={rows} displayRows={[row]} className="crime-context-card"
+    scopeFilters={[{ field: "administrative_city", label: "행정시", value: row.administrative_city }]}>
+    <div className="crime-total"><span>연간 발생 합계</span><strong>{number(row.occurrence_count, 0)}건</strong></div>
+    <ol className="crime-category-list">
+      {categories.map((item, index) => <li key={item.crime_category}>
+        <b>{index + 1}</b><span>{item.crime_category}</span><strong>{number(item.occurrence_count, 0)}건</strong>
+      </li>)}
+    </ol>
+    <p className="crime-context-note">시 단위 참고 통계입니다. 이 도로에서 발생한 범죄 건수나 범죄 다발지 표시는 아닙니다.</p>
+  </DataComponent>;
+}
+
 function TaskQueue({ rows, selectedLinkId, onSelect }) {
   const sorted = [...rows].filter((row) => !row.excluded)
     .sort((left, right) => priorityOrderValue(right) - priorityOrderValue(left));
@@ -1028,6 +1047,8 @@ export function DashboardContent() {
           {inspectorTab === "segment" && <>
             <RiskDetail row={selectedRisk} task={selectedTask} sourceRows={allRiskRows} horizon={horizon} />
             <HistoricalSimilarity rows={rows("historical_similarity")} selectedLinkId={selectedRisk?.link_id} />
+            <CrimeContext rows={rows("crime_statistics")}
+              administrativeCity={selectedTask?.administrative_city || selectedAuthority?.administrative_city} />
             <AuthorityDetail task={selectedTask} authority={selectedAuthority}
               taskRows={rows("field_tasks")} authorityRows={rows("governance_authorities")} />
           </>}

@@ -87,6 +87,12 @@ def parse_args() -> argparse.Namespace:
         / "02_outputs/data/historical_similarity_v0_1/similar_incidents.json",
     )
     parser.add_argument(
+        "--crime-statistics",
+        type=Path,
+        default=PROJECT_ROOT
+        / "02_outputs/data/crime_statistics_v0_1/crime_statistics.json",
+    )
+    parser.add_argument(
         "--output-dir",
         type=Path,
         default=PROJECT_ROOT / "02_outputs/data/map_snapshot_v0_1",
@@ -205,6 +211,16 @@ def build_data_app_snapshot(
                 "Co-observed road events are correlations and do not establish causality.",
             ],
         ),
+        "crime_statistics": source(
+            "National Police Agency 2025 crime statistics by region",
+            [inputs["crime_statistics"]],
+            ["crime-context"],
+            [
+                "Counts are annual, non-identifying statistics at administrative-city grain.",
+                "They are context only and are not treated as road-level crime hotspots or risk-score inputs.",
+                "Detailed crime caution zones require separate Safety Map authorization.",
+            ],
+        ),
         "road_background": source(
             "MOLIT Jeju standard road-link geometry",
             [inputs["road_links"]],
@@ -309,6 +325,7 @@ def main() -> int:
         "travel_time": args.travel_time,
         "accident_hotspots": args.accident_hotspots,
         "historical_similarity": args.historical_similarity,
+        "crime_statistics": args.crime_statistics,
     }
     for name, path in inputs.items():
         if not path.exists():
@@ -324,6 +341,7 @@ def main() -> int:
         travel_time=read_json(args.travel_time),
         accident_rows=read_json(args.accident_hotspots).get("records", []),
         historical_similarity_rows=read_json(args.historical_similarity).get("records", []),
+        crime_statistic_rows=read_json(args.crime_statistics).get("records", []),
         link_rows=read_csv(args.road_links),
         generated_at=generated_at,
     )

@@ -371,6 +371,22 @@
       "join_key": "hotspot polygon and centroid",
       "coordinate_system": "EPSG:4326",
       "expected_fields": ["afos_fid", "spot_nm", "occrrnc_cnt", "caslt_cnt", "lo_crd", "la_crd", "geom_json"]
+    },
+    {
+      "id": "police_crime_statistics_by_region",
+      "name": "National Police Agency crime statistics by region",
+      "name_ko": "경찰청 범죄 발생 지역별 통계",
+      "documentation_url": "https://www.data.go.kr/data/3074462/fileData.do",
+      "endpoint_url": "https://www.data.go.kr/cmm/cmm/fileDownload.do",
+      "kind": "official_file_download",
+      "authentication": {},
+      "default_params": {
+        "publicDataPk": "3074462",
+        "publicDataDetailPk": "uddi:c8238237-68dd-485b-a6ac-9d6981b48871"
+      },
+      "join_key": "administrative_city",
+      "coordinate_system": null,
+      "expected_fields": ["범죄대분류", "범죄중분류", "제주 제주시", "제주 서귀포시"]
     }
   ]
 }

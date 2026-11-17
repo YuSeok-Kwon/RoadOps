@@ -304,6 +304,7 @@
 
 .risk-detail-card .component-header,
 .historical-similarity-card .component-header,
+.crime-context-card .component-header,
 .authority-detail-card .component-header,
 .task-queue-card .component-header,
 .plan-comparison-card .component-header,
@@ -368,6 +369,16 @@
 .similarity-list p { margin: 3px 0 0; font-size: 11px; line-height: 17px; }
 .similarity-list small { color: var(--secondary); font-size: 10px; line-height: 15px; }
 .similarity-note, .similarity-empty { margin: 8px 0 0; color: var(--secondary); font-size: 10px; line-height: 16px; }
+
+.crime-total { display: flex; align-items: baseline; justify-content: space-between; padding-bottom: 9px; border-bottom: 1px solid var(--border); }
+.crime-total span { color: var(--secondary); font-size: 11px; }
+.crime-total strong { font-family: Poppins, var(--font-sans); font-size: 19px; }
+.crime-category-list { margin: 5px 0 0; padding: 0; list-style: none; }
+.crime-category-list li { display: grid; padding: 6px 0; grid-template-columns: 20px minmax(0, 1fr) auto; gap: 7px; border-bottom: 1px solid var(--border); font-size: 11px; }
+.crime-category-list li:last-child { border-bottom: 0; }
+.crime-category-list b { color: var(--secondary); font-family: Poppins, var(--font-sans); font-weight: 500; }
+.crime-category-list strong { font-weight: 650; }
+.crime-context-note { margin: 8px 0 0; color: var(--secondary); font-size: 10px; line-height: 16px; }
 
 .authority-status-head { display: flex; padding: 10px 11px; flex-direction: column; gap: 3px; border: 1px solid color-mix(in srgb, var(--positive) 28%, var(--border)); border-radius: 3px; background: color-mix(in srgb, var(--positive) 5%, var(--background)); }
 .authority-status-head[data-review] { border-color: color-mix(in srgb, #f59e0b 38%, var(--border)); background: color-mix(in srgb, #f59e0b 8%, var(--muted)); }

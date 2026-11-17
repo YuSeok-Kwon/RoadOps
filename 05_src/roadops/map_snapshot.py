@@ -518,6 +518,7 @@ def build_map_snapshot(
     travel_time: Mapping[str, Any] | None = None,
     accident_rows: Iterable[Mapping[str, Any]] = (),
     historical_similarity_rows: Iterable[Mapping[str, Any]] = (),
+    crime_statistic_rows: Iterable[Mapping[str, Any]] = (),
     link_rows: Iterable[Mapping[str, Any]],
     generated_at: str,
 ) -> tuple[dict[str, list[dict[str, Any]]], dict[str, Any]]:
@@ -527,6 +528,7 @@ def build_map_snapshot(
     weather_rows = list(weather_rows)
     accident_hotspots = [dict(row) for row in accident_rows]
     historical_similarity = [dict(row) for row in historical_similarity_rows]
+    crime_statistics = [dict(row) for row in crime_statistic_rows]
     required_link_ids = {
         str(row.get("effective_link_id"))
         for row in risk_rows
@@ -739,6 +741,7 @@ def build_map_snapshot(
             "weather_forecast_horizon_count": len(weather_forecast),
             "accident_hotspot_count": len(accident_hotspots),
             "historical_similarity_match_count": len(historical_similarity),
+            "crime_statistic_city_count": len(crime_statistics),
         },
         "missing_required_link_ids": missing_required,
         "missing_risk_link_ids": missing_risk,
@@ -763,6 +766,7 @@ def build_map_snapshot(
         "weather_forecast": weather_forecast,
         "accident_hotspots": accident_hotspots,
         "historical_similarity": historical_similarity,
+        "crime_statistics": crime_statistics,
         "road_background": background_rows,
         "risk_links": risk_links,
         "field_tasks": field_tasks,

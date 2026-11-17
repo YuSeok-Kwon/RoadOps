@@ -36,6 +36,7 @@ OPERATIONAL_STAGES = (
 
 REFERENCE_STAGES = (
     ("accident_hotspots", "20261117_roadops_collect_accident_hotspots_v0_1.py"),
+    ("crime_statistics", "20261117_roadops_collect_crime_statistics_v0_1.py"),
     ("gateway_api_audit", "20261112_roadops_audit_gateway_apis_v0_1.py"),
 )
 

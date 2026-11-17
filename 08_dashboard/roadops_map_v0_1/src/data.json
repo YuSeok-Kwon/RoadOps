@@ -1,7 +1,7 @@
 {
   "id": "roadops:jeju-field-operations-map:v0.1",
   "title": "RoadOps 제주 현장 운영 워크벤치",
-  "generatedAt": "2026-11-17T21:31:02.422016+09:00",
+  "generatedAt": "2026-11-17T21:34:10.375344+09:00",
   "status": "reviewed_local_snapshot",
   "surface": "dashboard",
   "filters": [],
@@ -10,7 +10,7 @@
       "rows": [
         {
           "snapshot_version": "roadops-map-snapshot-v0.1",
-          "generated_at": "2026-11-17T21:31:02.422016+09:00",
+          "generated_at": "2026-11-17T21:34:10.375344+09:00",
           "latest_risk_target_at": "2026-11-18T03:00:00+09:00",
           "snapshot_age_minutes": 0.0,
           "freshness_status": "recent_snapshot",
@@ -412,6 +412,223 @@
               {
                 "tables": [
                   "02_outputs/data/historical_similarity_v0_1/similar_incidents.json"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "crime_statistics": {
+      "rows": [
+        {
+          "administrative_city": "제주시",
+          "analysis_year": 2025,
+          "occurrence_count": 20916,
+          "crime_category_count": 38,
+          "top_categories": [
+            {
+              "crime_category": "사기",
+              "occurrence_count": 5954
+            },
+            {
+              "crime_category": "교통범죄",
+              "occurrence_count": 3485
+            },
+            {
+              "crime_category": "기타범죄",
+              "occurrence_count": 3459
+            },
+            {
+              "crime_category": "절도범죄",
+              "occurrence_count": 1916
+            },
+            {
+              "crime_category": "폭행",
+              "occurrence_count": 1417
+            }
+          ],
+          "major_categories": [
+            {
+              "crime_group": "지능범죄",
+              "occurrence_count": 7045
+            },
+            {
+              "crime_group": "교통범죄",
+              "occurrence_count": 3485
+            },
+            {
+              "crime_group": "기타범죄",
+              "occurrence_count": 3459
+            },
+            {
+              "crime_group": "폭력범죄",
+              "occurrence_count": 2897
+            },
+            {
+              "crime_group": "절도범죄",
+              "occurrence_count": 1916
+            },
+            {
+              "crime_group": "특별경제범죄",
+              "occurrence_count": 1239
+            },
+            {
+              "crime_group": "강력범죄",
+              "occurrence_count": 315
+            },
+            {
+              "crime_group": "풍속범죄",
+              "occurrence_count": 294
+            },
+            {
+              "crime_group": "병역범죄",
+              "occurrence_count": 99
+            },
+            {
+              "crime_group": "마약범죄",
+              "occurrence_count": 64
+            },
+            {
+              "crime_group": "보건범죄",
+              "occurrence_count": 46
+            },
+            {
+              "crime_group": "선거범죄",
+              "occurrence_count": 27
+            },
+            {
+              "crime_group": "노동범죄",
+              "occurrence_count": 25
+            },
+            {
+              "crime_group": "환경범죄",
+              "occurrence_count": 3
+            },
+            {
+              "crime_group": "안보범죄",
+              "occurrence_count": 2
+            }
+          ],
+          "spatial_grain": "administrative_city",
+          "privacy_semantics": "aggregated_non_identifying_statistics",
+          "map_hotspot_eligible": false
+        },
+        {
+          "administrative_city": "서귀포시",
+          "analysis_year": 2025,
+          "occurrence_count": 6995,
+          "crime_category_count": 38,
+          "top_categories": [
+            {
+              "crime_category": "사기",
+              "occurrence_count": 1578
+            },
+            {
+              "crime_category": "교통범죄",
+              "occurrence_count": 1420
+            },
+            {
+              "crime_category": "기타범죄",
+              "occurrence_count": 1263
+            },
+            {
+              "crime_category": "절도범죄",
+              "occurrence_count": 708
+            },
+            {
+              "crime_category": "폭행",
+              "occurrence_count": 483
+            }
+          ],
+          "major_categories": [
+            {
+              "crime_group": "지능범죄",
+              "occurrence_count": 1878
+            },
+            {
+              "crime_group": "교통범죄",
+              "occurrence_count": 1420
+            },
+            {
+              "crime_group": "기타범죄",
+              "occurrence_count": 1263
+            },
+            {
+              "crime_group": "폭력범죄",
+              "occurrence_count": 1022
+            },
+            {
+              "crime_group": "절도범죄",
+              "occurrence_count": 708
+            },
+            {
+              "crime_group": "특별경제범죄",
+              "occurrence_count": 466
+            },
+            {
+              "crime_group": "강력범죄",
+              "occurrence_count": 99
+            },
+            {
+              "crime_group": "풍속범죄",
+              "occurrence_count": 85
+            },
+            {
+              "crime_group": "보건범죄",
+              "occurrence_count": 18
+            },
+            {
+              "crime_group": "병역범죄",
+              "occurrence_count": 18
+            },
+            {
+              "crime_group": "마약범죄",
+              "occurrence_count": 6
+            },
+            {
+              "crime_group": "선거범죄",
+              "occurrence_count": 5
+            },
+            {
+              "crime_group": "노동범죄",
+              "occurrence_count": 4
+            },
+            {
+              "crime_group": "환경범죄",
+              "occurrence_count": 2
+            },
+            {
+              "crime_group": "안보범죄",
+              "occurrence_count": 1
+            }
+          ],
+          "spatial_grain": "administrative_city",
+          "privacy_semantics": "aggregated_non_identifying_statistics",
+          "map_hotspot_eligible": false
+        }
+      ],
+      "source": {
+        "label": "National Police Agency 2025 crime statistics by region",
+        "caveats": [
+          "Counts are annual, non-identifying statistics at administrative-city grain.",
+          "They are context only and are not treated as road-level crime hotspots or risk-score inputs.",
+          "Detailed crime caution zones require separate Safety Map authorization."
+        ],
+        "tables": [
+          "02_outputs/data/crime_statistics_v0_1/crime_statistics.json"
+        ],
+        "metricDefinitions": [
+          {
+            "label": "National Police Agency 2025 crime statistics by region",
+            "definition": "Repository-local reviewed snapshot generated deterministically from the listed source artifacts.",
+            "componentIds": [
+              "crime-context"
+            ],
+            "sourceLineage": [
+              {
+                "tables": [
+                  "02_outputs/data/crime_statistics_v0_1/crime_statistics.json"
                 ]
               }
             ]
