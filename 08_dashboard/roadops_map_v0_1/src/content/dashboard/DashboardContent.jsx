@@ -266,6 +266,7 @@ function RoadMap({
 }) {
   const overlayRows = [...riskRows, ...routeRows, ...replanRows, ...impactRows];
   const { width, height, project } = useProjection(backgroundRows, overlayRows);
+  const [mapView, setMapView] = useState({ zoom: 1, centerX: width / 2, centerY: height / 2 });
   const scenarioActive = scenarioId !== "none";
   const affectedTeams = new Set(replanRows.map((row) => row.team_id));
   const taskById = new Map(taskRows.map((row) => [String(row.task_id), row]));
@@ -276,7 +277,47 @@ function RoadMap({
     if (!current || Number(row.sequence) > Number(current.sequence)) lastRouteByTeam.set(row.team_id, row);
   });
 
-  return <div className="roadops-map-wrap">
+  const viewWidth = width / mapView.zoom;
+  const viewHeight = height / mapView.zoom;
+  const viewBox = `${mapView.centerX - viewWidth / 2} ${mapView.centerY - viewHeight / 2} ${viewWidth} ${viewHeight}`;
+  const changeZoom = (factor) => {
+    setMapView((current) => {
+      const zoom = Math.min(5, Math.max(1, current.zoom * factor));
+      const nextWidth = width / zoom;
+      const nextHeight = height / zoom;
+      return {
+        zoom,
+        centerX: Math.min(width - nextWidth / 2, Math.max(nextWidth / 2, current.centerX)),
+        centerY: Math.min(height - nextHeight / 2, Math.max(nextHeight / 2, current.centerY)),
+      };
+    });
+  };
+  const resetZoom = () => setMapView({ zoom: 1, centerX: width / 2, centerY: height / 2 });
+  const handleWheel = (event) => {
+    event.preventDefault();
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const pointerX = Math.min(1, Math.max(0, (event.clientX - bounds.left) / bounds.width));
+    const pointerY = Math.min(1, Math.max(0, (event.clientY - bounds.top) / bounds.height));
+    const zoomFactor = event.deltaY < 0 ? 1.14 : 1 / 1.14;
+    setMapView((current) => {
+      const zoom = Math.min(5, Math.max(1, current.zoom * zoomFactor));
+      const currentWidth = width / current.zoom;
+      const currentHeight = height / current.zoom;
+      const worldX = current.centerX - currentWidth / 2 + pointerX * currentWidth;
+      const worldY = current.centerY - currentHeight / 2 + pointerY * currentHeight;
+      const nextWidth = width / zoom;
+      const nextHeight = height / zoom;
+      const nextCenterX = worldX + (0.5 - pointerX) * nextWidth;
+      const nextCenterY = worldY + (0.5 - pointerY) * nextHeight;
+      return {
+        zoom,
+        centerX: Math.min(width - nextWidth / 2, Math.max(nextWidth / 2, nextCenterX)),
+        centerY: Math.min(height - nextHeight / 2, Math.max(nextHeight / 2, nextCenterY)),
+      };
+    });
+  };
+
+  return <div className="roadops-map-wrap" data-route-open={selectedRoute ? "true" : undefined}>
     {selectedRisk && <div className="map-focus-panel" data-risk={selectedRisk.risk_level}>
       <span>선택 구간</span>
       <strong>{selectedRisk.road_name}</strong>
@@ -285,8 +326,16 @@ function RoadMap({
         <small>{RISK_LABELS[selectedRisk.risk_level] || "위험 미분류"} 단계</small>
       </div>
     </div>}
-    <svg className="roadops-map" viewBox={`0 0 ${width} ${height}`} role="img"
-      aria-label="제주 위험 링크, 순찰팀 경로, 재계획 전후 비교 지도">
+    <div className="map-zoom-controls" role="group" aria-label="지도 확대 축소">
+      <button type="button" onClick={() => changeZoom(1 / 1.35)} aria-label="지도 축소"
+        disabled={mapView.zoom <= 1}>−</button>
+      <span aria-live="polite">{Math.round(mapView.zoom * 100)}%</span>
+      <button type="button" onClick={() => changeZoom(1.35)} aria-label="지도 확대"
+        disabled={mapView.zoom >= 5}>+</button>
+      <button type="button" className="map-zoom-reset" onClick={resetZoom} disabled={mapView.zoom === 1}>전체</button>
+    </div>
+    <svg className="roadops-map" viewBox={viewBox} role="img" onWheel={handleWheel}
+      aria-label="제주 위험 링크, 순찰팀 경로, 재계획 전후 비교 지도. 지도 위에서 마우스 휠로 확대하거나 축소할 수 있습니다.">
       <defs>
         <filter id="selected-glow" x="-30%" y="-30%" width="160%" height="160%">
           <feGaussianBlur stdDeviation="3" result="blur" />
@@ -736,7 +785,7 @@ export function DashboardContent() {
             <span>지도 읽는 방법</span><small>주요 간선도로 11개 기준 · {mapGuideOpen ? "접기" : "펼치기"}</small>
           </button>
           {mapGuideOpen && <div className="map-reading-guide" aria-label="지도 표시 설명">
-            <p>제주 전체 도로망이 아니라 운영 데모에 사용하는 주요 간선도로와 현장 대상만 표시합니다.</p>
+            <p>제주 전체 도로망이 아니라 운영 데모에 사용하는 주요 간선도로와 현장 대상만 표시합니다. 지도 위에서 마우스 휠로 확대·축소하세요.</p>
             <span><i data-guide="risk" /><b>굵은 실선</b> 도로 점검 우선순위를 빨강·주황·파랑으로 표시</span>
             <span><i data-guide="route" /><b>팀 색 점선</b> 순찰팀이 실제로 이동할 경로로, 누르면 소요시간과 전체 코스를 표시</span>
             <span><i data-guide="point" /><b>숫자 원</b> 점검 순서 · '출'은 출발 · '끝'은 마지막 지점</span>

@@ -143,7 +143,15 @@
   box-shadow: inset 0 0 0 1px color-mix(in srgb, white 25%, transparent);
 }
 
-.roadops-map { display: block; width: 100%; height: 100%; }
+.roadops-map { display: block; width: 100%; height: 100%; overscroll-behavior: contain; }
+.map-zoom-controls { position: absolute; z-index: 4; top: 116px; left: 14px; display: grid; grid-template-columns: 28px 44px 28px 42px; align-items: center; overflow: hidden; border: 1px solid color-mix(in srgb, var(--border-strong) 80%, transparent); border-radius: 5px; background: color-mix(in srgb, var(--background) 94%, transparent); box-shadow: 0 8px 20px color-mix(in srgb, black 10%, transparent); backdrop-filter: blur(12px); }
+.map-zoom-controls button,
+.map-zoom-controls span { display: grid; height: 28px; box-sizing: border-box; place-items: center; border: 0; border-right: 1px solid var(--border); color: var(--text); background: transparent; font: inherit; font-size: 10px; font-weight: 700; }
+.map-zoom-controls button { cursor: pointer; }
+.map-zoom-controls button:hover:not(:disabled) { background: var(--interaction-hover); }
+.map-zoom-controls button:disabled { color: var(--secondary); cursor: default; opacity: .45; }
+.map-zoom-controls span { color: var(--secondary); font-family: Poppins, var(--font-sans); font-size: 9px; }
+.map-zoom-controls .map-zoom-reset { border-right: 0; font-size: 9px; }
 .map-grid line { stroke: color-mix(in srgb, var(--border) 56%, transparent); stroke-width: .7; stroke-dasharray: 2 12; }
 .map-background path { fill: none; stroke: color-mix(in srgb, var(--secondary) 31%, transparent); stroke-width: 1.05; vector-effect: non-scaling-stroke; }
 .plan-routes .route-line { fill: none; stroke: var(--team-color); stroke-width: 3.5; stroke-linecap: round; stroke-dasharray: 8 7; opacity: .92; pointer-events: none; vector-effect: non-scaling-stroke; }
