@@ -81,6 +81,12 @@ def parse_args() -> argparse.Namespace:
         / "02_outputs/data/accident_hotspots_v0_1/accident_hotspots.json",
     )
     parser.add_argument(
+        "--historical-similarity",
+        type=Path,
+        default=PROJECT_ROOT
+        / "02_outputs/data/historical_similarity_v0_1/similar_incidents.json",
+    )
+    parser.add_argument(
         "--output-dir",
         type=Path,
         default=PROJECT_ROOT / "02_outputs/data/map_snapshot_v0_1",
@@ -189,6 +195,16 @@ def build_data_app_snapshot(
                 "It is displayed independently and is not added again to the operational priority score.",
             ],
         ),
+        "historical_similarity": source(
+            "RoadOps archived C-ITS road-weather similarity search",
+            [inputs["historical_similarity"]],
+            ["historical-similarity"],
+            [
+                "Similarity uses only archived C-ITS snapshots stored by this project.",
+                "Provider observation timestamps are unavailable, so ingestion timestamps are displayed.",
+                "Co-observed road events are correlations and do not establish causality.",
+            ],
+        ),
         "road_background": source(
             "MOLIT Jeju standard road-link geometry",
             [inputs["road_links"]],
@@ -292,6 +308,7 @@ def main() -> int:
         "road_links": args.road_links,
         "travel_time": args.travel_time,
         "accident_hotspots": args.accident_hotspots,
+        "historical_similarity": args.historical_similarity,
     }
     for name, path in inputs.items():
         if not path.exists():
@@ -306,6 +323,7 @@ def main() -> int:
         allocation=read_json(args.allocation),
         travel_time=read_json(args.travel_time),
         accident_rows=read_json(args.accident_hotspots).get("records", []),
+        historical_similarity_rows=read_json(args.historical_similarity).get("records", []),
         link_rows=read_csv(args.road_links),
         generated_at=generated_at,
     )

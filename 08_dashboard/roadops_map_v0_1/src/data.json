@@ -1,7 +1,7 @@
 {
   "id": "roadops:jeju-field-operations-map:v0.1",
   "title": "RoadOps 제주 현장 운영 워크벤치",
-  "generatedAt": "2026-11-17T21:24:25.565436+09:00",
+  "generatedAt": "2026-11-17T21:27:54.881247+09:00",
   "status": "reviewed_local_snapshot",
   "surface": "dashboard",
   "filters": [],
@@ -10,7 +10,7 @@
       "rows": [
         {
           "snapshot_version": "roadops-map-snapshot-v0.1",
-          "generated_at": "2026-11-17T21:24:25.565436+09:00",
+          "generated_at": "2026-11-17T21:27:54.881247+09:00",
           "latest_risk_target_at": "2026-11-18T03:00:00+09:00",
           "snapshot_age_minutes": 0.0,
           "freshness_status": "recent_snapshot",
@@ -264,6 +264,135 @@
               {
                 "tables": [
                   "02_outputs/data/accident_hotspots_v0_1/accident_hotspots.json"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "historical_similarity": {
+      "rows": [
+        {
+          "observed_at": "2026-11-12T17:58:49.689674+09:00",
+          "similarity_score": 85.6,
+          "evidence_coverage_ratio": 1.0,
+          "event_count": 12,
+          "event_link_ids": [
+            "4050484600",
+            "4050506500",
+            "4055243100",
+            "4055243200"
+          ],
+          "event_codes": [
+            "1286",
+            "258",
+            "534"
+          ],
+          "weather_visibility": 20000.0,
+          "weather_road_temp": 11.45,
+          "weather_friction": 0.815,
+          "weather_water_film": 0.0,
+          "weather_snow": 0.0
+        },
+        {
+          "observed_at": "2026-11-12T22:11:03.918391+09:00",
+          "similarity_score": 85.1,
+          "evidence_coverage_ratio": 1.0,
+          "event_count": 9,
+          "event_link_ids": [
+            "4050396600",
+            "4050484600",
+            "4050484700",
+            "4055240600",
+            "4060018100"
+          ],
+          "event_codes": [
+            "1286",
+            "1793",
+            "534"
+          ],
+          "weather_visibility": 20000.0,
+          "weather_road_temp": 9.45,
+          "weather_friction": 0.815,
+          "weather_water_film": 0.0,
+          "weather_snow": 0.0
+        },
+        {
+          "observed_at": "2026-10-27T09:32:33.345410+09:00",
+          "similarity_score": 84.5,
+          "evidence_coverage_ratio": 1.0,
+          "event_count": 33,
+          "event_link_ids": [
+            "4050418000",
+            "4050484600",
+            "4050484700",
+            "4050506500",
+            "4055240600",
+            "4055243100",
+            "4055243200",
+            "4060411800"
+          ],
+          "event_codes": [
+            "1793",
+            "258",
+            "534"
+          ],
+          "weather_visibility": 20000.0,
+          "weather_road_temp": 13.55,
+          "weather_friction": 0.815,
+          "weather_water_film": 0.0,
+          "weather_snow": 0.0
+        },
+        {
+          "observed_at": "2026-11-12T14:06:11.668090+09:00",
+          "similarity_score": 81.5,
+          "evidence_coverage_ratio": 1.0,
+          "event_count": 21,
+          "event_link_ids": [
+            "4050396600",
+            "4050418000",
+            "4050484600",
+            "4050484700",
+            "4050506500",
+            "4055240500",
+            "4060018100",
+            "4060018200",
+            "4060428600"
+          ],
+          "event_codes": [
+            "1286",
+            "258",
+            "534"
+          ],
+          "weather_visibility": 20000.0,
+          "weather_road_temp": 19.65,
+          "weather_friction": 0.815,
+          "weather_water_film": 0.0,
+          "weather_snow": 0.0
+        }
+      ],
+      "source": {
+        "label": "RoadOps archived C-ITS road-weather similarity search",
+        "caveats": [
+          "Similarity uses only archived C-ITS snapshots stored by this project.",
+          "Provider observation timestamps are unavailable, so ingestion timestamps are displayed.",
+          "Co-observed road events are correlations and do not establish causality."
+        ],
+        "tables": [
+          "02_outputs/data/historical_similarity_v0_1/similar_incidents.json"
+        ],
+        "metricDefinitions": [
+          {
+            "label": "RoadOps archived C-ITS road-weather similarity search",
+            "definition": "Repository-local reviewed snapshot generated deterministically from the listed source artifacts.",
+            "componentIds": [
+              "historical-similarity"
+            ],
+            "sourceLineage": [
+              {
+                "tables": [
+                  "02_outputs/data/historical_similarity_v0_1/similar_incidents.json"
                 ]
               }
             ]

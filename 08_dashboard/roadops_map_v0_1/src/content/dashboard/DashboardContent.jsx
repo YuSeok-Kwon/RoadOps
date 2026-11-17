@@ -708,6 +708,25 @@ function AuthorityDetail({ task, authority, taskRows, authorityRows }) {
   </DataComponent>;
 }
 
+function HistoricalSimilarity({ rows, selectedLinkId }) {
+  return <DataComponent variant="plain" id="historical-similarity" queryId="historical_similarity"
+    kind="custom" title="비슷했던 과거 상황"
+    description="현재 노면기상과 비슷한 저장 이력에서 당시 도로 위험정보를 함께 찾았습니다."
+    sourceRows={rows} displayRows={rows} className="historical-similarity-card">
+    {rows.length ? <ol className="similarity-list">
+      {rows.slice(0, 3).map((row) => {
+        const linked = Array.isArray(row.event_link_ids) && row.event_link_ids.includes(String(selectedLinkId));
+        return <li key={row.observed_at}>
+          <div><strong>{dateTime(row.observed_at)}</strong><span>{number(row.similarity_score, 0)}% 비슷함</span></div>
+          <p>당시 도로 위험정보 {number(row.event_count, 0)}건{linked ? " · 이 구간에서도 확인됨" : ""}</p>
+          <small>비교 가능한 기상항목 {percentage(row.evidence_coverage_ratio)}</small>
+        </li>;
+      })}
+    </ol> : <p className="similarity-empty">비교할 과거 수집 이력이 아직 없습니다.</p>}
+    <p className="similarity-note">과거와 비슷하다는 뜻이며, 같은 사건이 다시 발생한다는 예측은 아닙니다.</p>
+  </DataComponent>;
+}
+
 function TaskQueue({ rows, selectedLinkId, onSelect }) {
   const sorted = [...rows].filter((row) => !row.excluded)
     .sort((left, right) => priorityOrderValue(right) - priorityOrderValue(left));
@@ -1008,6 +1027,7 @@ export function DashboardContent() {
             selectedLinkId={selectedRisk?.link_id} onSelect={selectTask} />}
           {inspectorTab === "segment" && <>
             <RiskDetail row={selectedRisk} task={selectedTask} sourceRows={allRiskRows} horizon={horizon} />
+            <HistoricalSimilarity rows={rows("historical_similarity")} selectedLinkId={selectedRisk?.link_id} />
             <AuthorityDetail task={selectedTask} authority={selectedAuthority}
               taskRows={rows("field_tasks")} authorityRows={rows("governance_authorities")} />
           </>}

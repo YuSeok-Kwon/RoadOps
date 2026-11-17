@@ -303,6 +303,7 @@
 .legend-group .legend-after { border-top-color: #008f7a; }
 
 .risk-detail-card .component-header,
+.historical-similarity-card .component-header,
 .authority-detail-card .component-header,
 .task-queue-card .component-header,
 .plan-comparison-card .component-header,
@@ -357,6 +358,16 @@
 .technical-details { margin-top: 15px; padding-top: 11px; border-top: 1px solid var(--border); color: var(--secondary); }
 .technical-details summary { font-size: 11px; font-weight: 650; cursor: pointer; }
 .technical-details code { display: block; margin-top: 7px; padding: 7px 8px; border-radius: 4px; background: var(--background); font-size: 9px; line-height: 14px; white-space: normal; word-break: break-word; }
+
+.similarity-list { display: flex; margin: 0; padding: 0; flex-direction: column; list-style: none; }
+.similarity-list li { padding: 10px 0; border-bottom: 1px solid var(--border); }
+.similarity-list li:last-child { border-bottom: 0; }
+.similarity-list li > div { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.similarity-list strong { font-size: 12px; line-height: 18px; }
+.similarity-list span { color: #d9820c; font-size: 11px; font-weight: 700; }
+.similarity-list p { margin: 3px 0 0; font-size: 11px; line-height: 17px; }
+.similarity-list small { color: var(--secondary); font-size: 10px; line-height: 15px; }
+.similarity-note, .similarity-empty { margin: 8px 0 0; color: var(--secondary); font-size: 10px; line-height: 16px; }
 
 .authority-status-head { display: flex; padding: 10px 11px; flex-direction: column; gap: 3px; border: 1px solid color-mix(in srgb, var(--positive) 28%, var(--border)); border-radius: 3px; background: color-mix(in srgb, var(--positive) 5%, var(--background)); }
 .authority-status-head[data-review] { border-color: color-mix(in srgb, #f59e0b 38%, var(--border)); background: color-mix(in srgb, #f59e0b 8%, var(--muted)); }
