@@ -318,6 +318,81 @@ def _replan_rows(
     return route_rows, scenario_rows, impact_rows
 
 
+def _governance_authority_rows(
+    resources: Mapping[str, Any],
+) -> list[dict[str, Any]]:
+    governance = resources.get("governance", {})
+    agencies = {
+        str(row.get("agency_id")): row
+        for row in governance.get("agencies", [])
+        if row.get("agency_id")
+    }
+    sources = {
+        str(row.get("source_id")): row
+        for row in governance.get("source_records", [])
+        if row.get("source_id")
+    }
+    approvers = {
+        str(row.get("approver_id")): row
+        for row in governance.get("approvers", [])
+        if row.get("approver_id")
+    }
+    channels = {
+        str(row.get("handoff_type")): row
+        for row in governance.get("handoff_channels", [])
+        if row.get("handoff_type")
+    }
+    default_approver_id = governance.get("defaults", {}).get(
+        "dispatch_approver_id"
+    )
+    approver = approvers.get(str(default_approver_id), {})
+    rows: list[dict[str, Any]] = []
+    for authority in governance.get("authority_records", []):
+        source_ids = [str(value) for value in authority.get("source_ids", [])]
+        managing_agency = agencies.get(
+            str(authority.get("managing_agency_id")), {}
+        )
+        city_agency = agencies.get(
+            str(authority.get("administrative_city_agency_id")), {}
+        )
+        row = {
+            **dict(authority),
+            "managing_agency_name": managing_agency.get("agency_name"),
+            "managing_department_name": managing_agency.get("department_name"),
+            "administrative_city_agency_name": city_agency.get("agency_name"),
+            "dispatch_approver_id": default_approver_id,
+            "dispatch_approver_role": approver.get("role"),
+            "dispatch_approver_display_name": approver.get("display_name"),
+            "dispatch_approver_verification_status": approver.get(
+                "verification_status"
+            ),
+            "source_titles": " | ".join(
+                str(sources[source_id].get("title"))
+                for source_id in source_ids
+                if source_id in sources
+            ),
+            "source_urls": " | ".join(
+                str(sources[source_id].get("url"))
+                for source_id in source_ids
+                if source_id in sources
+            ),
+        }
+        for handoff_type in ("police", "fire"):
+            channel = channels.get(handoff_type, {})
+            target = agencies.get(str(channel.get("target_agency_id")), {})
+            row[f"{handoff_type}_channel_id"] = channel.get("channel_id")
+            row[f"{handoff_type}_agency_name"] = target.get("agency_name")
+            row[f"{handoff_type}_channel_status"] = channel.get("status")
+            row[f"{handoff_type}_contact_method"] = channel.get(
+                "contact_method"
+            )
+            row[f"{handoff_type}_automation_status"] = channel.get(
+                "automation_status"
+            )
+        rows.append(row)
+    return sorted(rows, key=lambda row: str(row.get("link_id")))
+
+
 def build_map_snapshot(
     *,
     risk_rows: Iterable[Mapping[str, Any]],
@@ -373,6 +448,13 @@ def build_map_snapshot(
     )
 
     field_tasks = [dict(item) for item in allocation.get("field_tasks", [])]
+    governance = resources.get("governance", {})
+    agencies = {
+        str(row.get("agency_id")): row
+        for row in governance.get("agencies", [])
+        if row.get("agency_id")
+    }
+    governance_authorities = _governance_authority_rows(resources)
     vehicles = {
         str(vehicle.get("vehicle_id")): vehicle
         for vehicle in resources.get("vehicles", [])
@@ -404,6 +486,13 @@ def build_map_snapshot(
             "skills": team.get("skills", []),
             "equipment": team.get("equipment", []),
             "max_tasks_per_team": planning.get("max_tasks_per_team"),
+            "managing_agency_id": team.get("managing_agency_id"),
+            "managing_agency_name": agencies.get(
+                str(team.get("managing_agency_id")), {}
+            ).get("agency_name"),
+            "authorized_road_jurisdictions": team.get(
+                "authorized_road_jurisdictions", []
+            ),
         }
         for team in resources.get("teams", [])
     ]
@@ -445,6 +534,11 @@ def build_map_snapshot(
             "risk_semantics": "operational_priority_scenario_not_accident_probability",
             "travel_semantics": "network_free_flow_estimate_not_live_eta",
             "scenario_semantics": "what_if_not_observed",
+            "governance_effective_at": governance.get("effective_at"),
+            "authority_semantics": (
+                "official_road_class_and_admin_boundary_with_explicit_"
+                "delegation_review_status"
+            ),
         }
     ]
 
@@ -482,6 +576,7 @@ def build_map_snapshot(
             "scenario_count": len(scenario_summary),
             "team_count": len(teams),
             "task_count": len(field_tasks),
+            "authority_record_count": len(governance_authorities),
         },
         "missing_required_link_ids": missing_required,
         "missing_risk_link_ids": missing_risk,
@@ -493,6 +588,8 @@ def build_map_snapshot(
             "replanning_layers_are_what_if_scenarios",
             "gateway_inflow_pressure_unavailable_not_scored",
             "manual_approval_required_before_field_dispatch",
+            "named_approver_requires_operator_configuration",
+            "dong_urban_area_delegation_requires_segment_review",
         ],
     }
     queries = {
@@ -500,6 +597,7 @@ def build_map_snapshot(
         "road_background": background_rows,
         "risk_links": risk_links,
         "field_tasks": field_tasks,
+        "governance_authorities": governance_authorities,
         "teams": teams,
         "plan_routes": plan_routes,
         "plan_metrics": plan_metrics,

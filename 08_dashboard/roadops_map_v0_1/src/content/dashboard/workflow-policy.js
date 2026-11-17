@@ -31,6 +31,7 @@ export function createWorkflowState({ teams = [], tasks = [], routes = [], planI
       return {
         teamId: String(team.team_id),
         teamName: String(team.team_name || team.team_id),
+        managingAgencyName: String(team.managing_agency_name || "기관 미확인"),
         vehicleId: String(team.vehicle_id || ""),
         vehicleCapacity: numeric(team.vehicle_personnel_capacity, personnelCount || 1),
         maxTasks: numeric(team.max_tasks_per_team, 3),
@@ -50,6 +51,13 @@ export function createWorkflowState({ teams = [], tasks = [], routes = [], planI
         roadName: String(task.road_name || "도로명 미상"),
         priorityScore: numeric(task.priority_score),
         mandatory: Boolean(task.mandatory),
+        managingAgencyName: String(task.managing_agency_name || "기관 미확인"),
+        administrativeArea: [task.administrative_city, task.administrative_unit].filter(Boolean).join(" ") || "구역 미확인",
+        roadJurisdiction: String(task.road_jurisdiction || "관할 미확인"),
+        authorityStatus: String(task.authority_status || "operator_default"),
+        dispatchApproverRole: String(task.dispatch_approver_role || "운영기관 확인 필요"),
+        dispatchApproverVerificationStatus: String(task.dispatch_approver_verification_status || "operator_defined"),
+        handoffStatuses: Array.isArray(task.handoff_statuses) ? task.handoff_statuses : [],
         assignedTeamId: assignedTeamId ? String(assignedTeamId) : null,
         excluded,
         fixed,
@@ -199,10 +207,13 @@ export function validateWorkflow({
     errors.push(issue("PLAN_CONSTRAINT_VIOLATION", "선택한 계획에 해결되지 않은 제약 위반이 있습니다."));
   }
 
-  if (metadata.freshness_status !== "recent_snapshot") {
+  if ((/** @type {any} */ (metadata)).freshness_status !== "recent_snapshot") {
     warnings.push(issue("STALE_SNAPSHOT", "저장된 스냅샷이므로 현장 지시 전 최신 데이터를 다시 확인해야 합니다."));
   }
   warnings.push(issue("FREE_FLOW_ESTIMATE", "이동시간은 실시간 ETA가 아닌 자유흐름 추정치입니다."));
+  if (state.tasks.some((task) => !task.excluded && task.dispatchApproverVerificationStatus === "operator_configuration_required")) {
+    warnings.push(issue("APPROVER_CONFIGURATION_REQUIRED", "도로관리과 승인 직무는 지정됐지만 현재 당직자 실명은 운영기관 확인이 필요합니다."));
+  }
   if (scenarioId !== "none") {
     warnings.push(issue("WHAT_IF_SCENARIO", "선택한 통제·폭우 시나리오는 실제 발생 사실이 아닌 What-if입니다."));
   }
@@ -249,7 +260,7 @@ export function workflowFingerprint(state, scenarioId = "none") {
   return `wf-${fnv1a(JSON.stringify(stableValue(payload)))}`;
 }
 
-export function appendAuditEntry(entries, { action, details, at, actor = "local-operator" }) {
+export function appendAuditEntry(entries, { action, details, at = null, actor = "local-operator" }) {
   const sequence = entries.length + 1;
   return [
     ...entries,
@@ -269,6 +280,7 @@ export function createApprovalRecord(state, scenarioId, at) {
     approvalId: `approval-${workflowFingerprint(state, scenarioId).slice(3)}`,
     approvedAt: at || new Date().toISOString(),
     approverName: state.approverName.trim(),
+    approverRole: state.tasks.find((task) => !task.excluded)?.dispatchApproverRole || null,
     approvalReason: state.approvalReason.trim(),
     planId: state.planId,
     scenarioId,

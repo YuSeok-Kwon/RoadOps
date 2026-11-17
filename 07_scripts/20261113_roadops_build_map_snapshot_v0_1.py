@@ -158,14 +158,27 @@ def build_data_app_snapshot(
         ),
         "field_tasks": source(
             "RoadOps field-task candidates",
-            [inputs["allocation"]],
-            ["roadops-map", "task-queue"],
-            ["Excluded tasks are shown as constraints and are not dispatch recommendations."],
+            [inputs["allocation"], inputs["resources"]],
+            ["roadops-map", "task-queue", "authority-detail"],
+            [
+                "Excluded tasks are shown as constraints and are not dispatch recommendations.",
+                "Named approvers must be configured by the operating institution before dispatch.",
+            ],
+        ),
+        "governance_authorities": source(
+            "Official road authority and administrative-area registry",
+            [inputs["resources"], inputs["road_links"]],
+            ["authority-detail", "operations-workflow"],
+            [
+                "Road class and route numbers come from the national standard link archive.",
+                "Administrative city and eup/myeon/dong are derived from the official SGIS 2025-06-30 boundary snapshot documented in the resource registry.",
+                "Segments in dong areas retain an explicit delegation-review status until the urban-area scope is confirmed.",
+            ],
         ),
         "teams": source(
-            "Demo patrol resource scenario",
+            "Patrol resource scenario with official agency scope",
             [inputs["resources"]],
-            ["roadops-map"],
+            ["roadops-map", "operations-workflow"],
             ["Team locations and shifts are demonstrative scenario inputs."],
         ),
         "plan_routes": source(

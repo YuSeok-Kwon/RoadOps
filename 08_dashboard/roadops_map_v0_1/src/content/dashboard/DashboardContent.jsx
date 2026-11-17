@@ -32,6 +32,17 @@ const SCENARIO_LABELS = {
   "demo-road-closure-v0.1": "도로 통제 What-if",
   "demo-heavy-rain-v0.1": "폭우 What-if",
 };
+const AUTHORITY_STATUS_LABELS = {
+  official_provincial_road_scope: "도 관할 근거 확인",
+  admin_city_delegation_review_required: "행정시 위임 범위 확인 필요",
+  operator_default: "관할 확인 필요",
+};
+const HANDOFF_STATUS_LABELS = {
+  not_requested: "미요청",
+  pending: "협조 요청 대기",
+  accepted: "인계 접수",
+  completed: "인계 완료",
+};
 
 function geometry(value) {
   if (Array.isArray(value)) return value;
@@ -193,7 +204,7 @@ function RoadMap({
           return <path key={`${row.horizon_hours}-${row.link_id}`}
             className={selected ? "risk-link selected" : "risk-link"}
             d={pathFor(geometry(row.geometry_json), project)}
-            role="button" tabIndex="0"
+            role="button" tabIndex={0}
             aria-label={`${row.road_name} 링크 ${row.link_id}, 위험점수 ${row.priority_score ?? "없음"}`}
             onClick={() => onSelectRisk(row)}
             onKeyDown={(event) => {
@@ -267,6 +278,51 @@ function RiskDetail({ row, sourceRows, horizon }) {
   </DataComponent>;
 }
 
+function AuthorityDetail({ task, authority, taskRows, authorityRows }) {
+  const row = task || authority;
+  if (!row) return <div className="empty-detail">선택한 링크의 관할 자료가 없습니다.</div>;
+  const handoffs = task?.handoff_statuses || ["police", "fire"].map((type) => ({
+    handoff_type: type,
+    status: "not_requested",
+    target_agency_name: authority?.[`${type}_agency_name`],
+    contact_method: authority?.[`${type}_contact_method`],
+    automation_status: authority?.[`${type}_automation_status`],
+  }));
+  const sourceRowsByQuery = {
+    field_tasks: taskRows,
+    governance_authorities: authorityRows,
+  };
+  const displayRows = [authority, task].filter(Boolean);
+  return <DataComponent variant="plain" id="authority-detail" queryId="governance_authorities"
+    queryIds={["governance_authorities", "field_tasks"]} kind="custom"
+    title="관할·승인·인계"
+    description="공식 도로분류·행정경계·사무위임 근거와 현장 인계 상태를 구분합니다."
+    sourceRows={authorityRows} displayRows={displayRows} sourceRowsByQuery={sourceRowsByQuery}
+    scopeFilters={[{ field: "link_id", label: "링크", value: row.link_id }]}
+    className="authority-detail-card">
+    <div className="authority-status-head" data-review={row.authority_status === "admin_city_delegation_review_required" || undefined}>
+      <span>{AUTHORITY_STATUS_LABELS[row.authority_status] || "관할 상태 확인"}</span>
+      <strong>{row.road_class || "도로"} {row.road_number ? `${row.road_number}호` : ""} · {row.road_name}</strong>
+    </div>
+    <dl className="authority-grid">
+      <div><dt>담당기관</dt><dd>{row.managing_agency_name || "확인 필요"}</dd></div>
+      <div><dt>행정시 구역</dt><dd>{[row.administrative_city, row.administrative_unit].filter(Boolean).join(" ") || "확인 필요"}</dd></div>
+      <div><dt>도로 관할</dt><dd>{row.road_class && row.road_number ? `${row.road_class} ${row.road_number}호` : "확인 필요"}</dd></div>
+      <div><dt>승인권자</dt><dd>{row.dispatch_approver_role || "운영기관 확인 필요"}</dd></div>
+    </dl>
+    <p className="authority-basis">{row.jurisdiction_basis}</p>
+    <div className="handoff-list">
+      {handoffs.map((handoff) => <div key={handoff.handoff_type}>
+        <span>{handoff.handoff_type === "police" ? "경찰" : "소방"}</span>
+        <strong>{HANDOFF_STATUS_LABELS[handoff.status] || handoff.status}</strong>
+        <small>{handoff.target_agency_name || "연계 기관 확인 필요"}</small>
+      </div>)}
+    </div>
+    {row.dispatch_approver_verification_status === "operator_configuration_required"
+      && <p className="authority-warning">승인권자 직무는 정했지만 실명·당직자는 운영기관에서 지정해야 합니다.</p>}
+  </DataComponent>;
+}
+
 function TaskQueue({ rows, selectedLinkId, onSelect }) {
   const sorted = [...rows].filter((row) => !row.excluded)
     .sort((left, right) => Number(right.priority_score) - Number(left.priority_score));
@@ -277,7 +333,7 @@ function TaskQueue({ rows, selectedLinkId, onSelect }) {
       {sorted.slice(0, 6).map((row, index) => <button type="button" key={row.task_id}
         className={selectedLinkId === row.link_id ? "selected" : ""} onClick={() => onSelect(row.link_id)}>
         <span className="task-rank">{String(index + 1).padStart(2, "0")}</span>
-        <span className="task-copy"><strong>{row.road_name}</strong><small>{row.link_id}</small></span>
+        <span className="task-copy"><strong>{row.road_name}</strong><small>{row.administrative_city || "구역 미확인"} · {row.managing_agency_name || row.link_id}</small></span>
         <span className="task-score">{number(row.priority_score)}</span>
       </button>)}
     </div>
@@ -332,8 +388,8 @@ export function DashboardContent() {
   const [horizonIndex, setHorizonIndex] = useState(0);
   const [selectedPlan, setSelectedPlan] = useState("safety_first");
   const [scenarioId, setScenarioId] = useState("none");
-  const [selectedRiskId, setSelectedRiskId] = useState(null);
-  const [workflowState, setWorkflowState] = useState(null);
+  const [selectedRiskId, setSelectedRiskId] = useState(/** @type {any} */ (null));
+  const [workflowState, setWorkflowState] = useState(/** @type {any} */ (null));
   const horizon = HORIZONS[horizonIndex] ?? 0;
 
   useEffect(() => {
@@ -341,7 +397,7 @@ export function DashboardContent() {
   }, [appTitle, setAppTitle, snapshot.title]);
 
   const rows = (queryId) => queries[queryId]?.rows ?? [];
-  const metadata = rows("map_metadata")[0] ?? {};
+  const metadata = /** @type {any} */ (rows("map_metadata")[0] ?? {});
   const allRiskRows = rows("risk_links");
   const riskRows = allRiskRows.filter((row) => Number(row.horizon_hours) === horizon && row.has_geometry);
   const selectedRisk = riskRows.find((row) => row.link_id === selectedRiskId)
@@ -364,6 +420,9 @@ export function DashboardContent() {
     ...row,
     available: workflowResources.get(String(row.team_id))?.available ?? true,
   }));
+  const selectedTask = effectiveTaskRows.find((row) => row.link_id === selectedRisk?.link_id) ?? null;
+  const selectedAuthority = rows("governance_authorities")
+    .find((row) => row.link_id === selectedRisk?.link_id) ?? null;
   const routeRows = rows("plan_routes")
     .filter((row) => row.alternative_id === selectedPlan)
     .filter((row) => {
@@ -374,7 +433,7 @@ export function DashboardContent() {
   const impactRows = rows("scenario_impacts").filter((row) => row.scenario_id === scenarioId);
   const highRiskCount = riskRows.filter((row) => ["high", "critical"].includes(row.risk_level)).length;
   const scenarioChoices = ["none", ...rows("scenario_summary").map((row) => row.scenario_id)];
-  const mapQueryIds = ["risk_links", "road_background", "field_tasks", "teams", "plan_routes", "replan_routes", "scenario_impacts"];
+  const mapQueryIds = ["risk_links", "road_background", "field_tasks", "governance_authorities", "teams", "plan_routes", "replan_routes", "scenario_impacts"];
   const sourceRowsByQuery = Object.fromEntries(mapQueryIds.map((queryId) => [queryId, rows(queryId)]));
 
   const selectTask = (linkId) => {
@@ -427,7 +486,7 @@ export function DashboardContent() {
           description="위험 링크, 점검 후보, 팀 경로와 What-if 재계획 전후를 실제 표준링크 좌표로 겹쳐 표시합니다."
           sourceRows={allRiskRows} displayRows={riskRows} sourceRowsByQuery={sourceRowsByQuery}
           scopeFilters={[
-            { field: "horizon_hours", label: "예측 시점", value: horizon },
+            { field: "horizon_hours", label: "예측 시점", value: String(horizon) },
             { field: "alternative_id", label: "배분 대안", value: selectedPlan },
             { field: "scenario_id", label: "재계획 시나리오", value: scenarioId },
           ]} className="roadops-map-card">
@@ -441,9 +500,12 @@ export function DashboardContent() {
 
       <aside className="roadops-inspector">
         <WorkflowPanel teams={rows("teams")} tasks={rows("field_tasks")}
+          governanceRows={rows("governance_authorities")}
           routes={rows("plan_routes")} planMetrics={planMetrics} metadata={metadata}
           selectedPlan={selectedPlan} scenarioId={scenarioId} onStateChange={setWorkflowState} />
         <RiskDetail row={selectedRisk} sourceRows={allRiskRows} horizon={horizon} />
+        <AuthorityDetail task={selectedTask} authority={selectedAuthority}
+          taskRows={rows("field_tasks")} authorityRows={rows("governance_authorities")} />
         <TaskQueue rows={effectiveTaskRows} selectedLinkId={selectedRisk?.link_id} onSelect={selectTask} />
         <PlanComparison rows={planMetrics} selectedPlan={selectedPlan} onSelect={setSelectedPlan} />
         <DataComponent variant="plain" id="gateway-availability" queryId="data_availability" kind="custom"

@@ -53,7 +53,7 @@ function ResourceStep({ state, onChange }) {
     {state.resources.map((resource) => <div className="workflow-resource-row" key={resource.teamId}>
       <div className="workflow-resource-title">
         <strong>{resource.teamName}</strong>
-        <span>{resource.vehicleId} · 정원 {resource.vehicleCapacity}명</span>
+        <span>{resource.managingAgencyName} · {resource.vehicleId} · 정원 {resource.vehicleCapacity}명</span>
       </div>
       <Switch label="가용" checked={resource.available} size="compact"
         onChange={(checked) => onChange(resource.teamId, "available", checked)} />
@@ -73,7 +73,7 @@ function TaskStep({ state, onChange }) {
     {sorted.map((task) => <div className="workflow-task-row" key={task.taskId} data-excluded={task.excluded || undefined}>
       <div className="workflow-task-title">
         <strong>{task.roadName}</strong>
-        <span>{task.linkId} · {task.priorityScore.toFixed(1)}점</span>
+        <span>{task.administrativeArea} · {task.priorityScore.toFixed(1)}점</span>
       </div>
       <label className="workflow-team-select">담당팀
         <select value={task.assignedTeamId || ""} disabled={task.excluded}
@@ -112,6 +112,10 @@ function ApprovalStep({
       : validation.errors.length
         ? "재계획 필요"
         : "검증 대기";
+  const activeTasks = state.tasks.filter((task) => !task.excluded);
+  const approverRoles = [...new Set(activeTasks.map((task) => task.dispatchApproverRole).filter(Boolean))];
+  const pendingHandoffs = activeTasks.flatMap((task) => task.handoffStatuses || [])
+    .filter((handoff) => handoff.status === "pending");
   return <div className="workflow-approval-step">
     <div className="workflow-validation-head" data-status={approvalCurrent ? "approved" : validation.technicalValid ? "valid" : "blocked"}>
       <div><span>현재 상태</span><strong>{stateLabel}</strong></div>
@@ -125,6 +129,11 @@ function ApprovalStep({
       {validation.warnings.map((item) => <li key={item.code}>{item.message}</li>)}
     </ul>
 
+    <div className="workflow-authority-summary">
+      <div><span>승인 직무</span><strong>{approverRoles.join(" / ") || "운영기관 확인 필요"}</strong></div>
+      <div><span>경찰·소방 인계</span><strong>{pendingHandoffs.length ? `${pendingHandoffs.length}건 협조 요청 대기` : "현재 인계 요청 없음"}</strong></div>
+    </div>
+
     <fieldset className="workflow-acknowledgements">
       <legend>현장 확인</legend>
       <label><input type="checkbox" checked={state.acknowledgements.dataQuality}
@@ -136,9 +145,9 @@ function ApprovalStep({
     </fieldset>
 
     <div className="workflow-approval-fields">
-      <label>승인 담당자<input type="text" value={state.approverName} placeholder="예: 홍길동"
+      <label>승인자 실명(운영기관 확인)<input type="text" value={state.approverName} placeholder="현재 당직·승인자 실명"
         onChange={(event) => onFieldChange("approverName", event.target.value)} /></label>
-      <label>승인 사유<textarea rows="2" value={state.approvalReason} placeholder="현장 확인 내용과 승인 사유"
+      <label>승인 사유<textarea rows={2} value={state.approvalReason} placeholder="현장 확인 내용과 승인 사유"
         onChange={(event) => onFieldChange("approvalReason", event.target.value)} /></label>
     </div>
 
@@ -169,6 +178,7 @@ function AuditStep({ rows }) {
 export function WorkflowPanel({
   teams,
   tasks,
+  governanceRows,
   routes,
   planMetrics,
   metadata,
@@ -177,12 +187,12 @@ export function WorkflowPanel({
   onStateChange,
 }) {
   const [activeTab, setActiveTab] = useState("resources");
-  const [state, setState] = useState(null);
-  const [lastValidatedFingerprint, setLastValidatedFingerprint] = useState(null);
-  const [auditLog, setAuditLog] = useState([]);
-  const [approvalRecord, setApprovalRecord] = useState(null);
+  const [state, setState] = useState(/** @type {any} */ (null));
+  const [lastValidatedFingerprint, setLastValidatedFingerprint] = useState(/** @type {any} */ (null));
+  const [auditLog, setAuditLog] = useState(/** @type {any[]} */ ([]));
+  const [approvalRecord, setApprovalRecord] = useState(/** @type {any} */ (null));
   const [storageReady, setStorageReady] = useState(false);
-  const loadedStorageKey = useRef(null);
+  const loadedStorageKey = useRef(/** @type {string | null} */ (null));
   const storageKey = metadata.generated_at
     ? `roadops:web1:${metadata.snapshot_version}:${metadata.generated_at}`
     : null;
@@ -289,6 +299,7 @@ export function WorkflowPanel({
   const sourceRowsByQuery = {
     teams,
     field_tasks: tasks,
+    governance_authorities: governanceRows,
     plan_routes: routes,
     plan_metrics: planMetrics,
     map_metadata: [metadata],

@@ -35,13 +35,24 @@ def test_resource_sample_normalizes_vehicle_equipment_and_passes():
     )
     assert report["governance_mode"] == "institution_aware"
     assert report["agency_count"] == 5
+    assert report["authority_record_count"] == 10
+    assert report["governance_source_count"] == 9
     assert east["managing_agency_id"] == "jeju-province-road-management"
     assert east["authorized_road_jurisdictions"] == [
-        "demo_provincial_road_management_area"
+        "jeju-provincial-road-1131",
+        "jeju-provincial-road-1135",
+        "jeju-provincial-road-1139",
     ]
     override = normalized["constraints"]["task_overrides"][0]
-    assert override["dispatch_approver_id"] == "province-road-duty-officer"
+    assert normalized["governance"]["defaults"]["dispatch_approver_id"] == (
+        "province-road-operator-designate"
+    )
+    assert override["dispatch_approver_id"] is None
     assert override["police_handoff_level"] == "coordinate"
+
+    renormalized, second_report = validate_resource_plan(normalized)
+    assert second_report["status"] == "pass"
+    assert renormalized == normalized
 
 
 def test_resource_validation_rejects_duplicate_vehicle_and_capacity_overflow():
@@ -93,7 +104,7 @@ def test_institutional_eligibility_checks_agency_and_jurisdiction():
         team,
         {
             "managing_agency_id": "jeju-province-road-management",
-            "road_jurisdiction": "demo_provincial_road_management_area",
+            "road_jurisdiction": "jeju-provincial-road-1131",
             "road_team_dispatch_eligible": True,
         },
     )
@@ -147,7 +158,14 @@ def test_field_task_exposes_pending_approval_and_police_handoff():
 
     task = tasks[0]
     assert task["managing_agency_id"] == "jeju-province-road-management"
-    assert task["road_jurisdiction"] == "demo_provincial_road_management_area"
+    assert task["road_jurisdiction"] == "jeju-provincial-road-1131"
+    assert task["administrative_city"] == "서귀포시"
+    assert task["administrative_unit"] == "남원읍"
+    assert task["authority_status"] == "official_provincial_road_scope"
+    assert task["managing_agency_name"] == "제주특별자치도 도로관리과"
+    assert task["dispatch_approver_verification_status"] == (
+        "operator_configuration_required"
+    )
     assert task["dispatch_approval_status"] == "pending"
     assert task["response_mode"] == "joint_response"
     assert task["handoff_actions"] == [
@@ -156,8 +174,16 @@ def test_field_task_exposes_pending_approval_and_police_handoff():
             "level": "coordinate",
             "channel_id": "jeju-police-traffic-coordination",
             "target_agency_id": "jeju-police",
+            "target_agency_name": "제주경찰청",
+            "contact_method": "교통통제 협조 요청(긴급 112 / 민원 182)",
+            "automation_status": "manual_operator_handoff",
             "status": "pending",
         }
     ]
+    assert [row["status"] for row in task["handoff_statuses"]] == [
+        "pending",
+        "not_requested",
+    ]
     assert task_report["approval_required_task_count"] == 1
     assert task_report["handoff_action_count"] == 1
+    assert task_report["official_authority_task_count"] == 1

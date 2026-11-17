@@ -32,16 +32,17 @@ def _write_fixture_archive(root: Path) -> Path:
         writer.field("T_NODE", "C", size=10)
         writer.field("ROAD_NAME", "C", size=40)
         writer.field("ROAD_RANK", "C", size=3)
+        writer.field("ROAD_NO", "C", size=5)
         writer.field("LANES", "N", size=2)
         writer.field("MAX_SPD", "N", size=3)
         writer.field("ROAD_TYPE", "C", size=3)
         writer.line([[(126.8327, 33.3260), (126.8337, 33.3270)]])
         writer.record(
-            "4050000001", "4080000001", "4080000002", "제주로", "107", 2, 50, "000"
+            "4050000001", "4080000001", "4080000002", "제주로", "107", "", 2, 50, "000"
         )
         writer.line([[(126.8337, 33.3270), (126.9780, 37.5665)]])
         writer.record(
-            "4050000002", "4080000002", "1000000001", "제외도로", "107", 2, 50, "000"
+            "4050000002", "4080000002", "1000000001", "제외도로", "107", "", 2, 50, "000"
         )
 
     projection = CRS.from_epsg(4326).to_wkt()
@@ -76,5 +77,6 @@ def test_extract_jeju_nodelink_and_run_quality_profile(tmp_path):
     assert manifest["links_with_one_jeju_endpoint"] == 1
     assert manifest["target_crs"] == "EPSG:4326"
     assert links[0]["link_id"] == "4050000001"
+    assert links[0]["road_number"] == ""
     assert links[0]["geometry_wkt"].startswith("LINESTRING")
     assert report["status"] == "pass"

@@ -49,6 +49,21 @@ def _override_or_default(
     return defaults.get(field) if value is None else value
 
 
+def _governance_value(
+    override: Mapping[str, Any],
+    authority: Mapping[str, Any],
+    defaults: Mapping[str, Any],
+    field: str,
+) -> Any:
+    """Resolve operator override, official link authority, then scenario default."""
+
+    value = override.get(field)
+    if value is not None:
+        return value
+    value = authority.get(field)
+    return defaults.get(field) if value is None else value
+
+
 def _datetime(value: Any) -> datetime:
     parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
     if parsed.tzinfo is None:
@@ -136,6 +151,23 @@ def build_field_tasks(
         resource_plan["planning"]["default_service_minutes"]
     )
     governance_defaults = resource_plan.get("governance", {}).get("defaults", {})
+    authority_index = {
+        str(row["link_id"]): row
+        for row in resource_plan.get("governance", {}).get(
+            "authority_records", []
+        )
+        if row.get("link_id")
+    }
+    agency_index = {
+        str(row["agency_id"]): row
+        for row in resource_plan.get("governance", {}).get("agencies", [])
+        if row.get("agency_id")
+    }
+    approver_index = {
+        str(row["approver_id"]): row
+        for row in resource_plan.get("governance", {}).get("approvers", [])
+        if row.get("approver_id")
+    }
     channel_index = {
         str(row["channel_id"]): row
         for row in resource_plan.get("governance", {}).get(
@@ -176,8 +208,10 @@ def build_field_tasks(
             else None
         )
         override = override_index.get(link_id, {})
+        authority = authority_index.get(link_id, {})
         service_minutes = override.get("service_minutes") or default_service
         handoff_actions: list[dict[str, Any]] = []
+        handoff_statuses: list[dict[str, Any]] = []
         handoff_levels: dict[str, str] = {}
         for handoff_type in ("police", "fire"):
             level = str(
@@ -194,14 +228,33 @@ def build_field_tasks(
                 f"{handoff_type}_handoff_channel_id",
             )
             handoff_levels[handoff_type] = level
+            channel = channel_index.get(str(channel_id), {}) if channel_id else {}
+            target_agency_id = channel.get("target_agency_id")
+            target_agency = agency_index.get(str(target_agency_id), {})
+            handoff_status = "pending" if level != "none" else "not_requested"
+            handoff_statuses.append(
+                {
+                    "handoff_type": handoff_type,
+                    "level": level,
+                    "channel_id": channel_id,
+                    "channel_status": channel.get("status"),
+                    "target_agency_id": target_agency_id,
+                    "target_agency_name": target_agency.get("agency_name"),
+                    "contact_method": channel.get("contact_method"),
+                    "automation_status": channel.get("automation_status"),
+                    "status": handoff_status,
+                }
+            )
             if level != "none":
-                channel = channel_index.get(str(channel_id), {})
                 handoff_actions.append(
                     {
                         "handoff_type": handoff_type,
                         "level": level,
                         "channel_id": channel_id,
-                        "target_agency_id": channel.get("target_agency_id"),
+                        "target_agency_id": target_agency_id,
+                        "target_agency_name": target_agency.get("agency_name"),
+                        "contact_method": channel.get("contact_method"),
+                        "automation_status": channel.get("automation_status"),
                         "status": "pending",
                     }
                 )
@@ -218,6 +271,16 @@ def build_field_tasks(
                 "dispatch_approval_required",
             )
         )
+        managing_agency_id = _governance_value(
+            override, authority, governance_defaults, "managing_agency_id"
+        )
+        administrative_city_agency_id = authority.get(
+            "administrative_city_agency_id"
+        )
+        dispatch_approver_id = _override_or_default(
+            override, governance_defaults, "dispatch_approver_id"
+        )
+        approver = approver_index.get(str(dispatch_approver_id), {})
         tasks.append(
             {
                 "task_id": f"link:{link_id}:h{horizon_hours}",
@@ -260,18 +323,43 @@ def build_field_tasks(
                 "required_equipment": list(
                     override.get("required_equipment", [])
                 ),
-                "managing_agency_id": _override_or_default(
-                    override, governance_defaults, "managing_agency_id"
+                "managing_agency_id": managing_agency_id,
+                "managing_agency_name": agency_index.get(
+                    str(managing_agency_id), {}
+                ).get("agency_name"),
+                "administrative_city_agency_id": administrative_city_agency_id,
+                "administrative_city_agency_name": agency_index.get(
+                    str(administrative_city_agency_id), {}
+                ).get("agency_name"),
+                "road_jurisdiction": _governance_value(
+                    override, authority, governance_defaults, "road_jurisdiction"
                 ),
-                "road_jurisdiction": _override_or_default(
-                    override, governance_defaults, "road_jurisdiction"
+                "jurisdiction_basis": _governance_value(
+                    override, authority, governance_defaults, "jurisdiction_basis"
                 ),
-                "jurisdiction_basis": _override_or_default(
-                    override, governance_defaults, "jurisdiction_basis"
+                "road_rank": authority.get("road_rank"),
+                "road_class": authority.get("road_class"),
+                "road_number": authority.get("road_number"),
+                "administrative_city_code": authority.get(
+                    "administrative_city_code"
                 ),
+                "administrative_city": authority.get("administrative_city"),
+                "administrative_unit_code": authority.get(
+                    "administrative_unit_code"
+                ),
+                "administrative_unit": authority.get("administrative_unit"),
+                "administrative_unit_type": authority.get(
+                    "administrative_unit_type"
+                ),
+                "authority_status": authority.get("authority_status")
+                or "operator_default",
+                "authority_source_ids": authority.get("source_ids", []),
                 "dispatch_approval_required": approval_required,
-                "dispatch_approver_id": _override_or_default(
-                    override, governance_defaults, "dispatch_approver_id"
+                "dispatch_approver_id": dispatch_approver_id,
+                "dispatch_approver_role": approver.get("role"),
+                "dispatch_approver_display_name": approver.get("display_name"),
+                "dispatch_approver_verification_status": approver.get(
+                    "verification_status"
                 ),
                 "dispatch_approval_status": (
                     "pending" if approval_required else "not_required"
@@ -279,6 +367,7 @@ def build_field_tasks(
                 "response_mode": response_mode,
                 "road_team_dispatch_eligible": response_mode != "external_handoff",
                 "handoff_actions": handoff_actions,
+                "handoff_statuses": handoff_statuses,
             }
         )
 
@@ -308,6 +397,14 @@ def build_field_tasks(
         ),
         "external_handoff_task_count": sum(
             task.get("response_mode") == "external_handoff" for task in tasks
+        ),
+        "official_authority_task_count": sum(
+            bool(task.get("authority_source_ids")) for task in tasks
+        ),
+        "delegation_review_task_count": sum(
+            task.get("authority_status")
+            == "admin_city_delegation_review_required"
+            for task in tasks
         ),
     }
     return tasks, report

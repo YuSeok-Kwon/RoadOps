@@ -82,6 +82,55 @@ def test_build_map_snapshot_aggregates_risk_and_marks_unavailable_gateway():
     }
     resources = {
         "planning": {"max_tasks_per_team": 3},
+        "governance": {
+            "effective_at": "2026-11-17",
+            "source_records": [
+                {
+                    "source_id": "official-source",
+                    "title": "official source",
+                    "url": "https://example.go.kr/source",
+                }
+            ],
+            "agencies": [
+                {
+                    "agency_id": "province-road",
+                    "agency_name": "제주특별자치도 도로관리과",
+                    "department_name": "도로관리과",
+                },
+                {"agency_id": "jeju-city", "agency_name": "제주시 건설과"},
+                {"agency_id": "police", "agency_name": "제주경찰청"},
+                {"agency_id": "fire", "agency_name": "제주소방안전본부"},
+            ],
+            "approvers": [
+                {
+                    "approver_id": "operator-approver",
+                    "role": "운영기관 지정 승인권자",
+                    "display_name": "지정 필요",
+                    "verification_status": "operator_configuration_required",
+                }
+            ],
+            "handoff_channels": [
+                {"handoff_type": "police", "channel_id": "police-channel", "target_agency_id": "police", "status": "active"},
+                {"handoff_type": "fire", "channel_id": "fire-channel", "target_agency_id": "fire", "status": "active"},
+            ],
+            "defaults": {"dispatch_approver_id": "operator-approver"},
+            "authority_records": [
+                {
+                    "link_id": "4050000001",
+                    "road_class": "지방도",
+                    "road_number": "1135",
+                    "road_name": "평화로",
+                    "administrative_city": "제주시",
+                    "administrative_unit": "애월읍",
+                    "administrative_city_agency_id": "jeju-city",
+                    "managing_agency_id": "province-road",
+                    "road_jurisdiction": "jeju-provincial-road-1135",
+                    "jurisdiction_basis": "official basis",
+                    "authority_status": "official_provincial_road_scope",
+                    "source_ids": ["official-source"],
+                }
+            ],
+        },
         "vehicles": [
             {
                 "vehicle_id": "patrol-east-01",
@@ -100,6 +149,8 @@ def test_build_map_snapshot_aggregates_risk_and_marks_unavailable_gateway():
                 "start_latitude": 33.4,
                 "start_longitude": 126.6,
                 "skills": ["general_patrol"],
+                "managing_agency_id": "province-road",
+                "authorized_road_jurisdictions": ["jeju-provincial-road-1135"],
             }
         ]
     }
@@ -144,6 +195,16 @@ def test_build_map_snapshot_aggregates_risk_and_marks_unavailable_gateway():
     assert queries["teams"][0]["vehicle_status"] == "available"
     assert queries["teams"][0]["vehicle_personnel_capacity"] == 2
     assert queries["teams"][0]["max_tasks_per_team"] == 3
+    assert queries["teams"][0]["managing_agency_name"] == (
+        "제주특별자치도 도로관리과"
+    )
+    authority = queries["governance_authorities"][0]
+    assert authority["administrative_city"] == "제주시"
+    assert authority["road_jurisdiction"] == "jeju-provincial-road-1135"
+    assert authority["dispatch_approver_verification_status"] == (
+        "operator_configuration_required"
+    )
+    assert quality["counts"]["authority_record_count"] == 1
 
 
 def test_build_map_snapshot_reports_missing_required_geometry():

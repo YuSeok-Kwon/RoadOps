@@ -199,6 +199,7 @@ def extract_jeju_nodelink(
                 "end_node_id": end_node_id,
                 "road_name": _pick(attributes, "road_name") or "",
                 "road_rank": _pick(attributes, "road_rank") or "",
+                "road_number": _pick(attributes, "road_no", "road_number") or "",
                 "lane_count": _pick(attributes, "lanes", "lane_count") or "",
                 "maximum_speed_limit": _pick(attributes, "max_spd", "maximum_speed")
                 or "",
@@ -223,6 +224,7 @@ def extract_jeju_nodelink(
             "end_node_id",
             "road_name",
             "road_rank",
+            "road_number",
             "lane_count",
             "maximum_speed_limit",
             "road_type",

@@ -24,6 +24,10 @@ ALLOWED_AGENCY_TYPES = {
 ALLOWED_HANDOFF_TYPES = {"police", "fire"}
 ALLOWED_HANDOFF_LEVELS = {"none", "notify", "coordinate", "transfer"}
 ALLOWED_CHANNEL_STATUSES = {"active", "unavailable"}
+ALLOWED_AUTHORITY_STATUSES = {
+    "official_provincial_road_scope",
+    "admin_city_delegation_review_required",
+}
 
 
 def _text(value: Any) -> str | None:
@@ -171,6 +175,40 @@ def validate_resource_plan(
             {"field": "governance", "code": "legacy_unscoped_governance"}
         )
 
+    source_inputs = governance_input.get("source_records", [])
+    if not isinstance(source_inputs, list):
+        source_inputs = []
+        _error(errors, "governance.source_records", "list_required")
+    source_records: list[dict[str, Any]] = []
+    source_ids: set[str] = set()
+    for index, source in enumerate(source_inputs):
+        field = f"governance.source_records[{index}]"
+        if not isinstance(source, Mapping):
+            _error(errors, field, "object_required")
+            continue
+        source_id = _text(source.get("source_id"))
+        if source_id is None:
+            _error(errors, f"{field}.source_id", "required")
+        elif source_id in source_ids:
+            _error(errors, f"{field}.source_id", "duplicate")
+        else:
+            source_ids.add(source_id)
+        if _text(source.get("title")) is None:
+            _error(errors, f"{field}.title", "required")
+        if _text(source.get("url")) is None:
+            _error(errors, f"{field}.url", "required")
+        source_records.append(
+            {
+                "source_id": source_id,
+                "title": _text(source.get("title")),
+                "provider": _text(source.get("provider")),
+                "url": _text(source.get("url")),
+                "as_of": _text(source.get("as_of")),
+                "scope": _text(source.get("scope")),
+                "sha256": _text(source.get("sha256")),
+            }
+        )
+
     agency_inputs = governance_input.get("agencies", [])
     if not isinstance(agency_inputs, list):
         agency_inputs = []
@@ -200,6 +238,12 @@ def validate_resource_plan(
                 "agency_id": agency_id,
                 "agency_name": _text(source.get("agency_name")) or agency_id,
                 "agency_type": agency_type,
+                "department_name": _text(source.get("department_name")),
+                "verification_status": _text(source.get("verification_status"))
+                or "operator_defined",
+                "official_source_ids": _string_set(
+                    source.get("official_source_ids")
+                ),
             }
         )
     if governance_enabled and not agencies:
@@ -237,6 +281,9 @@ def validate_resource_plan(
                 "approver_id": approver_id,
                 "agency_id": agency_id,
                 "role": _text(source.get("role")),
+                "display_name": _text(source.get("display_name")),
+                "verification_status": _text(source.get("verification_status"))
+                or "operator_defined",
                 "active": active,
             }
         )
@@ -277,10 +324,83 @@ def validate_resource_plan(
             "target_agency_id": target_agency_id,
             "status": status,
             "contact_method": _text(source.get("contact_method")) or "operator_defined",
+            "automation_status": _text(source.get("automation_status"))
+            or "manual_operator_handoff",
+            "official_source_ids": _string_set(
+                source.get("official_source_ids")
+            ),
         }
         handoff_channels.append(normalized_channel)
         if channel_id:
             channel_index[channel_id] = normalized_channel
+
+    authority_inputs = governance_input.get("authority_records", [])
+    if not isinstance(authority_inputs, list):
+        authority_inputs = []
+        _error(errors, "governance.authority_records", "list_required")
+    authority_records: list[dict[str, Any]] = []
+    authority_links: set[str] = set()
+    for index, source in enumerate(authority_inputs):
+        field = f"governance.authority_records[{index}]"
+        if not isinstance(source, Mapping):
+            _error(errors, field, "object_required")
+            continue
+        link_id = normalize_link_id(source.get("link_id"))
+        if link_id is None:
+            _error(errors, f"{field}.link_id", "valid_link_id_required")
+            continue
+        if link_id in authority_links:
+            _error(errors, f"{field}.link_id", "authority_record_twice")
+        authority_links.add(link_id)
+        managing_agency_id = _text(source.get("managing_agency_id"))
+        administrative_city_agency_id = _text(
+            source.get("administrative_city_agency_id")
+        )
+        authority_status = _text(source.get("authority_status"))
+        record_source_ids = _string_set(source.get("source_ids"))
+        if managing_agency_id not in agency_ids:
+            _error(errors, f"{field}.managing_agency_id", "unknown_agency")
+        if administrative_city_agency_id not in agency_ids:
+            _error(
+                errors,
+                f"{field}.administrative_city_agency_id",
+                "unknown_agency",
+            )
+        if authority_status not in ALLOWED_AUTHORITY_STATUSES:
+            _error(errors, f"{field}.authority_status", "unsupported_authority_status")
+        if _text(source.get("road_jurisdiction")) is None:
+            _error(errors, f"{field}.road_jurisdiction", "required")
+        if _text(source.get("jurisdiction_basis")) is None:
+            _error(errors, f"{field}.jurisdiction_basis", "required")
+        for source_id in record_source_ids:
+            if source_id not in source_ids:
+                _error(errors, f"{field}.source_ids", "unknown_source")
+        authority_records.append(
+            {
+                "link_id": link_id,
+                "road_rank": _text(source.get("road_rank")),
+                "road_class": _text(source.get("road_class")),
+                "road_number": _text(source.get("road_number")),
+                "road_name": _text(source.get("road_name")),
+                "administrative_city_code": _text(
+                    source.get("administrative_city_code")
+                ),
+                "administrative_city": _text(source.get("administrative_city")),
+                "administrative_unit_code": _text(
+                    source.get("administrative_unit_code")
+                ),
+                "administrative_unit": _text(source.get("administrative_unit")),
+                "administrative_unit_type": _text(
+                    source.get("administrative_unit_type")
+                ),
+                "administrative_city_agency_id": administrative_city_agency_id,
+                "managing_agency_id": managing_agency_id,
+                "road_jurisdiction": _text(source.get("road_jurisdiction")),
+                "jurisdiction_basis": _text(source.get("jurisdiction_basis")),
+                "authority_status": authority_status,
+                "source_ids": record_source_ids,
+            }
+        )
 
     defaults_input = governance_input.get("defaults", {})
     if not isinstance(defaults_input, Mapping):
@@ -331,10 +451,17 @@ def validate_resource_plan(
 
     governance = {
         "mode": "institution_aware" if governance_enabled else "legacy_unscoped",
+        "effective_at": _text(governance_input.get("effective_at")),
+        "source_records": sorted(
+            source_records, key=lambda row: str(row.get("source_id"))
+        ),
         "agencies": sorted(agencies, key=lambda row: str(row.get("agency_id"))),
         "approvers": sorted(approvers, key=lambda row: str(row.get("approver_id"))),
         "handoff_channels": sorted(
             handoff_channels, key=lambda row: str(row.get("channel_id"))
+        ),
+        "authority_records": sorted(
+            authority_records, key=lambda row: str(row.get("link_id"))
         ),
         "defaults": defaults,
     }
@@ -556,7 +683,11 @@ def validate_resource_plan(
         dispatch_approver_id = _text(source.get("dispatch_approver_id"))
         if managing_agency_id and managing_agency_id not in agency_ids:
             _error(errors, f"{field}.managing_agency_id", "unknown_agency")
-        if "dispatch_approval_required" in source and dispatch_approval_required is None:
+        if (
+            "dispatch_approval_required" in source
+            and source.get("dispatch_approval_required") is not None
+            and dispatch_approval_required is None
+        ):
             _error(errors, f"{field}.dispatch_approval_required", "boolean_required")
         if dispatch_approver_id and dispatch_approver_id not in active_approver_ids:
             _error(errors, f"{field}.dispatch_approver_id", "unknown_or_inactive_approver")
@@ -643,6 +774,8 @@ def validate_resource_plan(
         "agency_count": len(agencies),
         "approver_count": len(approvers),
         "handoff_channel_count": len(handoff_channels),
+        "authority_record_count": len(authority_records),
+        "governance_source_count": len(source_records),
         "errors": errors,
         "warnings": warnings,
     }

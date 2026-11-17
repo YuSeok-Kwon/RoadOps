@@ -21,6 +21,7 @@ const teams = [{
   max_tasks_per_team: 2,
   shift_start_at: "2026-11-16T09:00:00+09:00",
   shift_end_at: "2026-11-16T11:00:00+09:00",
+  managing_agency_name: "제주특별자치도 도로관리과",
 }];
 const tasks = [{
   task_id: "task-1",
@@ -29,6 +30,14 @@ const tasks = [{
   priority_score: 50,
   mandatory: true,
   excluded: false,
+  managing_agency_name: "제주특별자치도 도로관리과",
+  administrative_city: "제주시",
+  administrative_unit: "애월읍",
+  road_jurisdiction: "jeju-provincial-road-1135",
+  authority_status: "official_provincial_road_scope",
+  dispatch_approver_role: "도로관리과 운영기관 지정 승인권자",
+  dispatch_approver_verification_status: "operator_configuration_required",
+  handoff_statuses: [{ handoff_type: "police", status: "not_requested" }],
 }];
 const routes = [
   { alternative_id: "safety_first", task_id: "task-1", team_id: "team-a" },
@@ -50,6 +59,7 @@ test("validated snapshot becomes approval-ready only after acknowledgements and 
   assert.equal(pending.technicalValid, true);
   assert.equal(pending.approvalReady, false);
   assert.ok(pending.warnings.some((item) => item.code === "STALE_SNAPSHOT"));
+  assert.ok(pending.warnings.some((item) => item.code === "APPROVER_CONFIGURATION_REQUIRED"));
 
   const result = validateWorkflow({ state: validState(), routes, planMetrics, metadata: { freshness_status: "stale_snapshot" } });
   assert.equal(result.approvalReady, true);
@@ -93,6 +103,7 @@ test("workflow fingerprint is deterministic and approval captures it", () => {
   const approval = createApprovalRecord(state, "none", "2026-11-16T12:00:00+09:00");
   assert.equal(approval.workflowFingerprint, first);
   assert.equal(approval.approverName, "홍길동");
+  assert.equal(approval.approverRole, "도로관리과 운영기관 지정 승인권자");
 });
 
 test("audit entries are ordered and retain action details", () => {
