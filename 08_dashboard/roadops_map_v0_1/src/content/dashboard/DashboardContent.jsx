@@ -659,7 +659,13 @@ function RiskDetail({ row, task, sourceRows, horizon }) {
       <div><span>예상 시각</span><b>{dateTime(row.target_at)}</b></div>
       <div><span>현장 위험정보</span><b>{Number(row.event_count) > 0 ? `${number(row.event_count, 0)}건 반영` : "추가 확인"}</b></div>
       <div><span>담당기관</span><b>{task?.managing_agency_name || "관할 확인 필요"}</b></div>
-      <div><span>주소 정밀도</span><b>{row.address_precision === "parcel_or_building" ? "지번·건물번호 확인" : "도로·리 단위"}</b></div>
+      <div><span>주소 정밀도</span><b>{({
+        official_parcel: "SGIS 공식 지번",
+        official_road_address: "SGIS 공식 도로명주소",
+        official_locality: "SGIS 공식 행정구역",
+        parcel_or_building: "공개지도 지번·건물번호",
+        road_or_locality: "공개지도 도로·리 단위",
+      })[row.address_precision] || "주소 확인 필요"}</b></div>
     </div>
     <div className="driver-list">
       <span>점수에 반영된 항목</span>
@@ -1045,7 +1051,7 @@ export function DashboardContent() {
             <span>지도 읽는 방법</span><small>배경지도 + 분석도로 11개 · {mapGuideOpen ? "접기" : "펼치기"}</small>
           </button>
           {mapGuideOpen && <div className="map-reading-guide" aria-label="지도 표시 설명">
-            <p>배경에는 주변 도로·지명이 표시되지만, 점검 표시는 RoadOps가 분석한 주요 간선도로 11개 범위입니다. 주소는 좌표에서 찾은 인근 지역명이며 지번 확정값이 아닙니다.</p>
+            <p>배경에는 주변 도로·지명이 표시되지만, 점검 표시는 RoadOps가 분석한 주요 간선도로 11개 범위입니다. SGIS 인증정보가 있으면 공식 도로명·지번을 우선하고, 없으면 공개지도의 인근 주소를 표시합니다.</p>
             <span><i data-guide="risk" /><b>우선순위 표식</b> 먼저·주의·일반을 도로선과 분리해 표시</span>
             <span><i data-guide="route" /><b>팀 색 점선</b> 순찰팀이 실제로 이동할 경로로, 누르면 소요시간과 전체 코스를 표시</span>
             <span><i data-guide="point" /><b>팀 색 숫자 원</b> 점검 순서 · 집 아이콘은 공개자료 기반 도로관리 거점</span>

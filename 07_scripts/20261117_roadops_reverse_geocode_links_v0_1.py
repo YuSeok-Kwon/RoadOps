@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -37,7 +38,23 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--request-delay", type=float, default=1.1)
     parser.add_argument("--timeout", type=float, default=30.0)
+    parser.add_argument("--env-file", type=Path, default=PROJECT_ROOT / "config/.env")
     return parser.parse_args()
+
+
+def env_value(path: Path, name: str) -> str | None:
+    if os.environ.get(name):
+        return os.environ[name]
+    if not path.exists():
+        return None
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        if key.strip() == name:
+            return value.strip().strip('"').strip("'") or None
+    return None
 
 
 def main() -> int:
@@ -64,15 +81,18 @@ def main() -> int:
         cache_path=args.output_dir / "provider_cache.json",
         request_delay_seconds=args.request_delay,
         timeout_seconds=args.timeout,
+        sgis_consumer_key=env_value(args.env_file, "SGIS_CONSUMER_KEY"),
+        sgis_consumer_secret=env_value(args.env_file, "SGIS_CONSUMER_SECRET"),
+        sgis_cache_path=args.output_dir / "sgis_provider_cache.json",
     )
     output_path = args.output_dir / "link_locations.json"
     report_path = args.output_dir / "quality_report.json"
     write_json_atomic(output_path, {"schema_version": 1, "dataset": "roadops_link_reverse_geocode", "records": records})
     report["requested_link_count"] = len(required)
     report["limitations"] = [
-        "OpenStreetMap 역지오코딩 결과이며 지번 또는 건물번호가 없는 위치는 도로·리 단위로 표시합니다.",
-        "교차로명은 현재 제공 응답에서 확인되지 않아 임의 생성하지 않습니다.",
-        "공식 지번·교차로 확정에는 SGIS 또는 운영기관 주소·교차로 원장이 필요합니다.",
+        "SGIS 서비스 ID·보안 Key가 있으면 공식 도로명·지번 응답을 우선 사용하고, 없거나 실패하면 OpenStreetMap으로 보완합니다.",
+        "SGIS 역지오코딩 응답에도 교차로 고유명은 없어 임의 생성하지 않습니다.",
+        "정확한 교차로명 확정에는 운영기관 교차로 원장이 필요합니다.",
     ]
     write_json_atomic(report_path, report)
     print(json.dumps(report, ensure_ascii=False, indent=2))

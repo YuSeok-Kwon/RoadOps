@@ -428,6 +428,27 @@
         "public_endpoint_confirmed": false,
         "score_use_requires_spatial_match_and_freshness_validation": true
       }
+    },
+    {
+      "id": "sgis_wgs84_reverse_geocode",
+      "name": "SGIS WGS84 reverse geocoding",
+      "name_ko": "국가데이터처 SGIS WGS84 역지오코딩",
+      "documentation_url": "https://sgis.mods.go.kr/developer/html/newOpenApi/api/dataApi/addressBoundary.html#rgeocodewgs84",
+      "endpoint_url": "https://sgisapi.mods.go.kr/OpenAPI3/addr/rgeocodewgs84.json",
+      "kind": "json_api",
+      "authentication": {
+        "consumer_key_environment_variable": "SGIS_CONSUMER_KEY",
+        "consumer_secret_environment_variable": "SGIS_CONSUMER_SECRET",
+        "token_endpoint": "https://sgisapi.mods.go.kr/OpenAPI3/auth/authentication.json"
+      },
+      "join_key": "WGS84 longitude and latitude",
+      "coordinate_system": "EPSG:4326",
+      "expected_fields": ["sgg_nm", "emdong_nm", "main_no", "sub_no", "road_nm", "road_nm_main_no", "full_addr"],
+      "quality_contract": {
+        "address_types_requested": [10, 21],
+        "intersection_name_available": false,
+        "fallback_provider": "OpenStreetMap Nominatim"
+      }
     }
   ]
 }

@@ -1,4 +1,4 @@
-from roadops.reverse_geocode import location_from_nominatim, midpoint
+from roadops.reverse_geocode import location_from_nominatim, location_from_sgis, midpoint
 
 
 def test_midpoint_uses_central_shape_point():
@@ -20,3 +20,14 @@ def test_location_marks_building_precision_only_with_number():
     )
     assert row["address_precision"] == "parcel_or_building"
     assert row["lot_or_house_number"] == "123"
+
+
+def test_location_from_sgis_combines_official_parcel_and_road_fields():
+    row = location_from_sgis(
+        {"errCd": 0, "result": [{"sgg_nm": "제주시", "emdong_nm": "애월읍", "main_no": "123", "sub_no": "4"}]},
+        {"errCd": 0, "result": [{"road_nm": "평화로", "road_nm_main_no": "99", "road_nm_sub_no": "0"}]},
+    )
+    assert row["location_label"] == "제주시 애월읍 평화로 99"
+    assert row["lot_or_house_number"] == "123-4"
+    assert row["address_precision"] == "official_parcel"
+    assert row["provider"] == "SGIS 국가데이터처"
