@@ -33,6 +33,12 @@ def parse_args() -> argparse.Namespace:
         / "02_outputs/data/risk_forecasts_v0_1/risk_forecasts.csv",
     )
     parser.add_argument(
+        "--weather-timeline",
+        type=Path,
+        default=PROJECT_ROOT
+        / "02_outputs/data/weather_timeline_v0_1/weather_timeline.csv",
+    )
+    parser.add_argument(
         "--optimized-allocation",
         type=Path,
         default=PROJECT_ROOT
@@ -144,6 +150,15 @@ def build_data_app_snapshot(
             ["map-status"],
             shared_caveats,
         ),
+        "weather_forecast": source(
+            "KMA short-term weather forecast ranges",
+            [inputs["weather_timeline"]],
+            ["weather-forecast-strip"],
+            [
+                "Temperature and humidity are shown as ranges across the reviewed Jeju forecast grids.",
+                "Maximum wind speed is the largest value among usable grid forecasts, not a single-site observation.",
+            ],
+        ),
         "road_background": source(
             "MOLIT Jeju standard road-link geometry",
             [inputs["road_links"]],
@@ -239,6 +254,7 @@ def main() -> int:
     generated_at = args.generated_at or datetime.now(ZoneInfo("Asia/Seoul")).isoformat()
     inputs = {
         "risk_forecasts": args.risk_forecasts,
+        "weather_timeline": args.weather_timeline,
         "optimized_allocation": args.optimized_allocation,
         "replanning": args.replanning,
         "resources": args.resources,
@@ -251,6 +267,7 @@ def main() -> int:
 
     queries, quality = build_map_snapshot(
         risk_rows=read_csv(args.risk_forecasts),
+        weather_rows=read_csv(args.weather_timeline),
         optimized=read_json(args.optimized_allocation),
         replanning=read_json(args.replanning),
         resources=read_json(args.resources),

@@ -5,7 +5,7 @@ RoadOps 현장 운영 대시보드에서 사용하는 검토 완료 지도 행�
 
 from __future__ import annotations
 
-from collections import defaultdict
+from collections import Counter, defaultdict
 from datetime import datetime
 import json
 from typing import Any, Iterable, Mapping
@@ -40,6 +40,120 @@ def _number(value: Any) -> float | None:
 
 def _boolean(value: Any) -> bool:
     return str(value).strip().lower() in {"1", "true", "yes", "y"}
+
+
+def _weather_forecast_rows(
+    rows: Iterable[Mapping[str, Any]],
+) -> list[dict[str, Any]]:
+    """Aggregate island grid forecasts into honest horizon ranges."""
+
+    grouped: defaultdict[int, list[Mapping[str, Any]]] = defaultdict(list)
+    for row in rows:
+        try:
+            horizon = int(row.get("horizon_hours") or 0)
+        except (TypeError, ValueError):
+            continue
+        if horizon in {0, 1, 3, 6}:
+            grouped[horizon].append(row)
+
+    precipitation_labels = {
+        "0": "강수 없음",
+        "1": "비",
+        "2": "비 또는 눈",
+        "3": "눈",
+        "5": "빗방울",
+        "6": "빗방울 또는 눈날림",
+        "7": "눈날림",
+    }
+    sky_labels = {"1": "맑음", "3": "구름 많음", "4": "흐림"}
+    result: list[dict[str, Any]] = []
+    for horizon in (0, 1, 3, 6):
+        candidates = grouped.get(horizon, [])
+        usable = [
+            row
+            for row in candidates
+            if str(row.get("row_status")) == "usable"
+            and str(row.get("forecast_status")) == "matched"
+        ]
+        temperatures = [
+            value
+            for value in (_number(row.get("forecast_temperature_c")) for row in usable)
+            if value is not None
+        ]
+        wind_speeds = [
+            value
+            for value in (_number(row.get("forecast_wind_speed_mps")) for row in usable)
+            if value is not None
+        ]
+        humidities = [
+            value
+            for value in (_number(row.get("forecast_humidity_percent")) for row in usable)
+            if value is not None
+        ]
+        precipitation_codes = {
+            str(row.get("forecast_precipitation_type") or "0").strip()
+            for row in usable
+        }
+        active_precipitation = sorted(code for code in precipitation_codes if code != "0")
+        precipitation = (
+            " · ".join(
+                precipitation_labels.get(code, "강수 가능")
+                for code in active_precipitation
+            )
+            if active_precipitation
+            else "강수 없음"
+        )
+        sky_codes = Counter(
+            str(row.get("forecast_sky_code") or "").strip()
+            for row in usable
+            if str(row.get("forecast_sky_code") or "").strip()
+        )
+        target_counts = Counter(
+            str(row.get("target_at"))
+            for row in usable
+            if row.get("target_at")
+        )
+        sources = sorted(
+            {
+                str(row.get("forecast_source_id"))
+                for row in usable
+                if row.get("forecast_source_id")
+            }
+        )
+        quality_flags = sorted(
+            {
+                flag
+                for row in candidates
+                for flag in str(row.get("quality_flags") or "").split("|")
+                if flag
+            }
+        )
+        result.append(
+            {
+                "horizon_hours": horizon,
+                "target_at": target_counts.most_common(1)[0][0] if target_counts else None,
+                "status": "usable" if usable else "unavailable",
+                "grid_count": len(candidates),
+                "usable_grid_count": len(usable),
+                "coverage_ratio": (
+                    round(len(usable) / len(candidates), 3) if candidates else 0.0
+                ),
+                "temperature_min_c": round(min(temperatures), 1) if temperatures else None,
+                "temperature_max_c": round(max(temperatures), 1) if temperatures else None,
+                "humidity_min_percent": round(min(humidities), 1) if humidities else None,
+                "humidity_max_percent": round(max(humidities), 1) if humidities else None,
+                "maximum_wind_speed_mps": round(max(wind_speeds), 1) if wind_speeds else None,
+                "precipitation_summary": precipitation if usable else "예보 확인 불가",
+                "sky_summary": (
+                    sky_labels.get(sky_codes.most_common(1)[0][0], "하늘 상태 확인 필요")
+                    if sky_codes
+                    else "하늘 상태 확인 불가"
+                ),
+                "forecast_sources": " | ".join(sources),
+                "quality_flags": " | ".join(quality_flags) or "none",
+            }
+        )
+    return result
 
 
 def _parts(row: Mapping[str, Any]) -> list[list[list[float]]]:
@@ -396,6 +510,7 @@ def _governance_authority_rows(
 def build_map_snapshot(
     *,
     risk_rows: Iterable[Mapping[str, Any]],
+    weather_rows: Iterable[Mapping[str, Any]],
     optimized: Mapping[str, Any],
     replanning: Mapping[str, Any],
     resources: Mapping[str, Any],
@@ -406,6 +521,7 @@ def build_map_snapshot(
     """Build map query rows and a deterministic quality report."""
 
     risk_rows = list(risk_rows)
+    weather_rows = list(weather_rows)
     required_link_ids = {
         str(row.get("effective_link_id"))
         for row in risk_rows
@@ -441,6 +557,7 @@ def build_map_snapshot(
         for road_name, parts in sorted(background_groups.items())
     ]
     risk_links = _aggregate_risks(risk_rows, link_geometries)
+    weather_forecast = _weather_forecast_rows(weather_rows)
     plan_routes = _plan_routes(optimized, link_geometries)
     plan_metrics = _plan_metrics(optimized)
     replan_routes, scenario_summary, scenario_impacts = _replan_rows(
@@ -587,6 +704,7 @@ def build_map_snapshot(
             "team_count": len(teams),
             "task_count": len(field_tasks),
             "authority_record_count": len(governance_authorities),
+            "weather_forecast_horizon_count": len(weather_forecast),
         },
         "missing_required_link_ids": missing_required,
         "missing_risk_link_ids": missing_risk,
@@ -604,6 +722,7 @@ def build_map_snapshot(
     }
     queries = {
         "map_metadata": metadata,
+        "weather_forecast": weather_forecast,
         "road_background": background_rows,
         "risk_links": risk_links,
         "field_tasks": field_tasks,

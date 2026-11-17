@@ -198,6 +198,49 @@ def test_network_disconnection_uses_same_schema_and_explicit_failure():
     assert report["failed_checks"] == []
 
 
+def test_team_start_prefers_nearby_node_connected_to_a_task():
+    nodes = [
+        {"node_id": "4050000001", "latitude": 33.0, "longitude": 126.0},
+        {"node_id": "4050000002", "latitude": 33.0, "longitude": 126.001},
+        {"node_id": "4050000003", "latitude": 33.0, "longitude": 126.01},
+        {"node_id": "4050000004", "latitude": 33.0, "longitude": 126.02},
+    ]
+    links = [
+        _link(
+            "4050000201",
+            "4050000002",
+            "4050000003",
+            "LINESTRING (126.001 33.00,126.01 33.00)",
+        ),
+        _link(
+            "4050000202",
+            "4050000003",
+            "4050000004",
+            "LINESTRING (126.01 33.00,126.02 33.00)",
+        ),
+    ]
+    tasks = [
+        {
+            "task_id": "link:4050000202:h0",
+            "link_id": "4050000202",
+            "latitude": 33.0,
+            "longitude": 126.015,
+            "excluded": False,
+        }
+    ]
+
+    result, report = build_travel_time_matrix(
+        _resources(), tasks, nodes, links, generated_at=NOW
+    )
+
+    route = _team_route(result)
+    assert report["status"] == "pass"
+    assert route["status"] == "ok"
+    assert route["origin_node_id"] == "4050000002"
+    assert route["route_link_ids"] == ["4050000201", "4050000202"]
+    assert route["origin_connector_distance_meters"] > 0
+
+
 def test_cache_replay_preserves_values_and_marks_provenance():
     result, report = build_travel_time_matrix(
         _resources(), _tasks(), _nodes(), _links(), generated_at=NOW

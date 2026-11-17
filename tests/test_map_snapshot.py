@@ -166,6 +166,32 @@ def test_build_map_snapshot_aggregates_risk_and_marks_unavailable_gateway():
     }
     queries, quality = build_map_snapshot(
         risk_rows=risk_rows,
+        weather_rows=[
+            {
+                "horizon_hours": "0",
+                "target_at": "2026-11-13T01:00:00+09:00",
+                "row_status": "usable",
+                "forecast_status": "matched",
+                "forecast_temperature_c": "12",
+                "forecast_precipitation_type": "0",
+                "forecast_sky_code": "3",
+                "forecast_humidity_percent": "80",
+                "forecast_wind_speed_mps": "2.5",
+                "forecast_source_id": "kma_ultra_short_forecast",
+            },
+            {
+                "horizon_hours": "0",
+                "target_at": "2026-11-13T01:00:00+09:00",
+                "row_status": "usable",
+                "forecast_status": "matched",
+                "forecast_temperature_c": "15",
+                "forecast_precipitation_type": "1",
+                "forecast_sky_code": "4",
+                "forecast_humidity_percent": "90",
+                "forecast_wind_speed_mps": "4.2",
+                "forecast_source_id": "kma_ultra_short_forecast",
+            },
+        ],
         optimized=optimized,
         replanning=replanning,
         resources=resources,
@@ -207,6 +233,11 @@ def test_build_map_snapshot_aggregates_risk_and_marks_unavailable_gateway():
         "operator_configuration_required"
     )
     assert quality["counts"]["authority_record_count"] == 1
+    current_weather = queries["weather_forecast"][0]
+    assert current_weather["temperature_min_c"] == 12.0
+    assert current_weather["temperature_max_c"] == 15.0
+    assert current_weather["precipitation_summary"] == "비"
+    assert current_weather["maximum_wind_speed_mps"] == 4.2
 
 
 def test_build_map_snapshot_reports_missing_required_geometry():
@@ -221,6 +252,7 @@ def test_build_map_snapshot_reports_missing_required_geometry():
                 "forecast_score_upper_bound": "30",
             }
         ],
+        weather_rows=[],
         optimized={"alternatives": []},
         replanning={"scenario_results": []},
         resources={"teams": []},

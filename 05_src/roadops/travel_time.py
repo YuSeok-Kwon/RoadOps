@@ -252,17 +252,63 @@ def _nearest_node(
     return nearest_id, nearest_distance
 
 
+def _nodes_reaching_destinations(
+    adjacency: Mapping[str, list[NetworkLink]],
+    destination_node_ids: Iterable[str],
+) -> set[str]:
+    """Return nodes that can reach at least one destination on the directed graph."""
+
+    reverse_adjacency: defaultdict[str, list[str]] = defaultdict(list)
+    for start_node_id, edges in adjacency.items():
+        for edge in edges:
+            reverse_adjacency[edge.end_node_id].append(start_node_id)
+
+    reachable = {str(node_id) for node_id in destination_node_ids if node_id}
+    pending = list(reachable)
+    while pending:
+        node_id = pending.pop()
+        for predecessor in reverse_adjacency.get(node_id, ()):
+            if predecessor in reachable:
+                continue
+            reachable.add(predecessor)
+            pending.append(predecessor)
+    return reachable
+
+
 def _team_origins(
     resource_plan: Mapping[str, Any],
     nodes: Mapping[str, GeoPoint],
     *,
+    destination_reachable_node_ids: set[str],
     max_snap_distance_meters: float,
     connector_speed_kph: float,
+    connectivity_snap_tolerance_meters: float,
 ) -> list[RouteOrigin]:
     origins: list[RouteOrigin] = []
+    reachable_nodes = {
+        node_id: point
+        for node_id, point in nodes.items()
+        if node_id in destination_reachable_node_ids
+    }
     for team in resource_plan["teams"]:
         point = parse_point(team["start_latitude"], team["start_longitude"])
         node_id, distance = _nearest_node(point, nodes) if point else (None, None)
+        reachable_node_id, reachable_distance = (
+            _nearest_node(point, reachable_nodes)
+            if point and reachable_nodes
+            else (None, None)
+        )
+        if (
+            reachable_node_id is not None
+            and reachable_distance is not None
+            and reachable_distance <= max_snap_distance_meters
+            and (
+                distance is None
+                or reachable_distance
+                <= distance + connectivity_snap_tolerance_meters
+            )
+        ):
+            node_id, distance = reachable_node_id, reachable_distance
         failure = None
         if node_id is None or distance is None:
             failure = "origin_network_node_missing"
@@ -632,6 +678,7 @@ def build_travel_time_matrix(
     default_speed_kph: float = 30.0,
     connector_speed_kph: float = 20.0,
     max_snap_distance_meters: float = 2_000.0,
+    connectivity_snap_tolerance_meters: float = 250.0,
     generated_at: datetime | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     """Build team/task-to-task route times on the directed Jeju road graph."""
@@ -640,6 +687,8 @@ def build_travel_time_matrix(
         raise ValueError("connector_speed_kph must be positive")
     if max_snap_distance_meters < 0:
         raise ValueError("max_snap_distance_meters must be non-negative")
+    if connectivity_snap_tolerance_meters < 0:
+        raise ValueError("connectivity_snap_tolerance_meters must be non-negative")
     resource_plan, resource_report = validate_resource_plan(resource_payload)
     if resource_report["status"] == "fail":
         result = {
@@ -674,13 +723,24 @@ def build_travel_time_matrix(
         closed_link_ids=closed,
         default_speed_kph=default_speed_kph,
     )
+    destinations = _destinations(tasks, links, closed)
+    destination_reachable_node_ids = _nodes_reaching_destinations(
+        adjacency,
+        (
+            destination.node_id
+            for destination in destinations
+            if destination.node_id is not None
+            and destination.failure_reason is None
+        ),
+    )
     origins = _team_origins(
         resource_plan,
         nodes,
+        destination_reachable_node_ids=destination_reachable_node_ids,
         max_snap_distance_meters=max_snap_distance_meters,
         connector_speed_kph=connector_speed_kph,
+        connectivity_snap_tolerance_meters=connectivity_snap_tolerance_meters,
     ) + _task_origins(tasks, links, closed)
-    destinations = _destinations(tasks, links, closed)
     routes: list[dict[str, Any]] = []
     for origin in origins:
         if origin.node_id is not None and origin.failure_reason is None:
@@ -715,13 +775,17 @@ def build_travel_time_matrix(
             "default_speed_kph": default_speed_kph,
             "connector_speed_kph": connector_speed_kph,
             "max_snap_distance_meters": max_snap_distance_meters,
+            "connectivity_snap_tolerance_meters": (
+                connectivity_snap_tolerance_meters
+            ),
             "directed_graph": True,
             "turn_restrictions_applied": False,
         },
         "limitations": [
             "speed_limits_are_free_flow_estimates_not_live_traffic_eta",
             "turn_restrictions_are_not_applied_in_v0.1",
-            "team_start_snap_uses_a_straight_connector_to_the_nearest_node",
+            "team_start_snap_prefers_a_nearby_node_that_reaches_a_task",
+            "team_start_connector_is_a_straight_line_estimate",
         ],
         "closed_link_ids": sorted(closed),
         "origin_count": len(origins),

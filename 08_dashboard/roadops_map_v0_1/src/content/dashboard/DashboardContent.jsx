@@ -286,6 +286,37 @@ function Metric({ label, value, note, tone = "neutral" }) {
   </div>;
 }
 
+function weatherTemperature(row) {
+  const minimum = Number(row?.temperature_min_c);
+  const maximum = Number(row?.temperature_max_c);
+  if (!Number.isFinite(minimum) || !Number.isFinite(maximum)) return "확인 불가";
+  if (minimum === maximum) return `${number(minimum)}°C`;
+  return `${number(minimum)}–${number(maximum)}°C`;
+}
+
+function WeatherForecastStrip({ rows, horizon, onSelect }) {
+  return <DataComponent variant="plain" id="weather-forecast-strip" queryId="weather_forecast"
+    kind="custom" title="제주 단기 기상" description="기상청 예보 격자의 제주 전역 범위입니다."
+    showHeading={false} showActions={false} sourceRows={rows} displayRows={rows}>
+    <div className="weather-strip-inner">
+      <div className="weather-strip-title">
+        <span>제주 단기 기상</span>
+        <small>기상청 · 제주 전역 격자 범위</small>
+      </div>
+      <div className="weather-forecast-list">
+        {rows.map((row) => <button type="button" key={row.horizon_hours}
+          data-selected={Number(row.horizon_hours) === horizon || undefined}
+          data-status={row.status} onClick={() => onSelect(Number(row.horizon_hours))}>
+          <span>{Number(row.horizon_hours) === 0 ? "현재" : `${row.horizon_hours}시간 후`}</span>
+          <strong>{weatherTemperature(row)}</strong>
+          <small>{row.sky_summary} · {row.precipitation_summary}</small>
+          <em>최대 바람 {row.maximum_wind_speed_mps == null ? "확인 불가" : `${number(row.maximum_wind_speed_mps)}m/s`}</em>
+        </button>)}
+      </div>
+    </div>
+  </DataComponent>;
+}
+
 function MapLegend({ showScenario }) {
   return <div className="roadops-map-legend" aria-label="지도 범례">
     <div className="legend-group">
@@ -299,6 +330,8 @@ function MapLegend({ showScenario }) {
       <span><i className="legend-line" />팀 색 점선·이동</span>
       <span><i className="legend-start"><HomeIcon /></i>공개자료 기반 출발 거점</span>
       <span><i className="legend-point">1</i>팀 색 테두리·점검 순서</span>
+      <span><i className="legend-point legend-unassigned">미</i>현재 계획에서 미배정</span>
+      <span><i className="legend-point legend-excluded">제</i>점검 제외 조건 적용</span>
       {showScenario && <span><i className="legend-before" />변경 전</span>}
       {showScenario && <span><i className="legend-after" />변경 후</span>}
     </div>
@@ -504,21 +537,28 @@ function RoadMap({
           const [x, y] = project(row.longitude, row.latitude);
           const sequence = sequenceByTask.get(String(row.task_id));
           const teamId = teamByTask.get(String(row.task_id));
+          const excluded = Boolean(row.excluded);
           const priorityLevel = effectivePriorityLevel(row);
           const selected = selectedRisk?.link_id === row.link_id;
           const select = () => onSelectTask(row.link_id);
-          return <g key={row.task_id} className={selected ? "task-point selected" : "task-point"}
+          const assigned = Boolean(sequence);
+          const assignmentState = excluded ? "제외" : assigned ? `${sequence}번째 점검` : "현재 계획에서 미배정";
+          return <g key={row.task_id} className={`${selected ? "task-point selected" : "task-point"}${!assigned && !excluded ? " unassigned" : ""}`}
             transform={`translate(${x} ${y})`} role="button" tabIndex={0}
-            aria-label={`${locationLabel(row)}, ${sequence ? `${sequence}번째 점검` : "배분 전"}`}
+            aria-label={`${locationLabel(row)}, ${assignmentState}`}
             onClick={select} onKeyDown={(event) => {
               if (event.key === "Enter" || event.key === " ") select();
             }} style={{ "--task-color": TEAM_COLORS[teamId] || "#475569" }}>
             <g transform={`scale(${markerScale})`}>
-              <circle r={row.mandatory ? 9 : 8}
-                data-excluded={row.excluded || undefined} data-mandatory={row.mandatory || undefined}>
-                <title>{`${locationLabel(row)} · ${row.road_name}`}</title>
+              <circle r={row.mandatory ? 9 : 8} data-unassigned={!assigned && !excluded || undefined}
+                data-excluded={excluded || undefined} data-mandatory={row.mandatory || undefined}>
+                <title>{excluded
+                  ? `${locationLabel(row)} · ${row.road_name} · 현재 점검 제외 조건이 적용된 후보`
+                  : assigned
+                  ? `${locationLabel(row)} · ${row.road_name} · ${sequence}번째 점검`
+                  : `${locationLabel(row)} · ${row.road_name} · 현재 근무시간과 경로 제약 안에서 미배정된 점검 후보`}</title>
               </circle>
-              <text y="3.5">{sequence || "?"}</text>
+              <text className={assigned ? undefined : excluded ? "excluded-label" : "unassigned-label"} y="3.5">{sequence || (excluded ? "제" : "미")}</text>
               <g className="priority-marker" data-priority={priorityLevel}
                 data-manual={row.manual_priority_level ? "true" : undefined}
                 transform="translate(13 -15)"
@@ -544,7 +584,7 @@ function RoadMap({
                 <title>{`${row.team_name} · ${row.start_location_name || "출발 거점"} · ${row.available === false ? "비가용" : "가용"}`}</title>
               </circle>
               <path className="team-home-icon" d="M-7 -1 0 -7l7 6v8H2V2h-4v5h-5Z" />
-              <text className="team-start-name" x="16" y="4">{row.team_name?.replace(" 순찰팀", "") || "순찰팀"}</text>
+              <text className="team-start-name" x="16" y="4">{row.start_location_name || row.team_name || "출발 거점"}</text>
             </g>
           </g>;
         })}
@@ -763,6 +803,7 @@ export function DashboardContent() {
 
   const rows = (queryId) => queries[queryId]?.rows ?? [];
   const metadata = /** @type {any} */ (rows("map_metadata")[0] ?? {});
+  const weatherRows = rows("weather_forecast");
   const allRiskRows = rows("risk_links");
   const riskRows = allRiskRows.filter((row) => Number(row.horizon_hours) === horizon && row.has_geometry);
   const selectedRisk = riskRows.find((row) => row.link_id === selectedRiskId)
@@ -882,6 +923,11 @@ export function DashboardContent() {
       </div>
     </section>
 
+    <section className="roadops-weather" aria-label="제주 단기 기상">
+      <WeatherForecastStrip rows={weatherRows} horizon={horizon}
+        onSelect={(hours) => setHorizonIndex(Math.max(0, HORIZONS.indexOf(hours)))} />
+    </section>
+
     <section className="roadops-kpis">
       <DataComponent variant="plain" id="allocation-kpis" queryId="plan_metrics" kind="metrics"
         title="운영 요약" description="선택한 예측 시점과 배분 대안의 핵심 운영 지표입니다."
@@ -916,6 +962,8 @@ export function DashboardContent() {
             <span><i data-guide="risk" /><b>우선순위 표식</b> 먼저·주의·일반을 도로선과 분리해 표시</span>
             <span><i data-guide="route" /><b>팀 색 점선</b> 순찰팀이 실제로 이동할 경로로, 누르면 소요시간과 전체 코스를 표시</span>
             <span><i data-guide="point" /><b>팀 색 숫자 원</b> 점검 순서 · 집 아이콘은 공개자료 기반 도로관리 거점</span>
+            <span><i data-guide="unassigned" /><b>‘미’ 원</b> 현재 근무시간·경로 제약 안에서 배정되지 않은 후보</span>
+            <span><i data-guide="excluded" /><b>‘제’ 원</b> 담당자가 설정한 점검 제외 조건이 적용된 후보</span>
           </div>}
           <RoadMap backgroundRows={rows("road_background")} riskRows={riskRows}
             taskRows={effectiveTaskRows} teamRows={effectiveTeamRows} routeRows={routeRows}

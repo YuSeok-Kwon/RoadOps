@@ -30,7 +30,7 @@ from roadops.replanning import (  # noqa: E402
 from roadops.travel_time import build_travel_time_matrix  # noqa: E402
 
 
-DEFAULT_COMPLETED_TASK = "link:4050418600:h0"
+DEFAULT_COMPLETED_TASK = "link:4060438807:h0"
 DEFAULT_CLOSED_LINK = "4050005521"
 DEFAULT_RAIN_LINKS = ("4050484600", "4050456800")
 
@@ -174,7 +174,22 @@ def main() -> int:
     base_matrix = _read(args.base_travel_matrix)
     nodes = load_records(args.nodes)
     links = load_records(args.links)
-    completed = args.completed_task_id or [DEFAULT_COMPLETED_TASK]
+    safety_alternative = next(
+        (
+            alternative
+            for alternative in base_allocation.get("alternatives", [])
+            if alternative.get("alternative_id") == "safety_first"
+        ),
+        {},
+    )
+    first_assignment = min(
+        safety_alternative.get("assignments", []),
+        key=lambda row: (int(row.get("sequence") or 0), str(row.get("team_id") or "")),
+        default={},
+    )
+    completed = args.completed_task_id or [
+        str(first_assignment.get("task_id") or DEFAULT_COMPLETED_TASK)
+    ]
     rain_links = args.rain_link_id or list(DEFAULT_RAIN_LINKS)
     generated_at = _generated_at(args.as_of)
 

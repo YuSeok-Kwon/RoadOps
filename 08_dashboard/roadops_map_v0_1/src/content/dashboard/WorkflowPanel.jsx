@@ -20,9 +20,9 @@ const TAB_LABELS = {
 };
 
 const TEAM_SHORT_LABELS = {
-  "team-east": "동부팀",
-  "team-north": "북부팀",
-  "team-west": "서부팀",
+  "team-east": "교래 장비고",
+  "team-north": "용담 제설전진기지",
+  "team-west": "노형 장비고",
 };
 
 const RESOURCE_FIELD_LABELS = {

@@ -85,6 +85,22 @@
 .roadops-freshness-badge.recent { border-color: color-mix(in srgb, var(--positive) 38%, var(--border)); color: var(--positive); background: color-mix(in srgb, var(--positive) 7%, var(--surface)); }
 .roadops-freshness-badge.stored { border-color: color-mix(in srgb, #1468b3 42%, var(--border)); color: color-mix(in srgb, #1468b3 72%, var(--text)); background: color-mix(in srgb, #1468b3 7%, var(--surface)); }
 
+.roadops-weather { flex: 0 0 auto; padding: 0 28px; border-bottom: 1px solid var(--border); background: var(--background); }
+.weather-strip-inner { display: grid; min-height: 58px; grid-template-columns: 170px minmax(0, 1fr); align-items: stretch; }
+.weather-strip-title { display: flex; min-width: 0; justify-content: center; padding-right: 18px; flex-direction: column; border-right: 1px solid var(--border); }
+.weather-strip-title span { font-size: 12px; font-weight: 750; }
+.weather-strip-title small { margin-top: 2px; color: var(--secondary); font-size: 9px; }
+.weather-forecast-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.weather-forecast-list button { display: grid; min-width: 0; padding: 7px 15px; grid-template-columns: auto 1fr; grid-template-rows: auto auto; align-content: center; align-items: baseline; column-gap: 9px; border: 0; border-right: 1px solid var(--border); color: var(--text); background: transparent; font: inherit; text-align: left; cursor: pointer; }
+.weather-forecast-list button:last-child { border-right: 0; }
+.weather-forecast-list button:hover { background: var(--interaction-hover); }
+.weather-forecast-list button[data-selected] { box-shadow: inset 0 -3px #1468b3; background: color-mix(in srgb, #1468b3 6%, var(--surface)); }
+.weather-forecast-list button > span { color: var(--secondary); font-size: 9px; font-weight: 650; }
+.weather-forecast-list button strong { font-family: Poppins, var(--font-sans); font-size: 14px; font-weight: 650; }
+.weather-forecast-list button small { overflow: hidden; color: var(--secondary); font-size: 9px; line-height: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.weather-forecast-list button em { color: var(--secondary); font-size: 8px; font-style: normal; text-align: right; white-space: nowrap; }
+.weather-forecast-list button[data-status="unavailable"] { opacity: .55; }
+
 .roadops-kpis {
   flex: 0 0 auto;
   padding: 0 28px;
@@ -138,6 +154,8 @@
 .map-reading-guide i[data-guide="risk"] { width: 30px; height: 14px; border-radius: 4px; background: linear-gradient(90deg, #e5484d 0 33%, #f59e0b 33% 66%, #2f80ed 66%); }
 .map-reading-guide i[data-guide="route"] { height: 3px; border-radius: 0; background: repeating-linear-gradient(90deg, #7c5cff 0 7px, transparent 7px 12px); }
 .map-reading-guide i[data-guide="point"] { width: 9px; height: 9px; border: 2px solid var(--text); border-radius: 99px; background: var(--surface); }
+.map-reading-guide i[data-guide="unassigned"] { width: 9px; height: 9px; border: 2px dashed var(--secondary); border-radius: 99px; background: var(--surface); }
+.map-reading-guide i[data-guide="excluded"] { width: 9px; height: 9px; border: 2px dashed var(--negative); border-radius: 99px; background: var(--surface); }
 .roadops-map-wrap {
   position: relative;
   min-height: 470px;
@@ -185,10 +203,13 @@
 .task-points circle { fill: var(--surface); stroke: var(--task-color); stroke-width: 3; vector-effect: non-scaling-stroke; }
 .task-points circle[data-mandatory] { fill: #f59e0b; stroke: var(--task-color); }
 .task-points circle[data-excluded] { fill: var(--surface); stroke: var(--negative); stroke-dasharray: 2 2; opacity: .65; }
+.task-points circle[data-unassigned] { fill: var(--surface); stroke: var(--secondary); stroke-dasharray: 3 2; }
 .task-point:hover circle,
 .task-point:focus-visible circle,
 .task-point.selected circle { stroke: var(--task-color); stroke-width: 4.5; }
 .task-point text { fill: var(--text); font-family: Poppins, var(--font-sans); font-size: 8px; font-weight: 800; text-anchor: middle; pointer-events: none; }
+.task-point text.unassigned-label { fill: var(--secondary); font-family: "Pretendard Variable", Pretendard, var(--font-sans); font-size: 6px; }
+.task-point text.excluded-label { fill: var(--negative); font-family: "Pretendard Variable", Pretendard, var(--font-sans); font-size: 6px; }
 .priority-marker rect { fill: var(--priority-color); stroke: white; stroke-width: 1.2; vector-effect: non-scaling-stroke; }
 .priority-marker text { fill: white; font-size: 6px; font-weight: 800; text-anchor: middle; }
 .priority-marker[data-manual="true"] rect { stroke: #111827; stroke-dasharray: 2 1; }
@@ -266,6 +287,8 @@
 .legend-group .legend-point,
 .legend-group .legend-start { display: grid; width: 16px; height: 16px; box-sizing: border-box; place-items: center; border: 2px solid var(--text); border-radius: 99px; color: var(--text); background: var(--surface); font-family: Poppins, var(--font-sans); font-size: 7px; font-style: normal; font-weight: 800; line-height: 1; }
 .legend-group .legend-start { width: 20px; border-color: #1468b3; color: white; background: #1468b3; }
+.legend-group .legend-unassigned { border-color: var(--secondary); border-style: dashed; color: var(--secondary); }
+.legend-group .legend-excluded { border-color: var(--negative); border-style: dashed; color: var(--negative); }
 .legend-start svg { width: 11px; height: 11px; fill: currentColor; }
 .legend-group .legend-before { border-top-color: var(--secondary); border-top-style: dashed; }
 .legend-group .legend-after { border-top-color: #008f7a; }
@@ -514,11 +537,17 @@
 
 @media (max-width: 720px) {
   .roadops-toolbar,
+  .roadops-weather,
   .roadops-kpis,
   .roadops-map-column { padding-inline: 16px; }
   .roadops-inspector { padding-inline: 0; }
   .toolbar-title { align-items: flex-start; flex-direction: column; gap: 6px; }
   .toolbar-controls { align-items: stretch; flex-direction: column; }
+  .weather-strip-inner { grid-template-columns: minmax(0, 1fr); }
+  .weather-strip-title { padding: 8px 0 6px; border-right: 0; border-bottom: 1px solid var(--border); }
+  .weather-forecast-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .weather-forecast-list button:nth-child(2) { border-right: 0; }
+  .weather-forecast-list button:nth-child(-n+2) { border-bottom: 1px solid var(--border); }
   .toolbar-filter,
   .theme-control { width: 100%; }
   .horizon-control { width: 100%; min-width: 0; min-height: 38px; flex: 0 0 auto; }
