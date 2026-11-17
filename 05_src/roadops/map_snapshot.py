@@ -522,7 +522,6 @@ def build_map_snapshot(
     complaint_hotspot_rows: Iterable[Mapping[str, Any]] = (),
     crime_caution_overlay_rows: Iterable[Mapping[str, Any]] = (),
     reverse_geocode_rows: Iterable[Mapping[str, Any]] = (),
-    jeju_ai_platform_quality: Mapping[str, Any] | None = None,
     gateway_quality: Mapping[str, Any] | None = None,
     link_rows: Iterable[Mapping[str, Any]],
     generated_at: str,
@@ -673,7 +672,6 @@ def build_map_snapshot(
         else None
     )
     travel_time = travel_time or {}
-    jeju_ai_platform_quality = dict(jeju_ai_platform_quality or {})
     gateway_quality = dict(gateway_quality or {})
     travel_semantics = str(
         travel_time.get("route_semantics")
@@ -681,7 +679,6 @@ def build_map_snapshot(
     )
     live_eta = travel_semantics == "its_live_speed_eta_with_speed_limit_fallback"
     traffic_profile = travel_time.get("parameters", {}).get("traffic_profile", {})
-    platform_status = str(jeju_ai_platform_quality.get("status") or "connection_information_not_issued")
     gateway_sources = [dict(row) for row in gateway_quality.get("sources", [])]
     gateway_ready_count = sum(row.get("readiness") == "ready_for_feature_spike" for row in gateway_sources)
     gateway_messages = sorted(
@@ -712,18 +709,6 @@ def build_map_snapshot(
                 + (" / ".join(gateway_messages[:2]) if gateway_messages else "필요 API의 실응답을 확보하지 못함")
                 + ". 검증 전에는 위험점수에 반영하지 않음"
             ),
-            "score_contribution": None,
-        },
-        {
-            "data_layer": "jeju_ai_road_control_platform",
-            "display_name": "제주 AI 도로관제 플랫폼",
-            "status": "available" if platform_status == "ready" else "unavailable",
-            "reason": {
-                "ready": "운영기관 API 실응답과 필수 이벤트 필드를 확인함. 도로구간 공간결합 검증 후 반영 가능",
-                "connection_information_not_issued": "시범 플랫폼의 공개 API 주소·인증 규격이 없어 운영기관 발급 정보를 기다리는 중",
-                "connection_failed": "설정된 운영기관 API에 연결하지 못해 기존 C-ITS 자료만 사용",
-                "response_without_usable_events": "API 응답은 받았지만 좌표·유형을 갖춘 사용 가능한 도로 이벤트가 없음",
-            }.get(platform_status, f"연결 상태 확인 필요: {platform_status}"),
             "score_contribution": None,
         },
     ]

@@ -409,27 +409,6 @@
       }
     },
     {
-      "id": "jeju_ai_road_control_platform",
-      "name": "Jeju AI road safety and smart snow-control platform",
-      "name_ko": "제주 도로안전·스마트 제설 통합 플랫폼",
-      "documentation_url": "https://www.news1.kr/local/jeju/6336087",
-      "endpoint_url": null,
-      "kind": "non_public_pilot_platform_api",
-      "authentication": {
-        "endpoint_environment_variable": "JEJU_AI_CONTROL_API_URL",
-        "token_environment_variable": "JEJU_AI_CONTROL_API_TOKEN",
-        "header": "Authorization: Bearer"
-      },
-      "join_key": "event coordinates to national standard road link",
-      "coordinate_system": "EPSG:4326 expected",
-      "expected_fields": ["event_id", "event_type", "occurred_at", "latitude", "longitude", "status"],
-      "quality_contract": {
-        "pilot_status": "integration_test_and_pilot_operation_through_2026",
-        "public_endpoint_confirmed": false,
-        "score_use_requires_spatial_match_and_freshness_validation": true
-      }
-    },
-    {
       "id": "sgis_wgs84_reverse_geocode",
       "name": "SGIS WGS84 reverse geocoding",
       "name_ko": "국가데이터처 SGIS WGS84 역지오코딩",

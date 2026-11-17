@@ -15,7 +15,6 @@ from zoneinfo import ZoneInfo
 
 OPERATIONAL_STAGES = (
     ("jeju_live_apis", "20261027_roadops_audit_jeju_live_api_v0_1.py", "--allow-insecure-http"),
-    ("jeju_ai_platform", "20261117_roadops_audit_jeju_ai_platform_v0_1.py"),
     ("safemap_crime", "20261117_roadops_collect_safemap_crime_v0_1.py"),
     ("cits_snapshots", "20261027_roadops_collect_cits_snapshots_v0_1.py", "--allow-insecure-http"),
     ("spatial_join", "20261112_roadops_audit_cits_spatial_join_v0_1.py"),
