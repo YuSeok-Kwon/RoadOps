@@ -105,6 +105,16 @@ def parse_args() -> argparse.Namespace:
         / "02_outputs/data/reverse_geocode_v0_1/link_locations.json",
     )
     parser.add_argument(
+        "--jeju-ai-platform-quality",
+        type=Path,
+        default=PROJECT_ROOT / "02_outputs/data/jeju_ai_platform_v0_1/quality_report.json",
+    )
+    parser.add_argument(
+        "--gateway-audit",
+        type=Path,
+        default=PROJECT_ROOT / "02_outputs/data/gateway_api_audit_v0_1/quality_report.json",
+    )
+    parser.add_argument(
         "--output-dir",
         type=Path,
         default=PROJECT_ROOT / "02_outputs/data/map_snapshot_v0_1",
@@ -312,7 +322,7 @@ def build_data_app_snapshot(
         ),
         "data_availability": source(
             "External layer availability",
-            [inputs["risk_forecasts"]],
+            [inputs["risk_forecasts"], inputs["jeju_ai_platform_quality"], inputs["gateway_audit"]],
             ["gateway-availability"],
             ["Unavailable evidence remains missing and contributes no score."],
         ),
@@ -350,6 +360,8 @@ def main() -> int:
         "crime_statistics": args.crime_statistics,
         "complaint_hotspots": args.complaint_hotspots,
         "reverse_geocode": args.reverse_geocode,
+        "jeju_ai_platform_quality": args.jeju_ai_platform_quality,
+        "gateway_audit": args.gateway_audit,
     }
     for name, path in inputs.items():
         if not path.exists():
@@ -368,6 +380,8 @@ def main() -> int:
         crime_statistic_rows=read_json(args.crime_statistics).get("records", []),
         complaint_hotspot_rows=read_json(args.complaint_hotspots).get("records", []),
         reverse_geocode_rows=read_json(args.reverse_geocode).get("records", []),
+        jeju_ai_platform_quality=read_json(args.jeju_ai_platform_quality),
+        gateway_quality=read_json(args.gateway_audit),
         link_rows=read_csv(args.road_links),
         generated_at=generated_at,
     )
