@@ -96,6 +96,66 @@ export function applyPlanAssignments(state, routes, planId) {
   };
 }
 
+export function recalculateWorkflow(state, routes = []) {
+  const resources = state.resources.map((resource) => ({
+    ...resource,
+    baseline: {
+      available: resource.available,
+      personnelCount: resource.personnelCount,
+      shiftMinutes: resource.shiftMinutes,
+    },
+  }));
+  const resourcesById = new Map(resources.map((resource) => [resource.teamId, resource]));
+  const load = new Map(resources.map((resource) => [resource.teamId, 0]));
+  const routeTeamsByTask = new Map();
+  routes.forEach((route) => {
+    const taskId = String(route.task_id);
+    if (!routeTeamsByTask.has(taskId)) routeTeamsByTask.set(taskId, new Set());
+    routeTeamsByTask.get(taskId).add(String(route.team_id));
+  });
+  const activeTasks = [...state.tasks]
+    .filter((task) => !task.excluded)
+    .sort((left, right) => Number(right.fixed) - Number(left.fixed)
+      || Number(right.mandatory) - Number(left.mandatory)
+      || right.priorityScore - left.priorityScore
+      || left.taskId.localeCompare(right.taskId));
+  const assignments = new Map();
+
+  activeTasks.forEach((task) => {
+    const routeTeams = routeTeamsByTask.get(task.taskId);
+    const current = resourcesById.get(task.assignedTeamId);
+    const currentLoad = load.get(task.assignedTeamId) || 0;
+    const currentUsable = current?.available && currentLoad < current.maxTasks
+      && (!routeTeams?.size || routeTeams.has(task.assignedTeamId));
+    if (task.fixed || currentUsable) {
+      assignments.set(task.taskId, task.assignedTeamId);
+      if (task.assignedTeamId) load.set(task.assignedTeamId, currentLoad + 1);
+      return;
+    }
+    const candidate = resources
+      .filter((resource) => resource.available
+        && (load.get(resource.teamId) || 0) < resource.maxTasks
+        && (!routeTeams?.size || routeTeams.has(resource.teamId)))
+      .sort((left, right) => (load.get(left.teamId) || 0) - (load.get(right.teamId) || 0)
+        || left.teamId.localeCompare(right.teamId))[0];
+    assignments.set(task.taskId, candidate?.teamId || null);
+    if (candidate) load.set(candidate.teamId, (load.get(candidate.teamId) || 0) + 1);
+  });
+
+  return {
+    ...state,
+    resources,
+    tasks: state.tasks.map((task) => {
+      const assignedTeamId = task.excluded ? task.assignedTeamId : assignments.get(task.taskId) || null;
+      return {
+        ...task,
+        assignedTeamId,
+        baseline: { assignedTeamId, excluded: task.excluded, fixed: task.fixed },
+      };
+    }),
+  };
+}
+
 function resourceChanged(resource) {
   return resource.available !== resource.baseline.available
     || resource.personnelCount !== resource.baseline.personnelCount
@@ -129,7 +189,6 @@ export function validateWorkflow({
   const errors = [];
   const warnings = [];
   const resourcesById = new Map(state.resources.map((resource) => [resource.teamId, resource]));
-  const validatedAssignments = assignmentMap(routes, state.planId);
   const assignedCounts = new Map();
 
   state.resources.forEach((resource) => {
@@ -158,7 +217,7 @@ export function validateWorkflow({
       return;
     }
     if (task.excluded) {
-      if (validatedAssignments.has(task.taskId)) {
+      if (!task.baseline.excluded) {
         errors.push(issue(
           "ROUTE_REPLAN_REQUIRED",
           `${task.roadName} 업무 제외가 검증된 경로에 반영되지 않아 재계획이 필요합니다.`,
@@ -179,7 +238,7 @@ export function validateWorkflow({
     if (!resource.available) {
       errors.push(issue("UNAVAILABLE_TEAM", `${resource.teamName}이 비가용 상태인데 업무가 배정돼 있습니다.`, task.taskId));
     }
-    if (validatedAssignments.get(task.taskId) !== task.assignedTeamId) {
+    if (task.baseline.assignedTeamId !== task.assignedTeamId) {
       errors.push(issue(
         "ROUTE_REPLAN_REQUIRED",
         `${task.roadName} 담당팀 변경이 검증된 이동경로와 달라 재계획이 필요합니다.`,

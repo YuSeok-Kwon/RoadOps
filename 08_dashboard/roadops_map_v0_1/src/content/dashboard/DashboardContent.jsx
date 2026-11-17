@@ -463,11 +463,23 @@ export function DashboardContent() {
   const [selectedRiskId, setSelectedRiskId] = useState(/** @type {any} */ (null));
   const [workflowState, setWorkflowState] = useState(/** @type {any} */ (null));
   const [inspectorTab, setInspectorTab] = useState("priorities");
+  const [mapGuideOpen, setMapGuideOpen] = useState(false);
+  const [colorMode, setColorMode] = useState(() => {
+    if (typeof localStorage === "undefined") return "dark";
+    return localStorage.getItem("roadops-color-mode") === "light" ? "light" : "dark";
+  });
   const horizon = HORIZONS[horizonIndex] ?? 0;
 
   useEffect(() => {
     if (appTitle !== snapshot.title) setAppTitle(snapshot.title);
   }, [appTitle, setAppTitle, snapshot.title]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.dataset.roadopsColorMode = colorMode;
+    localStorage.setItem("roadops-color-mode", colorMode);
+    return () => { delete root.dataset.roadopsColorMode; };
+  }, [colorMode]);
 
   const rows = (queryId) => queries[queryId]?.rows ?? [];
   const metadata = /** @type {any} */ (rows("map_metadata")[0] ?? {});
@@ -496,12 +508,18 @@ export function DashboardContent() {
   const selectedTask = effectiveTaskRows.find((row) => row.link_id === selectedRisk?.link_id) ?? null;
   const selectedAuthority = rows("governance_authorities")
     .find((row) => row.link_id === selectedRisk?.link_id) ?? null;
-  const routeRows = rows("plan_routes")
-    .filter((row) => row.alternative_id === selectedPlan)
-    .filter((row) => {
-      const decision = workflowTasks.get(String(row.task_id));
-      return !decision || (!decision.excluded && decision.assignedTeamId === row.team_id);
-    });
+  const allRouteRows = rows("plan_routes");
+  const routeRows = effectiveTaskRows.flatMap((task) => {
+    const decision = workflowTasks.get(String(task.task_id));
+    if (decision?.excluded) return [];
+    const assignedTeamId = decision?.assignedTeamId
+      ?? allRouteRows.find((row) => row.alternative_id === selectedPlan && row.task_id === task.task_id)?.team_id;
+    if (!assignedTeamId) return [];
+    const candidate = allRouteRows.find((row) => row.alternative_id === selectedPlan
+      && row.task_id === task.task_id && row.team_id === assignedTeamId)
+      ?? allRouteRows.find((row) => row.task_id === task.task_id && row.team_id === assignedTeamId);
+    return candidate ? [{ ...candidate, alternative_id: selectedPlan }] : [];
+  });
   const replanRows = rows("replan_routes").filter((row) => row.scenario_id === scenarioId);
   const impactRows = rows("scenario_impacts").filter((row) => row.scenario_id === scenarioId);
   const highRiskCount = riskRows.filter((row) => ["high", "critical"].includes(row.risk_level)).length;
@@ -522,7 +540,7 @@ export function DashboardContent() {
     setInspectorTab("segment");
   };
 
-  return <article className="roadops-page" data-dashboard-layout="viewport">
+  return <article className="roadops-page" data-dashboard-layout="viewport" data-color-mode={colorMode}>
     <section className="roadops-toolbar" aria-label="지도 제어">
       <div className="toolbar-title">
         <div><span className="eyebrow">ROADOPS / JEJU</span><strong>도로 현장 운영 상황판</strong></div>
@@ -533,7 +551,7 @@ export function DashboardContent() {
       </div>
       <div className="toolbar-controls">
         <div className="horizon-control">
-          <span>언제의 상황을 볼까요?</span>
+          <span>예측 시점</span>
           <div className="horizon-buttons" role="group" aria-label="예측 시간 선택">
             {HORIZONS.map((hours, index) => <button type="button" key={hours}
               aria-pressed={horizonIndex === index} onClick={() => setHorizonIndex(index)}>
@@ -541,18 +559,33 @@ export function DashboardContent() {
             </button>)}
           </div>
         </div>
-        <Dropdown label="배분 대안" showLabel value={selectedPlan}
-          choices={planMetrics.map((row) => row.alternative_id)} choiceLabels={PLAN_LABELS}
-          onChange={setSelectedPlan} />
-        <Dropdown label="재계획 시나리오" showLabel value={scenarioId}
-          choices={scenarioChoices} choiceLabels={SCENARIO_LABELS} onChange={setScenarioId} />
+        <div className="toolbar-filter">
+          <span>배분 대안</span>
+          <Dropdown label="배분 대안" value={selectedPlan}
+            choices={planMetrics.map((row) => row.alternative_id)} choiceLabels={PLAN_LABELS}
+            onChange={setSelectedPlan} />
+        </div>
+        <div className="toolbar-filter toolbar-filter-wide">
+          <span>재계획 시나리오</span>
+          <Dropdown label="재계획 시나리오" value={scenarioId}
+            choices={scenarioChoices} choiceLabels={SCENARIO_LABELS} onChange={setScenarioId} />
+        </div>
+        <div className="theme-control">
+          <span>화면 테마</span>
+          <div className="theme-buttons" role="group" aria-label="화면 테마 선택">
+            <button type="button" aria-pressed={colorMode === "dark"}
+              onClick={() => setColorMode("dark")}>다크</button>
+            <button type="button" aria-pressed={colorMode === "light"}
+              onClick={() => setColorMode("light")}>화이트</button>
+          </div>
+        </div>
       </div>
     </section>
 
     <section className="roadops-kpis">
       <DataComponent variant="plain" id="allocation-kpis" queryId="plan_metrics" kind="metrics"
         title="운영 요약" description="선택한 예측 시점과 배분 대안의 핵심 운영 지표입니다."
-        showHeading={false} sourceRows={planMetrics} displayRows={[selectedMetrics]}
+        showHeading={false} showActions={false} sourceRows={planMetrics} displayRows={[selectedMetrics]}
         scopeFilters={[{ field: "alternative_id", label: "배분 대안", value: selectedPlan }]}>
         <div className="roadops-metric-grid">
           <Metric label="점검 대상" value={riskRows.length} note={horizon === 0 ? "현재 확인 후보" : `${horizon}시간 후 확인 후보`} />
@@ -567,19 +600,23 @@ export function DashboardContent() {
       <section className="roadops-map-column">
         <DataComponent variant="plain" id="roadops-map" queryId="risk_links" queryIds={mapQueryIds}
           kind="custom" title="어디를 먼저 확인해야 하나요?"
-          description="도로 색은 확인 우선순위를, 색 선은 순찰팀의 이동 경로를 보여줍니다."
+          description="제주 전체 도로망이 아닙니다. 국토교통부 국가표준링크 중 주요 간선도로 11개를 배경으로 사용하고, 위험점수·출동업무·배분·재계획에 필요한 링크를 강조합니다."
           sourceRows={allRiskRows} displayRows={riskRows} sourceRowsByQuery={sourceRowsByQuery}
           scopeFilters={[
             { field: "horizon_hours", label: "예측 시점", value: String(horizon) },
             { field: "alternative_id", label: "배분 대안", value: selectedPlan },
             { field: "scenario_id", label: "재계획 시나리오", value: scenarioId },
           ]} className="roadops-map-card">
-          <div className="map-reading-guide" aria-label="지도 읽는 방법">
-            <strong>지도 읽는 방법</strong>
-            <span><i data-guide="risk" />굵고 밝은 도로는 먼저 확인할 구간</span>
-            <span><i data-guide="route" />색 선은 순찰팀 이동 경로</span>
-            <span><i data-guide="point" />흰 원은 현장 점검 위치</span>
-          </div>
+          <button type="button" className="map-guide-toggle" aria-expanded={mapGuideOpen}
+            onClick={() => setMapGuideOpen((open) => !open)}>
+            <span>지도 읽는 방법</span><small>주요 간선도로 11개 기준 · {mapGuideOpen ? "접기" : "펼치기"}</small>
+          </button>
+          {mapGuideOpen && <div className="map-reading-guide" aria-label="지도 표시 설명">
+            <p>제주 전체 도로망이 아니라 운영 데모에 사용하는 주요 간선도로와 현장 대상만 표시합니다.</p>
+            <span><i data-guide="risk" /><b>위험 도로선</b> 빨강 먼저 · 주황 주의 · 파랑 일반</span>
+            <span><i data-guide="route" /><b>팀 경로선</b> 보라 동부 · 파랑 북부 · 초록 서부</span>
+            <span><i data-guide="point" /><b>흰 원</b> 현장 점검 위치</span>
+          </div>}
           <RoadMap backgroundRows={rows("road_background")} riskRows={riskRows}
             taskRows={effectiveTaskRows} teamRows={effectiveTeamRows} routeRows={routeRows}
             replanRows={replanRows} impactRows={impactRows} selectedRisk={selectedRisk}
@@ -608,12 +645,6 @@ export function DashboardContent() {
               governanceRows={rows("governance_authorities")}
               routes={rows("plan_routes")} planMetrics={planMetrics} metadata={metadata}
               selectedPlan={selectedPlan} scenarioId={scenarioId} onStateChange={setWorkflowState} />
-            <DataComponent variant="plain" id="gateway-availability" queryId="data_availability" kind="custom"
-              title="외부 유입정보" description="공항·항만 유입 데이터의 연결 상태입니다."
-              sourceRows={rows("data_availability")} displayRows={rows("data_availability")}
-              className="availability-card">
-              <div className="availability-state"><span>데이터 미연결</span><p>{rows("data_availability")[0]?.reason}</p></div>
-            </DataComponent>
           </>}
         </div>
       </aside>

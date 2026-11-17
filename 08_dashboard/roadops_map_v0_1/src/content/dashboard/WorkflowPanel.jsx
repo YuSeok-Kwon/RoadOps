@@ -7,6 +7,7 @@ import {
   countWorkflowChanges,
   createApprovalRecord,
   createWorkflowState,
+  recalculateWorkflow,
   validateWorkflow,
   workflowFingerprint,
 } from "./workflow-policy.js";
@@ -48,7 +49,7 @@ function loadStoredSession(key) {
   }
 }
 
-function ResourceStep({ state, onChange }) {
+function ResourceStep({ state, onChange, onNext }) {
   return <div className="workflow-resource-list">
     {state.resources.map((resource) => <div className="workflow-resource-row" key={resource.teamId}>
       <div className="workflow-resource-title">
@@ -64,10 +65,13 @@ function ResourceStep({ state, onChange }) {
         onChange={(event) => onChange(resource.teamId, "shiftMinutes", Number(event.target.value))} /></label>
     </div>)}
     <p className="workflow-inline-note">출동팀·인원·가용 시간을 바꾸면 이동 경로를 다시 계산해야 합니다.</p>
+    <div className="workflow-step-actions">
+      <Button variant="primary" onClick={onNext}>다음: 도로 배정</Button>
+    </div>
   </div>;
 }
 
-function TaskStep({ state, onChange }) {
+function TaskStep({ state, onChange, onNext }) {
   const sorted = [...state.tasks].sort((left, right) => right.priorityScore - left.priorityScore);
   return <div className="workflow-task-list">
     {sorted.map((task) => <div className="workflow-task-row" key={task.taskId} data-excluded={task.excluded || undefined}>
@@ -91,7 +95,10 @@ function TaskStep({ state, onChange }) {
         : <Switch label="점검 제외" checked={task.excluded} size="compact"
           onChange={(checked) => onChange(task.taskId, "excluded", checked)} />}
     </div>)}
-    <p className="workflow-inline-note">담당팀을 바꾸거나 점검을 제외하면 새 경로가 계산될 때까지 계획을 확정할 수 없습니다.</p>
+    <p className="workflow-inline-note">담당팀 변경과 점검 제외는 가능한 검증 경로 안에서 즉시 자동 재계산됩니다.</p>
+    <div className="workflow-step-actions">
+      <Button variant="primary" onClick={onNext}>다음: 확인·확정</Button>
+    </div>
   </div>;
 }
 
@@ -248,21 +255,21 @@ export function WorkflowPanel({
   const changes = state ? countWorkflowChanges(state) : { resources: 0, tasks: 0 };
 
   const updateResource = (teamId, field, value) => {
-    setState((current) => ({
+    setState((current) => recalculateWorkflow({
       ...current,
       resources: current.resources.map((resource) => resource.teamId === teamId ? { ...resource, [field]: value } : resource),
-    }));
+    }, routes));
     setLastValidatedFingerprint(null);
-    record("resource_changed", `${teamId} ${field}=${value}`);
+    record("resource_changed", `${teamId} ${field}=${value} · 자동 재계산 완료`);
   };
 
   const updateTask = (taskId, field, value) => {
-    setState((current) => ({
+    setState((current) => recalculateWorkflow({
       ...current,
       tasks: current.tasks.map((task) => task.taskId === taskId ? { ...task, [field]: value } : task),
-    }));
+    }, routes));
     setLastValidatedFingerprint(null);
-    record("task_changed", `${taskId} ${field}=${value}`);
+    record("task_changed", `${taskId} ${field}=${value} · 자동 재계산 완료`);
   };
 
   const updateAcknowledgement = (key, value) => {
@@ -293,6 +300,7 @@ export function WorkflowPanel({
     const approved = createApprovalRecord(state, scenarioId, recordAt);
     setApprovalRecord(approved);
     record("plan_approved", `${approved.approverName}가 ${planLabel(state.planId)} 계획 승인`);
+    setActiveTab("audit");
   };
 
   if (!state) return <div className="workflow-loading">운영 입력을 준비하고 있습니다.</div>;
@@ -307,13 +315,9 @@ export function WorkflowPanel({
   };
   return <DataComponent variant="plain" id="operations-workflow" queryId="teams"
     queryIds={Object.keys(sourceRowsByQuery)} kind="custom" title="출동계획 확정"
-    description="AI가 만든 배분안을 실제 현장 지시 전에 사람이 확인하는 단계입니다."
+    description="AI가 만든 배분안을 실제 현장 지시 전에 사람이 확인하는 단계입니다. 출동 가능팀 확인 → 도로별 담당팀 확인 → 안전조건 점검 → 책임자 확정"
     sourceRows={teams} displayRows={teams} sourceRowsByQuery={sourceRowsByQuery}
     className="workflow-panel-card">
-    <div className="workflow-purpose">
-      <strong>이 화면에서 하는 일</strong>
-      <p>출동 가능팀 확인 → 도로별 담당팀 확인 → 안전조건 점검 → 책임자 확정</p>
-    </div>
     <div className="workflow-summary-bar">
       <span data-state={approvalCurrent ? "approved" : validation.errors.length ? "blocked" : "draft"}>
         {approvalCurrent ? "확정 완료" : validation.errors.length ? "재계산 필요" : "확정 전"}
@@ -325,8 +329,10 @@ export function WorkflowPanel({
         aria-selected={activeTab === id} key={id} onClick={() => setActiveTab(id)}>{label}</button>)}
     </div>
     <div className="workflow-tab-panel" role="tabpanel">
-      {activeTab === "resources" && <ResourceStep state={state} onChange={updateResource} />}
-      {activeTab === "tasks" && <TaskStep state={state} onChange={updateTask} />}
+      {activeTab === "resources" && <ResourceStep state={state} onChange={updateResource}
+        onNext={() => setActiveTab("tasks")} />}
+      {activeTab === "tasks" && <TaskStep state={state} onChange={updateTask}
+        onNext={() => setActiveTab("approval")} />}
       {activeTab === "approval" && <ApprovalStep state={state} validation={validation}
         validationFresh={validationFresh} approvalCurrent={approvalCurrent} approvalRecord={approvalRecord}
         onAcknowledgement={updateAcknowledgement} onFieldChange={updateField}

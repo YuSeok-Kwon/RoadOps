@@ -30,6 +30,8 @@
 .toolbar-title,
 .toolbar-controls,
 .horizon-control,
+.toolbar-filter,
+.theme-control,
 .data-status-group {
   display: flex;
   align-items: center;
@@ -39,13 +41,23 @@
 .toolbar-title > div:first-child { display: flex; min-width: 0; flex-direction: column; }
 .toolbar-title strong { overflow: hidden; font-size: 20px; font-weight: 750; letter-spacing: -.035em; line-height: 25px; text-overflow: ellipsis; white-space: nowrap; }
 .eyebrow { color: var(--secondary); font-family: Poppins, var(--font-sans); font-size: 9px; font-weight: 700; letter-spacing: .16em; line-height: 13px; }
-.toolbar-controls { flex: 0 0 auto; gap: 12px; }
+.toolbar-controls { min-width: 0; flex: 0 1 auto; align-items: flex-end; gap: 12px; }
 .data-status-group { align-items: flex-start; flex-direction: column; gap: 2px; }
 .data-status-group small { color: var(--secondary); font-size: 9px; line-height: 12px; }
-.horizon-control { min-width: 390px; align-items: stretch; flex-direction: column; gap: 5px; }
-.horizon-control > span { color: var(--secondary); font-size: 10px; font-weight: 650; line-height: 14px; white-space: nowrap; }
+.horizon-control { min-width: 360px; align-items: stretch; flex-direction: column; gap: 5px; }
+.horizon-control > span,
+.toolbar-filter > span { color: var(--secondary); font-size: 10px; font-weight: 650; line-height: 14px; white-space: nowrap; }
+.toolbar-filter { min-width: 150px; align-items: stretch; flex-direction: column; gap: 5px; }
+.toolbar-filter-wide { min-width: 190px; }
+.toolbar-filter .filter-trigger { width: 100%; min-height: 38px; box-sizing: border-box; justify-content: space-between; }
+.theme-control { min-width: 126px; align-items: stretch; flex-direction: column; gap: 5px; }
+.theme-control > span { color: var(--secondary); font-size: 10px; font-weight: 650; line-height: 14px; white-space: nowrap; }
+.theme-buttons { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); overflow: hidden; border: 1px solid var(--border-strong); border-radius: 6px; }
+.theme-buttons button { min-height: 36px; box-sizing: border-box; padding: 0 8px; border: 0; border-right: 1px solid var(--border); color: var(--secondary); background: var(--surface); font: inherit; font-size: 10px; font-weight: 650; cursor: pointer; }
+.theme-buttons button:last-child { border-right: 0; }
+.theme-buttons button[aria-pressed="true"] { color: white; background: #1468b3; }
 .horizon-buttons { display: grid; grid-template-columns: repeat(4, minmax(70px, 1fr)); overflow: hidden; border: 1px solid var(--border-strong); border-radius: 6px; }
-.horizon-buttons button { min-height: 36px; padding: 0 10px; border: 0; border-right: 1px solid var(--border); color: var(--secondary); background: var(--surface); font: inherit; font-size: 11px; font-weight: 650; cursor: pointer; }
+.horizon-buttons button { min-height: 36px; box-sizing: border-box; padding: 0 10px; border: 0; border-right: 1px solid var(--border); color: var(--secondary); background: var(--surface); font: inherit; font-size: 11px; font-weight: 650; cursor: pointer; }
 .horizon-buttons button:last-child { border-right: 0; }
 .horizon-buttons button:hover { color: var(--text); background: color-mix(in srgb, var(--chart-1) 6%, var(--surface)); }
 .horizon-buttons button[aria-pressed="true"] { color: white; background: #1468b3; }
@@ -100,7 +112,7 @@
 .inspector-tabs button { min-height: 46px; padding: 0 7px; border: 0; border-bottom: 3px solid transparent; color: var(--secondary); background: transparent; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
 .inspector-tabs button:hover { color: var(--text); }
 .inspector-tabs button[aria-selected="true"] { border-bottom-color: #1468b3; color: var(--text); }
-.inspector-tab-content { min-height: 0; padding: 20px 22px 24px; overflow-y: auto; }
+.inspector-tab-content { min-height: 0; max-width: 100%; box-sizing: border-box; padding: 20px 22px 24px; overflow-x: hidden; overflow-y: auto; }
 .inspector-tab-content > .dashboard-component + .dashboard-component,
 .inspector-tab-content > .availability-card { margin-top: 24px; padding-top: 21px; border-top: 1px solid var(--border); }
 
@@ -108,11 +120,15 @@
 .roadops-map-card > .component-header { margin-bottom: 10px; }
 .roadops-map-card .component-title { font-size: 17px; font-weight: 750; letter-spacing: -.015em; }
 .roadops-map-card .component-description { font-size: 11px; line-height: 17px; }
-.map-reading-guide { display: flex; align-items: center; gap: 18px; margin-bottom: 10px; padding: 9px 12px; border: 1px solid var(--border); border-radius: 6px; color: var(--secondary); background: var(--surface); font-size: 11px; line-height: 16px; }
-.map-reading-guide strong { color: var(--text); font-size: 11px; white-space: nowrap; }
+.map-guide-toggle { display: flex; width: 100%; min-height: 34px; box-sizing: border-box; align-items: center; justify-content: space-between; margin-bottom: 10px; padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px; color: var(--text); background: var(--surface); font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; }
+.map-guide-toggle:hover { border-color: var(--border-strong); background: var(--interaction-hover); }
+.map-guide-toggle small { color: var(--secondary); font-size: 9px; font-weight: 600; }
+.map-reading-guide { display: flex; align-items: center; flex-wrap: wrap; gap: 7px 18px; margin: -2px 0 10px; padding: 9px 12px; border: 1px solid var(--border); border-radius: 6px; color: var(--secondary); background: var(--surface); font-size: 10px; line-height: 16px; }
+.map-reading-guide p { width: 100%; margin: 0; color: var(--secondary); }
 .map-reading-guide span { display: inline-flex; align-items: center; gap: 6px; }
-.map-reading-guide i { display: inline-block; flex: 0 0 auto; width: 22px; height: 0; border-top: 4px solid #e5484d; }
-.map-reading-guide i[data-guide="route"] { border-top-width: 3px; border-top-color: #7c5cff; }
+.map-reading-guide b { color: var(--text); font-size: 10px; white-space: nowrap; }
+.map-reading-guide i { display: inline-block; flex: 0 0 auto; width: 30px; height: 4px; border-radius: 99px; background: linear-gradient(90deg, #e5484d 0 33%, #f59e0b 33% 66%, #2f80ed 66%); }
+.map-reading-guide i[data-guide="route"] { height: 3px; background: linear-gradient(90deg, #7c5cff 0 33%, #1468b3 33% 66%, #6aa52d 66%); }
 .map-reading-guide i[data-guide="point"] { width: 9px; height: 9px; border: 2px solid var(--text); border-radius: 99px; background: var(--surface); }
 .roadops-map-wrap {
   position: relative;
@@ -293,9 +309,6 @@
 .replan-deltas b { margin-right: 3px; color: var(--text); font-size: 12px; }
 
 .workflow-panel-card .component-header { margin-bottom: 12px; }
-.workflow-purpose { margin-bottom: 12px; padding: 10px 0 11px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-.workflow-purpose strong { font-size: 11px; line-height: 16px; }
-.workflow-purpose p { margin: 4px 0 0; color: var(--secondary); font-size: 10px; line-height: 16px; }
 .workflow-summary-bar {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
@@ -343,11 +356,16 @@
 .workflow-resource-row > label { grid-row: 2; }
 .workflow-inline-note { margin: 3px 1px 0; color: var(--secondary); font-size: 9px; line-height: 14px; }
 
-.workflow-task-list { max-height: 380px; padding-right: 3px; overflow-y: auto; }
-.workflow-task-row { display: grid; grid-template-columns: minmax(85px, 1fr) 88px auto auto; align-items: center; gap: 7px; padding: 8px; border: 1px solid var(--border); border-radius: 5px; background: var(--background); }
+.workflow-task-list { max-width: 100%; max-height: 380px; box-sizing: border-box; padding-right: 3px; overflow-x: hidden; overflow-y: auto; }
+.workflow-task-row { display: grid; min-width: 0; max-width: 100%; box-sizing: border-box; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: end; gap: 8px; padding: 9px; border: 1px solid var(--border); border-radius: 5px; background: var(--background); }
+.workflow-task-row .workflow-task-title,
+.workflow-task-row .workflow-team-select { grid-column: 1 / -1; }
+.workflow-task-row > .data-switch { min-width: 0; justify-self: start; }
 .workflow-task-row[data-excluded] { opacity: .55; background: color-mix(in srgb, var(--negative) 4%, transparent); }
 .workflow-mandatory-tag { justify-self: start; padding: 3px 6px; border-radius: 2px; color: #92400e; background: #fef3c7; font-size: 9px; font-weight: 700; line-height: 14px; white-space: nowrap; }
 .workflow-team-select select { margin-top: 2px; }
+.workflow-step-actions { display: flex; justify-content: flex-end; margin-top: 4px; }
+.workflow-step-actions .button { min-height: 32px; padding-inline: 11px; font-size: 10px; }
 
 .workflow-validation-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 11px; border: 1px solid color-mix(in srgb, #df8f1d 34%, var(--border)); border-radius: 3px; background: color-mix(in srgb, #f59e0b 7%, var(--background)); }
 .workflow-validation-head[data-status="blocked"] { background: color-mix(in srgb, var(--negative) 9%, var(--muted)); }
@@ -393,7 +411,9 @@
   .roadops-page { overflow-y: auto; }
   .roadops-toolbar { align-items: flex-start; flex-direction: column; gap: 12px; padding-block: 13px; }
   .toolbar-controls { width: 100%; flex-wrap: wrap; }
-  .horizon-control { flex: 1 1 390px; }
+  .horizon-control { flex: 1 1 360px; }
+  .toolbar-filter { flex: 1 1 160px; }
+  .theme-control { flex: 1 1 126px; }
   .roadops-metric-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .roadops-workspace { display: block; overflow: visible; }
   .roadops-map-column,
@@ -409,6 +429,8 @@
   .roadops-inspector { padding-inline: 0; }
   .toolbar-title { align-items: flex-start; flex-direction: column; gap: 6px; }
   .toolbar-controls { align-items: stretch; flex-direction: column; }
+  .toolbar-filter,
+  .theme-control { width: 100%; }
   .horizon-control { width: 100%; min-width: 0; min-height: 38px; flex: 0 0 auto; }
   .horizon-buttons { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .horizon-buttons button { border-bottom: 1px solid var(--border); }
@@ -428,8 +450,6 @@
   .inspector-tabs button { min-height: 44px; font-size: 11px; }
   .inspector-tab-content { padding-inline: 0; }
   .roadops-disclaimer { padding-inline: 16px; }
-  .workflow-task-row { grid-template-columns: minmax(100px, 1fr) 90px; }
-  .workflow-task-row > .data-switch { justify-self: start; }
   .workflow-approval-fields { grid-template-columns: minmax(0, 1fr); }
   .workflow-authority-summary { grid-template-columns: minmax(0, 1fr); }
 }
