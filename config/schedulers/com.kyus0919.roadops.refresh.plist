@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.kyus0919.roadops.refresh</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/yu_seok/Documents/Document/workspace/03_프로젝트/jeju_AI Agent/.venv/bin/python</string>
+    <string>/Users/yu_seok/Documents/Document/workspace/03_프로젝트/jeju_AI Agent/07_scripts/20261117_roadops_refresh_pipeline_v0_1.py</string>
+    <string>--profile</string>
+    <string>operational</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>/Users/yu_seok/Documents/Document/workspace/03_프로젝트/jeju_AI Agent</string>
+  <key>StartInterval</key>
+  <integer>600</integer>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>StandardOutPath</key>
+  <string>/Users/yu_seok/Documents/Document/workspace/03_프로젝트/jeju_AI Agent/02_outputs/data/refresh_pipeline_v0_1/launchd.stdout.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/yu_seok/Documents/Document/workspace/03_프로젝트/jeju_AI Agent/02_outputs/data/refresh_pipeline_v0_1/launchd.stderr.log</string>
+</dict>
+</plist>
