@@ -86,6 +86,18 @@ test("mandatory task exclusion and route mismatch block approval", () => {
   assert.ok(reassignedResult.errors.some((item) => ["UNKNOWN_TEAM", "ROUTE_REPLAN_REQUIRED"].includes(item.code)));
 });
 
+test("manual priority overrides require an operator reason", () => {
+  const state = validState();
+  state.tasks[0].manualPriorityLevel = "normal";
+  const missingReason = validateWorkflow({ state, routes, planMetrics, metadata: {} });
+  assert.ok(missingReason.errors.some((item) => item.code === "PRIORITY_REASON_REQUIRED"));
+  assert.deepEqual(countWorkflowChanges(state), { resources: 0, tasks: 1 });
+
+  state.tasks[0].priorityReason = "현장 민원 다수 접수";
+  const documented = validateWorkflow({ state, routes, planMetrics, metadata: {} });
+  assert.ok(!documented.errors.some((item) => item.code === "PRIORITY_REASON_REQUIRED"));
+});
+
 test("switching to another validated plan resets assignment baselines", () => {
   const state = validState();
   state.tasks[0].fixed = true;

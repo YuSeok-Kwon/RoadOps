@@ -36,7 +36,7 @@ def test_resource_sample_normalizes_vehicle_equipment_and_passes():
     assert report["governance_mode"] == "institution_aware"
     assert report["agency_count"] == 5
     assert report["authority_record_count"] == 10
-    assert report["governance_source_count"] == 9
+    assert report["governance_source_count"] == 11
     assert east["managing_agency_id"] == "jeju-province-road-management"
     assert east["authorized_road_jurisdictions"] == [
         "jeju-provincial-road-1131",

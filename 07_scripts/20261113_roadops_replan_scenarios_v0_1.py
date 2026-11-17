@@ -30,8 +30,8 @@ from roadops.replanning import (  # noqa: E402
 from roadops.travel_time import build_travel_time_matrix  # noqa: E402
 
 
-DEFAULT_COMPLETED_TASK = "link:4060438807:h0"
-DEFAULT_CLOSED_LINK = "4050025700"
+DEFAULT_COMPLETED_TASK = "link:4050418600:h0"
+DEFAULT_CLOSED_LINK = "4050005521"
 DEFAULT_RAIN_LINKS = ("4050484600", "4050456800")
 
 

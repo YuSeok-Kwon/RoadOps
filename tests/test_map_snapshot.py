@@ -198,6 +198,8 @@ def test_build_map_snapshot_aggregates_risk_and_marks_unavailable_gateway():
     assert queries["teams"][0]["managing_agency_name"] == (
         "제주특별자치도 도로관리과"
     )
+    assert "start_location_name" in queries["teams"][0]
+    assert "start_location_address" in queries["teams"][0]
     authority = queries["governance_authorities"][0]
     assert authority["administrative_city"] == "제주시"
     assert authority["road_jurisdiction"] == "jeju-provincial-road-1135"

@@ -1,4 +1,5 @@
 const ACKNOWLEDGEMENT_KEYS = ["dataQuality", "travelEstimate", "fieldCheck"];
+const PRIORITY_WEIGHTS = { first: 3, caution: 2, normal: 1 };
 
 function numeric(value, fallback = 0) {
   const parsed = Number(value);
@@ -18,6 +19,16 @@ function assignmentMap(routes, planId) {
       .filter((row) => row.alternative_id === planId)
       .map((row) => [String(row.task_id), String(row.team_id)]),
   );
+}
+
+function suggestedPriorityLevel(riskLevel) {
+  if (["critical", "high"].includes(String(riskLevel))) return "first";
+  if (String(riskLevel) === "moderate") return "caution";
+  return "normal";
+}
+
+function priorityWeight(task) {
+  return PRIORITY_WEIGHTS[task.manualPriorityLevel || task.suggestedPriorityLevel] || 1;
 }
 
 export function createWorkflowState({ teams = [], tasks = [], routes = [], planId = "safety_first" }) {
@@ -50,6 +61,9 @@ export function createWorkflowState({ teams = [], tasks = [], routes = [], planI
         linkId: String(task.link_id),
         roadName: String(task.road_name || "도로명 미상"),
         priorityScore: numeric(task.priority_score),
+        suggestedPriorityLevel: suggestedPriorityLevel(task.risk_level),
+        manualPriorityLevel: null,
+        priorityReason: "",
         mandatory: Boolean(task.mandatory),
         managingAgencyName: String(task.managing_agency_name || "기관 미확인"),
         administrativeArea: [task.administrative_city, task.administrative_unit].filter(Boolean).join(" ") || "구역 미확인",
@@ -65,6 +79,8 @@ export function createWorkflowState({ teams = [], tasks = [], routes = [], planI
           assignedTeamId: assignedTeamId ? String(assignedTeamId) : null,
           excluded,
           fixed,
+          manualPriorityLevel: null,
+          priorityReason: "",
         },
       };
     }),
@@ -117,6 +133,7 @@ export function recalculateWorkflow(state, routes = []) {
     .filter((task) => !task.excluded)
     .sort((left, right) => Number(right.fixed) - Number(left.fixed)
       || Number(right.mandatory) - Number(left.mandatory)
+      || priorityWeight(right) - priorityWeight(left)
       || right.priorityScore - left.priorityScore
       || left.taskId.localeCompare(right.taskId));
   const assignments = new Map();
@@ -150,7 +167,12 @@ export function recalculateWorkflow(state, routes = []) {
       return {
         ...task,
         assignedTeamId,
-        baseline: { assignedTeamId, excluded: task.excluded, fixed: task.fixed },
+        baseline: {
+          ...task.baseline,
+          assignedTeamId,
+          excluded: task.excluded,
+          fixed: task.fixed,
+        },
       };
     }),
   };
@@ -165,7 +187,9 @@ function resourceChanged(resource) {
 function taskChanged(task) {
   return task.assignedTeamId !== task.baseline.assignedTeamId
     || task.excluded !== task.baseline.excluded
-    || task.fixed !== task.baseline.fixed;
+    || task.fixed !== task.baseline.fixed
+    || task.manualPriorityLevel !== task.baseline.manualPriorityLevel
+    || task.priorityReason !== task.baseline.priorityReason;
 }
 
 export function countWorkflowChanges(state) {
@@ -212,6 +236,13 @@ export function validateWorkflow({
   });
 
   state.tasks.forEach((task) => {
+    if (task.manualPriorityLevel && task.priorityReason.trim().length < 5) {
+      errors.push(issue(
+        "PRIORITY_REASON_REQUIRED",
+        `${task.roadName} 우선순위를 직접 조정한 이유를 5자 이상 입력해야 합니다.`,
+        task.taskId,
+      ));
+    }
     if (task.mandatory && task.excluded) {
       errors.push(issue("MANDATORY_TASK_EXCLUDED", `${task.roadName} 필수 업무는 제외할 수 없습니다.`, task.taskId));
       return;
@@ -274,7 +305,7 @@ export function validateWorkflow({
     warnings.push(issue("APPROVER_CONFIGURATION_REQUIRED", "최종 확인 직무는 지정됐지만 현재 당직 책임자의 실명은 운영기관 확인이 필요합니다."));
   }
   if (scenarioId !== "none") {
-    warnings.push(issue("WHAT_IF_SCENARIO", "선택한 통제·폭우 시나리오는 실제 발생 사실이 아닌 What-if입니다."));
+    warnings.push(issue("WHAT_IF_SCENARIO", "선택한 도로 통제·폭우 상황은 실제 발생 사실이 아닌 비교용 가정입니다."));
   }
 
   const technicalValid = errors.length === 0;

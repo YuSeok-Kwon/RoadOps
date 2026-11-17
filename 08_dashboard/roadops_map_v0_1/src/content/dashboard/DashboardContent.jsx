@@ -15,13 +15,6 @@ const TEAM_COLORS = {
   "team-north": "#1468b3",
   "team-west": "#6aa52d",
 };
-const RISK_COLORS = {
-  critical: "#b42318",
-  high: "#e5484d",
-  moderate: "#f59e0b",
-  low: "#2f80ed",
-  minimal: "#6b7280",
-};
 const RISK_LABELS = {
   critical: "심각",
   high: "높음",
@@ -35,8 +28,8 @@ const PLAN_LABELS = {
 };
 const SCENARIO_LABELS = {
   none: "기본 계획",
-  "demo-road-closure-v0.1": "도로 통제 What-if",
-  "demo-heavy-rain-v0.1": "폭우 What-if",
+  "demo-road-closure-v0.1": "도로 통제 가정",
+  "demo-heavy-rain-v0.1": "폭우 가정",
 };
 const AUTHORITY_STATUS_LABELS = {
   official_provincial_road_scope: "도 관할 근거 확인",
@@ -79,6 +72,63 @@ const EVENT_LABELS = {
   road_work: "도로 작업",
   traffic_accident: "교통사고",
 };
+const PRIORITY_LABELS = {
+  first: "먼저",
+  caution: "주의",
+  normal: "일반",
+};
+const PRIORITY_COLORS = {
+  first: "#e5484d",
+  caution: "#f59e0b",
+  normal: "#2f80ed",
+};
+const LINK_LOCATION_LABELS = {
+  "4050418600": "서귀포시 남원읍 신례리 · 516로 인근",
+  "4060024900": "서귀포시 예래동 · 1100로 산간 구간",
+  "4050396600": "제주시 애월읍 봉성리 · 평화로 인근",
+  "4050484600": "제주시 애월읍 광령리 · 평화로 인근",
+  "4050484700": "제주시 애월읍 광령리 · 평화로 인근",
+  "4050429802": "제주시 애월읍 소길리 · 평화로 인근",
+  "4050456800": "제주시 애월읍 유수암리 · 평화로 인근",
+  "4060438807": "서귀포시 남원읍 하례리 · 서성로 인근",
+  "4050005521": "제주시 아라동 아라일동 · 중앙로 인근",
+  "4060456800": "서귀포시 안덕면 동광리 · 광평교차로 인근",
+};
+
+function suggestedPriorityLevel(row) {
+  if (["critical", "high"].includes(row?.risk_level)) return "first";
+  if (row?.risk_level === "moderate") return "caution";
+  return "normal";
+}
+
+function effectivePriorityLevel(row) {
+  return row?.manual_priority_level || row?.effective_priority_level || suggestedPriorityLevel(row);
+}
+
+function priorityOrderValue(row) {
+  const level = effectivePriorityLevel(row);
+  const group = level === "first" ? 3 : level === "caution" ? 2 : 1;
+  return group * 1000 + (Number(row?.priority_score) || 0);
+}
+
+function locationLabel(row) {
+  return LINK_LOCATION_LABELS[String(row?.link_id)]
+    || [row?.administrative_city, row?.administrative_unit, row?.road_name].filter(Boolean).join(" ")
+    || "위치 확인 필요";
+}
+
+function HomeIcon({ className = "" }) {
+  return <svg className={className} viewBox="0 0 20 20" aria-hidden="true">
+    <path d="M2.5 9.1 10 2.8l7.5 6.3v8.1h-5v-5H7.6v5H2.5Z" />
+  </svg>;
+}
+
+function InfoTip({ label, children }) {
+  return <span className="info-tip-wrap">
+    <button type="button" className="info-tip" aria-label={`${label} 설명`}>i</button>
+    <span className="info-tip-popover" role="tooltip">{children}</span>
+  </span>;
+}
 
 function geometry(value) {
   if (Array.isArray(value)) return value;
@@ -154,37 +204,78 @@ function pathFor(parts, project) {
   }).join(" ")).join(" ");
 }
 
+function mercatorCoordinate(longitude, latitude) {
+  const limitedLatitude = Math.min(85.051129, Math.max(-85.051129, Number(latitude)));
+  const latitudeRadians = limitedLatitude * Math.PI / 180;
+  return [
+    (Number(longitude) + 180) / 360,
+    .5 - Math.log((1 + Math.sin(latitudeRadians)) / (1 - Math.sin(latitudeRadians))) / (4 * Math.PI),
+  ];
+}
+
 function useProjection(backgroundRows, overlayRows) {
   return useMemo(() => {
     const points = [];
     [...backgroundRows, ...overlayRows].forEach((row) => {
       geometry(row.geometry_json).forEach((part) => part.forEach((point) => points.push(point)));
     });
-    const longitudes = points.map(([longitude]) => longitude);
-    const latitudes = points.map(([, latitude]) => latitude);
-    const minLongitude = Math.min(...longitudes, 126.08);
-    const maxLongitude = Math.max(...longitudes, 126.98);
-    const minLatitude = Math.min(...latitudes, 33.1);
-    const maxLatitude = Math.max(...latitudes, 33.58);
+    const mercatorPoints = points.map(([longitude, latitude]) => mercatorCoordinate(longitude, latitude));
+    mercatorPoints.push(mercatorCoordinate(126.08, 33.58), mercatorCoordinate(126.98, 33.1));
+    const minMercatorX = Math.min(...mercatorPoints.map(([x]) => x));
+    const maxMercatorX = Math.max(...mercatorPoints.map(([x]) => x));
+    const minMercatorY = Math.min(...mercatorPoints.map(([, y]) => y));
+    const maxMercatorY = Math.max(...mercatorPoints.map(([, y]) => y));
     const width = 1000;
     const height = 590;
     const padding = 38;
-    const xScale = (width - padding * 2) / Math.max(0.001, maxLongitude - minLongitude);
-    const yScale = (height - padding * 2) / Math.max(0.001, maxLatitude - minLatitude);
+    const xScale = (width - padding * 2) / Math.max(0.000001, maxMercatorX - minMercatorX);
+    const yScale = (height - padding * 2) / Math.max(0.000001, maxMercatorY - minMercatorY);
     const scale = Math.min(xScale, yScale);
-    const projectedWidth = (maxLongitude - minLongitude) * scale;
-    const projectedHeight = (maxLatitude - minLatitude) * scale;
+    const projectedWidth = (maxMercatorX - minMercatorX) * scale;
+    const projectedHeight = (maxMercatorY - minMercatorY) * scale;
     const xOffset = (width - projectedWidth) / 2;
     const yOffset = (height - projectedHeight) / 2;
+    const projectMercator = (x, y) => [
+      xOffset + (x - minMercatorX) * scale,
+      yOffset + (y - minMercatorY) * scale,
+    ];
     return {
       width,
       height,
-      project: (longitude, latitude) => [
-        xOffset + (longitude - minLongitude) * scale,
-        height - yOffset - (latitude - minLatitude) * scale,
+      project: (longitude, latitude) => projectMercator(...mercatorCoordinate(longitude, latitude)),
+      projectMercator,
+      mapToMercator: (x, y) => [
+        minMercatorX + (x - xOffset) / scale,
+        minMercatorY + (y - yOffset) / scale,
       ],
     };
   }, [backgroundRows, overlayRows]);
+}
+
+function BasemapTiles({ width, height, zoom, centerX, centerY, projectMercator, mapToMercator }) {
+  const viewWidth = width / zoom;
+  const viewHeight = height / zoom;
+  const viewX = centerX - viewWidth / 2;
+  const viewY = centerY - viewHeight / 2;
+  const [minX, minY] = mapToMercator(viewX, viewY);
+  const [maxX, maxY] = mapToMercator(viewX + viewWidth, viewY + viewHeight);
+  const tileZoom = Math.min(13, 10 + Math.ceil(Math.log2(zoom)));
+  const tileCount = 2 ** tileZoom;
+  const startX = Math.max(0, Math.floor(Math.min(minX, maxX) * tileCount));
+  const endX = Math.min(tileCount - 1, Math.floor(Math.max(minX, maxX) * tileCount));
+  const startY = Math.max(0, Math.floor(Math.min(minY, maxY) * tileCount));
+  const endY = Math.min(tileCount - 1, Math.floor(Math.max(minY, maxY) * tileCount));
+  const tiles = [];
+  for (let tileX = startX; tileX <= endX; tileX += 1) {
+    for (let tileY = startY; tileY <= endY; tileY += 1) {
+      const [x, y] = projectMercator(tileX / tileCount, tileY / tileCount);
+      const [right, bottom] = projectMercator((tileX + 1) / tileCount, (tileY + 1) / tileCount);
+      tiles.push(<image key={`${tileZoom}-${tileX}-${tileY}`}
+        href={`https://tile.openstreetmap.org/${tileZoom}/${tileX}/${tileY}.png`}
+        x={x} y={y} width={right - x} height={bottom - y} preserveAspectRatio="none" />);
+    }
+  }
+  return <g className="basemap-tiles" aria-hidden="true">{tiles}</g>;
 }
 
 function Metric({ label, value, note, tone = "neutral" }) {
@@ -199,16 +290,15 @@ function MapLegend({ showScenario }) {
   return <div className="roadops-map-legend" aria-label="지도 범례">
     <div className="legend-group">
       <span className="legend-title">점검 우선순위</span>
-      <span><i data-risk="high" />빨강 실선·가장 먼저</span>
-      <span><i data-risk="moderate" />주황 실선·주의</span>
-      <span><i data-risk="low" />파랑 실선·일반</span>
+      <span><i data-priority="first">먼저</i>가장 먼저 확인</span>
+      <span><i data-priority="caution">주의</i>주의해서 확인</span>
+      <span><i data-priority="normal">일반</i>일반 순서</span>
     </div>
     <div className="legend-group">
       <span className="legend-title">순찰 코스</span>
       <span><i className="legend-line" />팀 색 점선·이동</span>
-      <span><i className="legend-start"> 출 </i>출발</span>
-      <span><i className="legend-point">1</i>점검 순서</span>
-      <span><i className="legend-end">끝</i>마지막 지점</span>
+      <span><i className="legend-start"><HomeIcon /></i>공개자료 기반 출발 거점</span>
+      <span><i className="legend-point">1</i>팀 색 테두리·점검 순서</span>
       {showScenario && <span><i className="legend-before" />변경 전</span>}
       {showScenario && <span><i className="legend-after" />변경 후</span>}
     </div>
@@ -229,8 +319,8 @@ function RouteDetail({ route, routeRows, taskRows, teamRows, onClose }) {
       <button type="button" onClick={onClose} aria-label="경로 상세 닫기">닫기</button>
     </div>
     <dl className="route-detail-grid">
-      <div><dt>출발</dt><dd>{previous ? previous.road_name : `${team?.team_name || "순찰팀"} 출발 위치`}</dd></div>
-      <div><dt>도착·점검</dt><dd>{route.road_name}</dd></div>
+      <div><dt>출발</dt><dd>{previous ? previous.road_name : team?.start_location_name || "공개자료 기반 출발 거점"}</dd></div>
+      <div><dt>도착·점검</dt><dd>{locationLabel(task || route)}</dd></div>
       <div><dt>이동 예상</dt><dd>{number(route.travel_minutes)}분</dd></div>
       <div><dt>현장 점검</dt><dd>{number(route.service_minutes, 0)}분</dd></div>
       <div><dt>누적 예상</dt><dd>{number(route.cumulative_minutes)}분</dd></div>
@@ -239,10 +329,15 @@ function RouteDetail({ route, routeRows, taskRows, teamRows, onClose }) {
     <div className="route-course-list">
       <span>전체 순찰 코스</span>
       <ol>
-        <li><b>출</b>{team?.team_name || "순찰팀"}</li>
-        {course.map((item, index) => <li key={routeKey(item)} data-current={routeKey(item) === routeKey(route) || undefined}>
-          <b>{index + 1}</b>{item.road_name}<small>{number(item.travel_minutes)}분 이동</small>
-        </li>)}
+        <li><b className="course-home"><HomeIcon /></b>{team?.start_location_name || team?.team_name || "출발 거점"}</li>
+        {course.map((item, index) => {
+          const itemTask = taskRows.find((row) => row.task_id === item.task_id);
+          return <li key={routeKey(item)} data-current={routeKey(item) === routeKey(route) || undefined}>
+            <b style={{ "--team-color": TEAM_COLORS[item.team_id] || "#475569" }}>{index + 1}</b>
+            <span><strong>{locationLabel(itemTask || item)}</strong><small>{item.road_name}</small></span>
+            <small>{number(item.travel_minutes)}분 이동</small>
+          </li>;
+        })}
       </ol>
     </div>
   </aside>;
@@ -265,20 +360,17 @@ function RoadMap({
   scenarioId,
 }) {
   const overlayRows = [...riskRows, ...routeRows, ...replanRows, ...impactRows];
-  const { width, height, project } = useProjection(backgroundRows, overlayRows);
+  const { width, height, project, projectMercator, mapToMercator } = useProjection(backgroundRows, overlayRows);
   const [mapView, setMapView] = useState({ zoom: 1, centerX: width / 2, centerY: height / 2 });
   const scenarioActive = scenarioId !== "none";
   const affectedTeams = new Set(replanRows.map((row) => row.team_id));
-  const taskById = new Map(taskRows.map((row) => [String(row.task_id), row]));
+  const taskByLink = new Map(taskRows.map((row) => [String(row.link_id), row]));
   const sequenceByTask = new Map(routeRows.map((row) => [String(row.task_id), Number(row.sequence)]));
-  const lastRouteByTeam = new Map();
-  routeRows.forEach((row) => {
-    const current = lastRouteByTeam.get(row.team_id);
-    if (!current || Number(row.sequence) > Number(current.sequence)) lastRouteByTeam.set(row.team_id, row);
-  });
+  const teamByTask = new Map(routeRows.map((row) => [String(row.task_id), row.team_id]));
 
   const viewWidth = width / mapView.zoom;
   const viewHeight = height / mapView.zoom;
+  const markerScale = 1 / mapView.zoom;
   const viewBox = `${mapView.centerX - viewWidth / 2} ${mapView.centerY - viewHeight / 2} ${viewWidth} ${viewHeight}`;
   const changeZoom = (factor) => {
     setMapView((current) => {
@@ -320,7 +412,7 @@ function RoadMap({
   return <div className="roadops-map-wrap" data-route-open={selectedRoute ? "true" : undefined}>
     {selectedRisk && <div className="map-focus-panel" data-risk={selectedRisk.risk_level}>
       <span>선택 구간</span>
-      <strong>{selectedRisk.road_name}</strong>
+      <strong>{locationLabel(taskByLink.get(String(selectedRisk.link_id)) || selectedRisk)}</strong>
       <div>
         <b>{number(selectedRisk.priority_score)}</b>
         <small>{RISK_LABELS[selectedRisk.risk_level] || "위험 미분류"} 단계</small>
@@ -342,6 +434,10 @@ function RoadMap({
           <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
         </filter>
       </defs>
+
+      <BasemapTiles width={width} height={height} zoom={mapView.zoom}
+        centerX={mapView.centerX} centerY={mapView.centerY}
+        projectMercator={projectMercator} mapToMercator={mapToMercator} />
 
       <g className="map-grid" aria-hidden="true">
         {[160, 320, 480, 640, 800].map((x) => <line key={`x-${x}`} x1={x} x2={x} y1="20" y2={height - 20} />)}
@@ -372,8 +468,6 @@ function RoadMap({
               if (event.key === "Enter" || event.key === " ") onSelectRisk(row);
             }}
             style={{
-              "--risk-color": RISK_COLORS[row.risk_level] || RISK_COLORS.minimal,
-              "--risk-width": `${Math.max(4, Math.min(10, 3 + (Number(row.priority_score) || 0) / 10))}px`,
               "--risk-opacity": String(Math.max(.48, Number(row.evidence_coverage_ratio) || .48)),
               filter: selected ? "url(#selected-glow)" : undefined,
             }} />;
@@ -409,19 +503,33 @@ function RoadMap({
         {taskRows.map((row) => {
           const [x, y] = project(row.longitude, row.latitude);
           const sequence = sequenceByTask.get(String(row.task_id));
+          const teamId = teamByTask.get(String(row.task_id));
+          const priorityLevel = effectivePriorityLevel(row);
           const selected = selectedRisk?.link_id === row.link_id;
           const select = () => onSelectTask(row.link_id);
           return <g key={row.task_id} className={selected ? "task-point selected" : "task-point"}
             transform={`translate(${x} ${y})`} role="button" tabIndex={0}
-            aria-label={`${row.road_name}, ${sequence ? `${sequence}번째 점검` : "배분 전"}`}
+            aria-label={`${locationLabel(row)}, ${sequence ? `${sequence}번째 점검` : "배분 전"}`}
             onClick={select} onKeyDown={(event) => {
               if (event.key === "Enter" || event.key === " ") select();
-            }}>
-            <circle r={row.mandatory ? 9 : 8}
-              data-excluded={row.excluded || undefined} data-mandatory={row.mandatory || undefined}>
-            <title>{`${row.road_name} · ${row.task_id}`}</title>
-            </circle>
-            <text y="3.5">{sequence || "?"}</text>
+            }} style={{ "--task-color": TEAM_COLORS[teamId] || "#475569" }}>
+            <g transform={`scale(${markerScale})`}>
+              <circle r={row.mandatory ? 9 : 8}
+                data-excluded={row.excluded || undefined} data-mandatory={row.mandatory || undefined}>
+                <title>{`${locationLabel(row)} · ${row.road_name}`}</title>
+              </circle>
+              <text y="3.5">{sequence || "?"}</text>
+              <g className="priority-marker" data-priority={priorityLevel}
+                data-manual={row.manual_priority_level ? "true" : undefined}
+                transform="translate(13 -15)"
+                style={{ "--priority-color": PRIORITY_COLORS[priorityLevel] || PRIORITY_COLORS.normal }}>
+                <rect x="-2" y="-7" width={priorityLevel === "first" ? 26 : 24} height="13" rx="4" />
+                <text x={priorityLevel === "first" ? 11 : 10} y="2">{PRIORITY_LABELS[priorityLevel]}</text>
+                <title>{row.manual_priority_level
+                  ? `담당자가 ${PRIORITY_LABELS[priorityLevel]} 순서로 조정했습니다.`
+                  : `위험점수에 따른 ${PRIORITY_LABELS[priorityLevel]} 확인 구간입니다.`}</title>
+              </g>
+            </g>
           </g>;
         })}
       </g>
@@ -430,38 +538,27 @@ function RoadMap({
         {teamRows.map((row) => {
           const [x, y] = project(row.start_longitude, row.start_latitude);
           return <g key={row.team_id} transform={`translate(${x} ${y})`}>
-            <circle r="12" data-available={row.available === false ? "false" : "true"}
-              style={{ fill: TEAM_COLORS[row.team_id] || "#475569" }}>
-              <title>{`${row.team_name} · ${row.available === false ? "비가용" : "가용"}`}</title>
-            </circle>
-            <text y="4">출</text>
-            <text className="team-start-name" x="16" y="4">{row.team_name?.replace(" 순찰팀", "") || "순찰팀"}</text>
-          </g>;
-        })}
-      </g>
-
-      <g className="route-end-points" aria-label="팀별 마지막 점검 지점">
-        {[...lastRouteByTeam.values()].map((route) => {
-          const task = taskById.get(String(route.task_id));
-          if (!task) return null;
-          const [x, y] = project(task.longitude, task.latitude);
-          return <g key={`end-${route.team_id}`} transform={`translate(${x + 15} ${y - 14})`}>
-            <rect x="-11" y="-7" width="22" height="14" rx="4"
-              style={{ "--team-color": TEAM_COLORS[route.team_id] || "#475569" }} />
-            <text y="3">끝</text>
+            <g transform={`scale(${markerScale})`}>
+              <circle r="12" data-available={row.available === false ? "false" : "true"}
+                style={{ fill: TEAM_COLORS[row.team_id] || "#475569" }}>
+                <title>{`${row.team_name} · ${row.start_location_name || "출발 거점"} · ${row.available === false ? "비가용" : "가용"}`}</title>
+              </circle>
+              <path className="team-home-icon" d="M-7 -1 0 -7l7 6v8H2V2h-4v5h-5Z" />
+              <text className="team-start-name" x="16" y="4">{row.team_name?.replace(" 순찰팀", "") || "순찰팀"}</text>
+            </g>
           </g>;
         })}
       </g>
     </svg>
     <RouteDetail route={selectedRoute} routeRows={routeRows} taskRows={taskRows}
       teamRows={teamRows} onClose={onCloseRoute} />
-    <div className="map-place-label map-place-label--jeju">제주시</div>
-    <div className="map-place-label map-place-label--seogwipo">서귀포시</div>
+    <a className="map-attribution" href="https://www.openstreetmap.org/copyright"
+      target="_blank" rel="noopener">© OpenStreetMap contributors</a>
     <MapLegend showScenario={scenarioActive} />
   </div>;
 }
 
-function RiskDetail({ row, sourceRows, horizon }) {
+function RiskDetail({ row, task, sourceRows, horizon }) {
   if (!row) return <div className="empty-detail">표시할 위험 링크가 없습니다.</div>;
   const drivers = String(row.risk_drivers || "").split(" | ").filter(Boolean).map(parseDriver);
   const qualityFlags = String(row.quality_flags || "").split("|")
@@ -475,26 +572,35 @@ function RiskDetail({ row, sourceRows, horizon }) {
     className="risk-detail-card">
     <div className="risk-score-block">
       <div><span>현장 확인 우선순위</span><strong>{number(row.priority_score)}</strong></div>
-      <span className="risk-band">예상 범위 {number(row.score_lower_bound)}–{number(row.score_upper_bound)}</span>
+      <span className="risk-band" data-risk-level={row.risk_level}>{RISK_LABELS[row.risk_level] || "미분류"} 단계</span>
+    </div>
+    <div className="risk-action-summary">
+      <span>지금 할 일</span>
+      <strong>{row.road_name} 현장 상태를 먼저 확인하세요.</strong>
+      <p>{strongestDriver ? `우선순위에 가장 크게 반영된 항목은 ${strongestDriver.label}입니다.` : "점수를 설명할 근거가 부족해 추가 확인이 필요합니다."}</p>
     </div>
     <div className="risk-detail-grid">
       <div><span>위험 단계</span><b data-risk-level={row.risk_level}>{RISK_LABELS[row.risk_level] || "미분류"}</b></div>
-      <div><span>사용 가능한 근거 반영률</span><b>{percentage(row.evidence_coverage_ratio)}</b></div>
-      <div><span>도로 연결 상태</span><b>{INTEGRATION_LABELS[row.integration_class] || "확인 필요"}</b></div>
       <div><span>예상 시각</span><b>{dateTime(row.target_at)}</b></div>
-    </div>
-    <div className="risk-explanation">
-      <span>왜 먼저 확인해야 하나요?</span>
-      <strong>{strongestDriver ? `${strongestDriver.label}이 우선순위 점수에 가장 크게 반영됐습니다.` : "점수를 설명할 충분한 근거가 없어 추가 확인이 필요합니다."}</strong>
+      <div><span>현장 위험정보</span><b>{Number(row.event_count) > 0 ? `${number(row.event_count, 0)}건 반영` : "추가 확인"}</b></div>
+      <div><span>담당기관</span><b>{task?.managing_agency_name || "관할 확인 필요"}</b></div>
     </div>
     <div className="driver-list">
       <span>점수에 반영된 항목</span>
       {drivers.length ? <ul>{drivers.map((driver) => <li key={driver.raw}><strong>{driver.label}</strong><span>{driver.contribution != null ? `${number(driver.contribution)}점 반영` : "반영 정도 확인 필요"}</span></li>)}</ul> : <p>사용 가능한 근거가 없습니다.</p>}
     </div>
-    {qualityFlags.length > 0 && <div className="quality-note">
-      <span>확인할 데이터 한계</span>
-      <ul>{qualityFlags.map((flag) => <li key={flag}>{qualityMessage(flag)}</li>)}</ul>
-    </div>}
+    <details className="confidence-details">
+      <summary>데이터 신뢰도·연결 상태</summary>
+      <div className="confidence-grid">
+        <div><span>근거 반영률</span><b>{percentage(row.evidence_coverage_ratio)}</b></div>
+        <div><span>도로 연결</span><b>{INTEGRATION_LABELS[row.integration_class] || "확인 필요"}</b></div>
+        <div><span>예상 점수 범위</span><b>{number(row.score_lower_bound)}–{number(row.score_upper_bound)}</b></div>
+      </div>
+      {qualityFlags.length > 0 && <div className="quality-note">
+        <span>확인할 데이터 한계</span>
+        <ul>{qualityFlags.map((flag) => <li key={flag}>{qualityMessage(flag)}</li>)}</ul>
+      </div>}
+    </details>
     <details className="technical-details">
       <summary>상세 기술정보</summary>
       <code>도로 연결: {row.integration_class || "none"}</code>
@@ -551,9 +657,9 @@ function AuthorityDetail({ task, authority, taskRows, authorityRows }) {
 
 function TaskQueue({ rows, selectedLinkId, onSelect }) {
   const sorted = [...rows].filter((row) => !row.excluded)
-    .sort((left, right) => Number(right.priority_score) - Number(left.priority_score));
+    .sort((left, right) => priorityOrderValue(right) - priorityOrderValue(left));
   return <DataComponent variant="plain" id="task-queue" queryId="field_tasks" kind="table"
-    title="먼저 확인할 도로" description="점수가 높은 순서입니다. 도로를 누르면 이유와 담당기관을 확인할 수 있습니다."
+    title="먼저 확인할 도로" description="AI 제안 순서이며, 출동계획의 ‘도로·우선순위’ 단계에서 담당자가 이유를 남기고 조정할 수 있습니다."
     sourceRows={rows} displayRows={sorted} className="task-queue-card">
     <div className="task-queue-list">
       <div className="task-queue-head" aria-hidden="true">
@@ -562,8 +668,10 @@ function TaskQueue({ rows, selectedLinkId, onSelect }) {
       {sorted.slice(0, 6).map((row, index) => <button type="button" key={row.task_id}
         className={selectedLinkId === row.link_id ? "selected" : ""} onClick={() => onSelect(row.link_id)}>
         <span className="task-rank">{String(index + 1).padStart(2, "0")}</span>
-        <span className="task-copy"><strong>{row.road_name}</strong><small>{row.administrative_city || "구역 미확인"} · {row.managing_agency_name || row.link_id}</small></span>
-        <span className="task-risk-tag" data-risk={row.risk_level}>{RISK_LABELS[row.risk_level] || "확인"}</span>
+        <span className="task-copy"><strong>{locationLabel(row)}</strong><small>{row.road_name} · {row.managing_agency_name || "담당기관 확인 필요"}</small></span>
+        <span className="task-risk-tag" data-priority={effectivePriorityLevel(row)}>
+          {row.manual_priority_level ? "담당자 · " : ""}{PRIORITY_LABELS[effectivePriorityLevel(row)]}
+        </span>
         <span className="task-score">{number(row.priority_score)}</span>
         <span className="task-hover-reason" role="tooltip">
           <strong>왜 먼저 확인하나요?</strong>
@@ -598,6 +706,11 @@ function ReplanSummary({ rows, scenarioId }) {
     <strong>기본 계획 표시 중</strong>
     <span>통제 또는 폭우 시나리오를 선택하면 변경 전·후 경로와 이유를 비교합니다.</span>
   </div>;
+  const scenarioName = row.scenario_type === "road_closure" ? "도로 통제" : "폭우";
+  const summary = `${scenarioName}로 영향을 받은 ${number(row.affected_team_count, 0)}개 팀의 남은 일정만 다시 계산했습니다.`;
+  const reason = row.scenario_type === "road_closure"
+    ? "통제 구간을 지나는 팀의 남은 일정에서 해당 구간을 제외하고 우회 경로를 찾았습니다. 다른 팀의 일정은 그대로 유지했습니다."
+    : "폭우가 예상되는 도로는 위험도를 높이고 점검·이동시간을 여유 있게 잡았습니다. 해당 도로를 맡은 팀의 남은 일정만 다시 계산했으며, 다른 팀의 일정은 유지했습니다.";
   return <DataComponent variant="plain" id="replan-summary" queryId="scenario_summary" kind="custom"
     title="부분 재계획 설명" description="영향팀만 다시 계산하고 완료·고정·비영향 업무는 보존한 결과입니다."
     sourceRows={rows} displayRows={[row]}
@@ -605,9 +718,9 @@ function ReplanSummary({ rows, scenarioId }) {
     className="replan-summary-card">
     <div className="replan-summary-head">
       <span className="approval-badge">책임자 확인 필요</span>
-      <strong>{row.summary}</strong>
+      <strong>{summary}</strong>
     </div>
-    <p>{row.change_reasons}</p>
+    <p>{reason}</p>
     <div className="replan-deltas">
       <span><b>{row.affected_team_count}</b> 영향팀</span>
       <span><b>{Number(row.travel_minutes_delta) >= 0 ? "+" : ""}{number(row.travel_minutes_delta, 3)}</b> 이동분</span>
@@ -666,6 +779,9 @@ export function DashboardContent() {
       excluded: decision.excluded,
       fixed_team_id: decision.fixed ? decision.assignedTeamId : null,
       assigned_team_id: decision.assignedTeamId,
+      manual_priority_level: decision.manualPriorityLevel,
+      manual_priority_reason: decision.priorityReason,
+      effective_priority_level: decision.manualPriorityLevel || decision.suggestedPriorityLevel,
     } : row;
   });
   const effectiveTeamRows = rows("teams").map((row) => ({
@@ -733,13 +849,24 @@ export function DashboardContent() {
           </div>
         </div>
         <div className="toolbar-filter">
-          <span>배분 대안</span>
+          <span className="toolbar-label">배분 대안
+            <InfoTip label="배분 대안">
+              <b>안전 우선</b>은 위험도가 높은 도로를 더 빨리 확인합니다.<br />
+              <b>균형 운영</b>은 안전 기준을 지키면서 팀별 업무시간 차이를 줄입니다.
+            </InfoTip>
+          </span>
           <Dropdown label="배분 대안" value={selectedPlan}
             choices={planMetrics.map((row) => row.alternative_id)} choiceLabels={PLAN_LABELS}
             onChange={setSelectedPlan} />
         </div>
         <div className="toolbar-filter toolbar-filter-wide">
-          <span>재계획 시나리오</span>
+          <span className="toolbar-label">재계획 시나리오
+            <InfoTip label="재계획 시나리오">
+              <b>도로 통제</b>는 막힌 구간을 제외하고 영향팀만 우회합니다.<br />
+              <b>폭우</b>는 위험도와 이동·점검시간을 여유 있게 잡아 영향팀만 다시 계산합니다.<br />
+              두 항목 모두 실제 발생 정보가 아닌 비교용 가정입니다.
+            </InfoTip>
+          </span>
           <Dropdown label="재계획 시나리오" value={scenarioId}
             choices={scenarioChoices} choiceLabels={SCENARIO_LABELS} onChange={setScenarioId} />
         </div>
@@ -773,7 +900,7 @@ export function DashboardContent() {
       <section className="roadops-map-column">
         <DataComponent variant="plain" id="roadops-map" queryId="risk_links" queryIds={mapQueryIds}
           kind="custom" title="어디를 먼저 확인해야 하나요?"
-          description="제주 전체 도로망이 아닙니다. 국토교통부 국가표준링크 중 주요 간선도로 11개를 배경으로 사용하고, 위험점수·출동업무·배분·재계획에 필요한 링크를 강조합니다."
+          description="OpenStreetMap 배경지도 위에 RoadOps 위험구간·순찰 경로·점검 순서를 올려 표시합니다. 현재 분석 범위는 국토교통부 국가표준링크 중 주요 간선도로 11개입니다."
           sourceRows={allRiskRows} displayRows={riskRows} sourceRowsByQuery={sourceRowsByQuery}
           scopeFilters={[
             { field: "horizon_hours", label: "예측 시점", value: String(horizon) },
@@ -782,13 +909,13 @@ export function DashboardContent() {
           ]} className="roadops-map-card">
           <button type="button" className="map-guide-toggle" aria-expanded={mapGuideOpen}
             onClick={() => setMapGuideOpen((open) => !open)}>
-            <span>지도 읽는 방법</span><small>주요 간선도로 11개 기준 · {mapGuideOpen ? "접기" : "펼치기"}</small>
+            <span>지도 읽는 방법</span><small>배경지도 + 분석도로 11개 · {mapGuideOpen ? "접기" : "펼치기"}</small>
           </button>
           {mapGuideOpen && <div className="map-reading-guide" aria-label="지도 표시 설명">
-            <p>제주 전체 도로망이 아니라 운영 데모에 사용하는 주요 간선도로와 현장 대상만 표시합니다. 지도 위에서 마우스 휠로 확대·축소하세요.</p>
-            <span><i data-guide="risk" /><b>굵은 실선</b> 도로 점검 우선순위를 빨강·주황·파랑으로 표시</span>
+            <p>배경에는 주변 도로·지명이 표시되지만, 점검 표시는 RoadOps가 분석한 주요 간선도로 11개 범위입니다. 주소는 좌표에서 찾은 인근 지역명이며 지번 확정값이 아닙니다.</p>
+            <span><i data-guide="risk" /><b>우선순위 표식</b> 먼저·주의·일반을 도로선과 분리해 표시</span>
             <span><i data-guide="route" /><b>팀 색 점선</b> 순찰팀이 실제로 이동할 경로로, 누르면 소요시간과 전체 코스를 표시</span>
-            <span><i data-guide="point" /><b>숫자 원</b> 점검 순서 · '출'은 출발 · '끝'은 마지막 지점</span>
+            <span><i data-guide="point" /><b>팀 색 숫자 원</b> 점검 순서 · 집 아이콘은 공개자료 기반 도로관리 거점</span>
           </div>}
           <RoadMap backgroundRows={rows("road_background")} riskRows={riskRows}
             taskRows={effectiveTaskRows} teamRows={effectiveTeamRows} routeRows={routeRows}
@@ -810,7 +937,7 @@ export function DashboardContent() {
           {inspectorTab === "priorities" && <TaskQueue rows={effectiveTaskRows}
             selectedLinkId={selectedRisk?.link_id} onSelect={selectTask} />}
           {inspectorTab === "segment" && <>
-            <RiskDetail row={selectedRisk} sourceRows={allRiskRows} horizon={horizon} />
+            <RiskDetail row={selectedRisk} task={selectedTask} sourceRows={allRiskRows} horizon={horizon} />
             <AuthorityDetail task={selectedTask} authority={selectedAuthority}
               taskRows={rows("field_tasks")} authorityRows={rows("governance_authorities")} />
           </>}

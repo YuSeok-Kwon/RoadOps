@@ -481,6 +481,16 @@ def build_map_snapshot(
             "personnel_count": team.get("personnel_count"),
             "start_latitude": team.get("start_latitude"),
             "start_longitude": team.get("start_longitude"),
+            "start_location_name": team.get("start_location_name"),
+            "start_location_address": team.get("start_location_address"),
+            "start_location_kind": team.get("start_location_kind"),
+            "start_location_source_ids": team.get(
+                "start_location_source_ids", []
+            ),
+            "start_coordinate_method": team.get("start_coordinate_method"),
+            "start_coordinate_precision": team.get(
+                "start_coordinate_precision"
+            ),
             "shift_start_at": team.get("shift_start_at"),
             "shift_end_at": team.get("shift_end_at"),
             "skills": team.get("skills", []),

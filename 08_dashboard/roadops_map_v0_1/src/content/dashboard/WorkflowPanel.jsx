@@ -14,7 +14,7 @@ import {
 
 const TAB_LABELS = {
   resources: "1 출동팀",
-  tasks: "2 도로 배정",
+  tasks: "2 도로·우선순위",
   approval: "3 확인·확정",
   audit: "처리 기록",
 };
@@ -23,6 +23,34 @@ const TEAM_SHORT_LABELS = {
   "team-east": "동부팀",
   "team-north": "북부팀",
   "team-west": "서부팀",
+};
+
+const RESOURCE_FIELD_LABELS = {
+  available: "출동 가능 여부",
+  personnelCount: "출동 인원",
+  shiftMinutes: "가용 시간",
+};
+
+const TASK_FIELD_LABELS = {
+  assignedTeamId: "담당팀",
+  fixed: "팀 고정 여부",
+  excluded: "점검 제외 여부",
+};
+
+const PRIORITY_OPTION_LABELS = {
+  first: "가장 먼저",
+  caution: "주의해서",
+  normal: "일반 순서",
+};
+
+const ACKNOWLEDGEMENT_LABELS = {
+  dataQuality: "데이터 품질 확인",
+  travelEstimate: "이동시간 추정치 확인",
+  fieldCheck: "현장 상황 재확인",
+};
+
+const AUDIT_ACTOR_LABELS = {
+  "local-operator": "현재 사용자",
 };
 
 function planLabel(planId) {
@@ -71,8 +99,10 @@ function ResourceStep({ state, onChange, onNext }) {
   </div>;
 }
 
-function TaskStep({ state, onChange, onNext }) {
-  const sorted = [...state.tasks].sort((left, right) => right.priorityScore - left.priorityScore);
+function TaskStep({ state, onChange, onPriorityChange, onReasonChange, onReasonCommit, onNext }) {
+  const priorityWeight = (task) => ({ first: 3, caution: 2, normal: 1 }[task.manualPriorityLevel || task.suggestedPriorityLevel] || 1);
+  const sorted = [...state.tasks].sort((left, right) => priorityWeight(right) - priorityWeight(left)
+    || right.priorityScore - left.priorityScore);
   return <div className="workflow-task-list">
     {sorted.map((task) => <div className="workflow-task-row" key={task.taskId} data-excluded={task.excluded || undefined}>
       <div className="workflow-task-title">
@@ -88,6 +118,20 @@ function TaskStep({ state, onChange, onNext }) {
           </option>)}
         </select>
       </label>
+      <label className="workflow-priority-select">확인 순서
+        <select value={task.manualPriorityLevel || ""} disabled={task.excluded}
+          onChange={(event) => onPriorityChange(task.taskId, event.target.value || null)}>
+          <option value="">자동 제안 유지</option>
+          <option value="first">가장 먼저</option>
+          <option value="caution">주의해서</option>
+          <option value="normal">일반 순서</option>
+        </select>
+      </label>
+      {task.manualPriorityLevel && <label className="workflow-priority-reason">조정 이유
+        <input type="text" value={task.priorityReason} placeholder="현장 제보·민원·행사 등 5자 이상"
+          onChange={(event) => onReasonChange(task.taskId, event.target.value)}
+          onBlur={() => onReasonCommit(task.taskId)} />
+      </label>}
       <Switch label="팀 고정" checked={task.fixed} disabled={task.excluded} size="compact"
         onChange={(checked) => onChange(task.taskId, "fixed", checked)} />
       {task.mandatory
@@ -95,7 +139,7 @@ function TaskStep({ state, onChange, onNext }) {
         : <Switch label="점검 제외" checked={task.excluded} size="compact"
           onChange={(checked) => onChange(task.taskId, "excluded", checked)} />}
     </div>)}
-    <p className="workflow-inline-note">담당팀 변경과 점검 제외는 가능한 검증 경로 안에서 즉시 자동 재계산됩니다.</p>
+    <p className="workflow-inline-note">확인 순서·담당팀·점검 제외를 바꾸면 팀 배분을 즉시 다시 계산합니다. 담당자 조정은 이유와 함께 처리 기록에 남습니다.</p>
     <div className="workflow-step-actions">
       <Button variant="primary" onClick={onNext}>다음: 확인·확정</Button>
     </div>
@@ -118,7 +162,7 @@ function ApprovalStep({
     : validationFresh && validation.technicalValid
       ? "제약조건 통과"
       : validation.errors.length
-        ? "재계산 필요"
+        ? "확인 필요"
         : "확인 전";
   const activeTasks = state.tasks.filter((task) => !task.excluded);
   const approverRoles = [...new Set(activeTasks.map((task) => task.dispatchApproverRole).filter(Boolean))];
@@ -178,7 +222,7 @@ function AuditStep({ rows }) {
   return <ol className="workflow-audit-list">
     {[...rows].reverse().slice(0, 12).map((row) => <li key={row.eventId}>
       <span>{row.sequence}</span>
-      <div><strong>{row.action}</strong><p>{row.details}</p><small>{localDateTime(row.at)} · {row.actor}</small></div>
+      <div><strong>{row.action}</strong><p>{row.details}</p><small>{localDateTime(row.at)} · {AUDIT_ACTOR_LABELS[row.actor] || row.actor}</small></div>
     </li>)}
   </ol>;
 }
@@ -234,7 +278,7 @@ export function WorkflowPanel({
     if (!state || state.planId === selectedPlan) return;
     setState((current) => applyPlanAssignments(current, routes, selectedPlan));
     setLastValidatedFingerprint(null);
-    record("plan_selected", `${planLabel(selectedPlan)} 대안으로 전환`);
+    record("배분안 선택", `${planLabel(selectedPlan)} 배분안으로 전환했습니다.`);
   }, [selectedPlan, routes, state]);
 
   useEffect(() => {
@@ -260,7 +304,10 @@ export function WorkflowPanel({
       resources: current.resources.map((resource) => resource.teamId === teamId ? { ...resource, [field]: value } : resource),
     }, routes));
     setLastValidatedFingerprint(null);
-    record("resource_changed", `${teamId} ${field}=${value} · 자동 재계산 완료`);
+    const teamLabel = TEAM_SHORT_LABELS[teamId] || teamId;
+    const valueLabel = field === "available" ? (value ? "출동 가능" : "출동 불가")
+      : field === "shiftMinutes" ? `${value}분` : `${value}명`;
+    record("출동팀 조건 변경", `${teamLabel}의 ${RESOURCE_FIELD_LABELS[field] || field}을 '${valueLabel}'로 변경하고 배분을 다시 계산했습니다.`);
   };
 
   const updateTask = (taskId, field, value) => {
@@ -269,7 +316,40 @@ export function WorkflowPanel({
       tasks: current.tasks.map((task) => task.taskId === taskId ? { ...task, [field]: value } : task),
     }, routes));
     setLastValidatedFingerprint(null);
-    record("task_changed", `${taskId} ${field}=${value} · 자동 재계산 완료`);
+    const task = state.tasks.find((item) => item.taskId === taskId);
+    const valueLabel = field === "assignedTeamId" ? (TEAM_SHORT_LABELS[value] || "미배정")
+      : value ? "사용" : "사용 안 함";
+    record("도로 조건 변경", `${task?.roadName || "선택 도로"}의 ${TASK_FIELD_LABELS[field] || field}을 '${valueLabel}'로 변경하고 배분을 다시 계산했습니다.`);
+  };
+
+  const updatePriority = (taskId, manualPriorityLevel) => {
+    setState((current) => recalculateWorkflow({
+      ...current,
+      tasks: current.tasks.map((task) => task.taskId === taskId ? {
+        ...task,
+        manualPriorityLevel,
+        priorityReason: manualPriorityLevel ? task.priorityReason : "",
+      } : task),
+    }, routes));
+    setLastValidatedFingerprint(null);
+    const task = state.tasks.find((item) => item.taskId === taskId);
+    const priorityLabel = PRIORITY_OPTION_LABELS[manualPriorityLevel] || "자동 제안";
+    record("확인 순서 조정", `${task?.roadName || "선택 도로"}의 확인 순서를 '${priorityLabel}' 단계로 바꾸고 팀 배분을 다시 계산했습니다.`);
+  };
+
+  const updatePriorityReason = (taskId, priorityReason) => {
+    setState((current) => ({
+      ...current,
+      tasks: current.tasks.map((task) => task.taskId === taskId ? { ...task, priorityReason } : task),
+    }));
+    setLastValidatedFingerprint(null);
+  };
+
+  const commitPriorityReason = (taskId) => {
+    const task = state.tasks.find((item) => item.taskId === taskId);
+    const reason = task?.priorityReason?.trim();
+    if (!reason) return;
+    record("조정 이유 기록", `${task.roadName} 확인 순서 조정 이유: ${reason}`);
   };
 
   const updateAcknowledgement = (key, value) => {
@@ -278,7 +358,7 @@ export function WorkflowPanel({
       acknowledgements: { ...current.acknowledgements, [key]: value },
     }));
     setLastValidatedFingerprint(null);
-    record("safety_acknowledged", `${key}=${value}`);
+    record("안전조건 확인", `${ACKNOWLEDGEMENT_LABELS[key] || "안전조건"}을 ${value ? "확인했습니다." : "확인 전으로 되돌렸습니다."}`);
   };
 
   const updateField = (field, value) => {
@@ -289,7 +369,7 @@ export function WorkflowPanel({
   const validate = () => {
     setLastValidatedFingerprint(fingerprint);
     record(
-      validation.technicalValid ? "plan_validated" : "plan_validation_failed",
+      validation.technicalValid ? "계획 검증 완료" : "계획 검증 실패",
       validation.technicalValid ? `${planLabel(state.planId)} 제약검사 통과` : `${validation.errors.length}개 오류 발견`,
     );
   };
@@ -299,7 +379,7 @@ export function WorkflowPanel({
     const recordAt = new Date().toISOString();
     const approved = createApprovalRecord(state, scenarioId, recordAt);
     setApprovalRecord(approved);
-    record("plan_approved", `${approved.approverName}가 ${planLabel(state.planId)} 계획 승인`);
+    record("출동계획 확정", `${approved.approverName} 책임자가 ${planLabel(state.planId)} 계획을 확정했습니다.`);
     setActiveTab("audit");
   };
 
@@ -320,7 +400,7 @@ export function WorkflowPanel({
     className="workflow-panel-card">
     <div className="workflow-summary-bar">
       <span data-state={approvalCurrent ? "approved" : validation.errors.length ? "blocked" : "draft"}>
-        {approvalCurrent ? "확정 완료" : validation.errors.length ? "재계산 필요" : "확정 전"}
+        {approvalCurrent ? "확정 완료" : validation.errors.length ? "조건 확인 필요" : "확정 전"}
       </span>
       <p>{planLabel(state.planId)} · 자원 변경 {changes.resources} · 업무 변경 {changes.tasks}</p>
     </div>
@@ -332,6 +412,8 @@ export function WorkflowPanel({
       {activeTab === "resources" && <ResourceStep state={state} onChange={updateResource}
         onNext={() => setActiveTab("tasks")} />}
       {activeTab === "tasks" && <TaskStep state={state} onChange={updateTask}
+        onPriorityChange={updatePriority} onReasonChange={updatePriorityReason}
+        onReasonCommit={commitPriorityReason}
         onNext={() => setActiveTab("approval")} />}
       {activeTab === "approval" && <ApprovalStep state={state} validation={validation}
         validationFresh={validationFresh} approvalCurrent={approvalCurrent} approvalRecord={approvalRecord}
