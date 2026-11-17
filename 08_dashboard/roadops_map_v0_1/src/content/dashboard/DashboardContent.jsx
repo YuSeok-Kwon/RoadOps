@@ -112,7 +112,8 @@ function priorityOrderValue(row) {
 }
 
 function locationLabel(row) {
-  return LINK_LOCATION_LABELS[String(row?.link_id)]
+  return row?.location_label
+    || LINK_LOCATION_LABELS[String(row?.link_id)]
     || [row?.administrative_city, row?.administrative_unit, row?.road_name].filter(Boolean).join(" ")
     || "위치 확인 필요";
 }
@@ -637,6 +638,7 @@ function RiskDetail({ row, task, sourceRows, horizon }) {
       <div><span>예상 시각</span><b>{dateTime(row.target_at)}</b></div>
       <div><span>현장 위험정보</span><b>{Number(row.event_count) > 0 ? `${number(row.event_count, 0)}건 반영` : "추가 확인"}</b></div>
       <div><span>담당기관</span><b>{task?.managing_agency_name || "관할 확인 필요"}</b></div>
+      <div><span>주소 정밀도</span><b>{row.address_precision === "parcel_or_building" ? "지번·건물번호 확인" : "도로·리 단위"}</b></div>
     </div>
     <div className="driver-list">
       <span>점수에 반영된 항목</span>

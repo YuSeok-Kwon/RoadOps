@@ -93,6 +93,12 @@ def parse_args() -> argparse.Namespace:
         / "02_outputs/data/crime_statistics_v0_1/crime_statistics.json",
     )
     parser.add_argument(
+        "--reverse-geocode",
+        type=Path,
+        default=PROJECT_ROOT
+        / "02_outputs/data/reverse_geocode_v0_1/link_locations.json",
+    )
+    parser.add_argument(
         "--output-dir",
         type=Path,
         default=PROJECT_ROOT / "02_outputs/data/map_snapshot_v0_1",
@@ -229,13 +235,13 @@ def build_data_app_snapshot(
         ),
         "risk_links": source(
             "RoadOps explainable risk forecasts",
-            [inputs["risk_forecasts"], inputs["road_links"]],
+            [inputs["risk_forecasts"], inputs["road_links"], inputs["reverse_geocode"]],
             ["roadops-map", "risk-detail"],
             shared_caveats,
         ),
         "field_tasks": source(
             "RoadOps field-task candidates",
-            [inputs["allocation"], inputs["resources"]],
+            [inputs["allocation"], inputs["resources"], inputs["reverse_geocode"]],
             ["roadops-map", "task-queue", "authority-detail"],
             [
                 "Excluded tasks are shown as constraints and are not dispatch recommendations.",
@@ -326,6 +332,7 @@ def main() -> int:
         "accident_hotspots": args.accident_hotspots,
         "historical_similarity": args.historical_similarity,
         "crime_statistics": args.crime_statistics,
+        "reverse_geocode": args.reverse_geocode,
     }
     for name, path in inputs.items():
         if not path.exists():
@@ -342,6 +349,7 @@ def main() -> int:
         accident_rows=read_json(args.accident_hotspots).get("records", []),
         historical_similarity_rows=read_json(args.historical_similarity).get("records", []),
         crime_statistic_rows=read_json(args.crime_statistics).get("records", []),
+        reverse_geocode_rows=read_json(args.reverse_geocode).get("records", []),
         link_rows=read_csv(args.road_links),
         generated_at=generated_at,
     )

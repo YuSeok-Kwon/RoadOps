@@ -519,6 +519,7 @@ def build_map_snapshot(
     accident_rows: Iterable[Mapping[str, Any]] = (),
     historical_similarity_rows: Iterable[Mapping[str, Any]] = (),
     crime_statistic_rows: Iterable[Mapping[str, Any]] = (),
+    reverse_geocode_rows: Iterable[Mapping[str, Any]] = (),
     link_rows: Iterable[Mapping[str, Any]],
     generated_at: str,
 ) -> tuple[dict[str, list[dict[str, Any]]], dict[str, Any]]:
@@ -529,6 +530,11 @@ def build_map_snapshot(
     accident_hotspots = [dict(row) for row in accident_rows]
     historical_similarity = [dict(row) for row in historical_similarity_rows]
     crime_statistics = [dict(row) for row in crime_statistic_rows]
+    location_by_link = {
+        str(row.get("link_id")): dict(row)
+        for row in reverse_geocode_rows
+        if row.get("link_id")
+    }
     required_link_ids = {
         str(row.get("effective_link_id"))
         for row in risk_rows
@@ -579,6 +585,23 @@ def build_map_snapshot(
         if row.get("agency_id")
     }
     governance_authorities = _governance_authority_rows(resources)
+    for collection in (risk_links, field_tasks, governance_authorities):
+        for row in collection:
+            location = location_by_link.get(str(row.get("link_id")))
+            if location:
+                row.update(
+                    {
+                        key: location.get(key)
+                        for key in (
+                            "location_label",
+                            "display_address",
+                            "address_precision",
+                            "lot_or_house_number",
+                            "intersection_name",
+                            "provider",
+                        )
+                    }
+                )
     vehicles = {
         str(vehicle.get("vehicle_id")): vehicle
         for vehicle in resources.get("vehicles", [])
@@ -742,6 +765,7 @@ def build_map_snapshot(
             "accident_hotspot_count": len(accident_hotspots),
             "historical_similarity_match_count": len(historical_similarity),
             "crime_statistic_city_count": len(crime_statistics),
+            "reverse_geocoded_link_count": len(location_by_link),
         },
         "missing_required_link_ids": missing_required,
         "missing_risk_link_ids": missing_risk,
