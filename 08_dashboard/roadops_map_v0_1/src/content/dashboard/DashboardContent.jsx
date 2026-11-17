@@ -12,9 +12,9 @@ import "./dashboard.css";
 
 const HORIZONS = [0, 1, 3, 6];
 const TEAM_COLORS = {
-  "team-east": "#7c5cff",
-  "team-north": "#1177cc",
-  "team-west": "#008f7a",
+  "team-east": "#2e3192",
+  "team-north": "#1468b3",
+  "team-west": "#6aa52d",
 };
 const RISK_COLORS = {
   critical: "#b42318",
@@ -22,6 +22,13 @@ const RISK_COLORS = {
   moderate: "#f59e0b",
   low: "#2f80ed",
   minimal: "#6b7280",
+};
+const RISK_LABELS = {
+  critical: "심각",
+  high: "높음",
+  moderate: "보통",
+  low: "낮음",
+  minimal: "최소",
 };
 const PLAN_LABELS = {
   safety_first: "안전 우선",
@@ -158,6 +165,14 @@ function RoadMap({
   const affectedTeams = new Set(replanRows.map((row) => row.team_id));
 
   return <div className="roadops-map-wrap">
+    {selectedRisk && <div className="map-focus-panel" data-risk={selectedRisk.risk_level}>
+      <span>선택 구간</span>
+      <strong>{selectedRisk.road_name}</strong>
+      <div>
+        <b>{number(selectedRisk.priority_score)}</b>
+        <small>{RISK_LABELS[selectedRisk.risk_level] || "위험 미분류"} · {selectedRisk.link_id}</small>
+      </div>
+    </div>}
     <svg className="roadops-map" viewBox={`0 0 ${width} ${height}`} role="img"
       aria-label="제주 위험 링크, 순찰팀 경로, 재계획 전후 비교 지도">
       <defs>
@@ -263,7 +278,7 @@ function RiskDetail({ row, sourceRows, horizon }) {
       <span className="risk-band">{number(row.score_lower_bound)}–{number(row.score_upper_bound)}</span>
     </div>
     <div className="risk-detail-grid">
-      <div><span>위험 단계</span><b data-risk-level={row.risk_level}>{row.risk_level || "미분류"}</b></div>
+      <div><span>위험 단계</span><b data-risk-level={row.risk_level}>{RISK_LABELS[row.risk_level] || "미분류"}</b></div>
       <div><span>근거 충족률</span><b>{percentage(row.evidence_coverage_ratio)}</b></div>
       <div><span>결합 방식</span><b>{row.integration_class || "확인 불가"}</b></div>
       <div><span>대상 시각</span><b>{dateTime(row.target_at)}</b></div>
@@ -444,9 +459,9 @@ export function DashboardContent() {
   return <article className="roadops-page" data-dashboard-layout="viewport">
     <section className="roadops-toolbar" aria-label="지도 제어">
       <div className="toolbar-title">
-        <div><span className="eyebrow">JEJU FIELD OPERATIONS</span><strong>위험과 현장 자원을 한 화면에서</strong></div>
+        <div><span className="eyebrow">ROADOPS / JEJU</span><strong>도로 현장 운영 상황판</strong></div>
         <span className={`roadops-freshness-badge ${metadata.freshness_status === "recent_snapshot" ? "recent" : "stale"}`}>
-          {metadata.freshness_status === "recent_snapshot" ? "최근 스냅샷" : "스냅샷 오래됨"} · {dateTime(metadata.latest_risk_target_at)}
+          {metadata.freshness_status === "recent_snapshot" ? "최신 데이터" : "데이터 갱신 필요"} · {dateTime(metadata.latest_risk_target_at)}
         </span>
       </div>
       <div className="toolbar-controls">
@@ -470,7 +485,7 @@ export function DashboardContent() {
         showHeading={false} sourceRows={planMetrics} displayRows={[selectedMetrics]}
         scopeFilters={[{ field: "alternative_id", label: "배분 대안", value: selectedPlan }]}>
         <div className="roadops-metric-grid">
-          <Metric label="위험 링크" value={riskRows.length} note={`+${horizon}시간 · 고위험 ${highRiskCount}개`} tone={highRiskCount ? "warning" : "neutral"} />
+          <Metric label="점검 대상" value={riskRows.length} note={`+${horizon}시간 · 고위험 ${highRiskCount}개`} tone={highRiskCount ? "warning" : "neutral"} />
           <Metric label="배분 완료" value={`${selectedMetrics.assigned_task_count ?? "—"}/${selectedMetrics.candidate_task_count ?? "—"}`} note="제외 조건 통과 업무" tone="positive" />
           <Metric label="위험 커버리지" value={percentage(selectedMetrics.risk_weighted_coverage_ratio)} note="배정 우선순위 합 기준" tone="positive" />
           <Metric label="네트워크 이동" value={`${number(selectedMetrics.network_total_travel_minutes)}분`} note="자유흐름 추정 · 실시간 ETA 아님" />
@@ -482,7 +497,7 @@ export function DashboardContent() {
     <div className="roadops-workspace">
       <section className="roadops-map-column">
         <DataComponent variant="plain" id="roadops-map" queryId="risk_links" queryIds={mapQueryIds}
-          kind="custom" title="제주 도로 운영 지도"
+          kind="custom" title="현장 우선순위 지도"
           description="위험 링크, 점검 후보, 팀 경로와 What-if 재계획 전후를 실제 표준링크 좌표로 겹쳐 표시합니다."
           sourceRows={allRiskRows} displayRows={riskRows} sourceRowsByQuery={sourceRowsByQuery}
           scopeFilters={[
@@ -499,13 +514,13 @@ export function DashboardContent() {
       </section>
 
       <aside className="roadops-inspector">
+        <RiskDetail row={selectedRisk} sourceRows={allRiskRows} horizon={horizon} />
+        <AuthorityDetail task={selectedTask} authority={selectedAuthority}
+          taskRows={rows("field_tasks")} authorityRows={rows("governance_authorities")} />
         <WorkflowPanel teams={rows("teams")} tasks={rows("field_tasks")}
           governanceRows={rows("governance_authorities")}
           routes={rows("plan_routes")} planMetrics={planMetrics} metadata={metadata}
           selectedPlan={selectedPlan} scenarioId={scenarioId} onStateChange={setWorkflowState} />
-        <RiskDetail row={selectedRisk} sourceRows={allRiskRows} horizon={horizon} />
-        <AuthorityDetail task={selectedTask} authority={selectedAuthority}
-          taskRows={rows("field_tasks")} authorityRows={rows("governance_authorities")} />
         <TaskQueue rows={effectiveTaskRows} selectedLinkId={selectedRisk?.link_id} onSelect={selectTask} />
         <PlanComparison rows={planMetrics} selectedPlan={selectedPlan} onSelect={setSelectedPlan} />
         <DataComponent variant="plain" id="gateway-availability" queryId="data_availability" kind="custom"
