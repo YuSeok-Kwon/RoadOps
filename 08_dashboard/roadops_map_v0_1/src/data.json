@@ -1,7 +1,7 @@
 {
   "id": "roadops:jeju-field-operations-map:v0.1",
   "title": "RoadOps 제주 현장 운영 워크벤치",
-  "generatedAt": "2026-11-17T22:17:36.490770+09:00",
+  "generatedAt": "2026-11-17T22:18:53.638834+09:00",
   "status": "reviewed_local_snapshot",
   "surface": "dashboard",
   "filters": [],
@@ -10,7 +10,7 @@
       "rows": [
         {
           "snapshot_version": "roadops-map-snapshot-v0.1",
-          "generated_at": "2026-11-17T22:17:36.490770+09:00",
+          "generated_at": "2026-11-17T22:18:53.638834+09:00",
           "latest_risk_target_at": "2026-11-18T04:00:00+09:00",
           "snapshot_age_minutes": 0.0,
           "freshness_status": "recent_snapshot",
@@ -801,12 +801,12 @@
           "gateway_inflow_status": "unavailable",
           "geometry_json": "[[[126.55120928,33.45607391],[126.55113172,33.45633952],[126.55106474,33.45654583],[126.55095736,33.45695097],[126.55093011,33.45724571],[126.55093245,33.45749457],[126.55092867,33.45784592],[126.55092597,33.45831024],[126.55092569,33.45839001],[126.55092917,33.45872312],[126.55090292,33.45898785],[126.55089028,33.45908331],[126.55083666,33.45931663],[126.55076187,33.45946551]]]",
           "has_geometry": true,
-          "location_label": "제주시 아라동 중앙로",
-          "display_address": "중앙로, 아라일동, 아라동, 제주시, 제주특별자치도, 63241, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "제주시 아라동 중앙로 440-6",
+          "display_address": "제주특별자치도 제주시 아라동 440-6",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "440-6",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "horizon_hours": 0,
@@ -833,12 +833,12 @@
           "gateway_inflow_status": "unavailable",
           "geometry_json": "[[[126.6205904,33.38448894],[126.62054666,33.38462925],[126.62049398,33.384959]]]",
           "has_geometry": true,
-          "location_label": "서귀포시 신례리 516로",
-          "display_address": "516로, 신례리, 남원읍, 서귀포시, 제주특별자치도, 63345, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "서귀포시 남원읍 516로 2-13",
+          "display_address": "제주특별자치도 서귀포시 남원읍 산2-13",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "2-13",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "horizon_hours": 0,
@@ -865,12 +865,12 @@
           "gateway_inflow_status": "unavailable",
           "geometry_json": "[[[126.67985786,33.4119256],[126.68037384,33.4104522],[126.68102002,33.40867751]]]",
           "has_geometry": true,
-          "location_label": "제주시 교래리 남조로",
-          "display_address": "렛츠런팜제주, 남조로, 교래리, 조천읍, 제주시, 제주특별자치도, 63346, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "제주시 조천읍 남조로 70-4",
+          "display_address": "제주특별자치도 제주시 조천읍 산70-4",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "70-4",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "horizon_hours": 0,
@@ -897,12 +897,12 @@
           "gateway_inflow_status": "unavailable",
           "geometry_json": "[[[126.40591065,33.41942192],[126.40623539,33.41948155],[126.40636439,33.41953929],[126.40647631,33.41953504],[126.40670047,33.41972383],[126.40688494,33.41991424],[126.40708971,33.42017532],[126.40800285,33.42142326],[126.40813666,33.4216302],[126.40865779,33.42255053],[126.40872508,33.42262564],[126.40879586,33.42277883],[126.40879975,33.42281499]]]",
           "has_geometry": true,
-          "location_label": "제주시 유수암리 평화로",
-          "display_address": "유수암리, 애월읍, 제주시, 제주특별자치도, 63067, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "제주시 애월읍 평화로 1071-1",
+          "display_address": "제주특별자치도 제주시 애월읍 1071-1",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "1071-1",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "horizon_hours": 0,
@@ -929,12 +929,12 @@
           "gateway_inflow_status": "unavailable",
           "geometry_json": "[[[126.42814659,33.43955521],[126.42888154,33.4402262],[126.42952774,33.44096207]]]",
           "has_geometry": true,
-          "location_label": "제주시 광령리 평화로",
-          "display_address": "평화로, 광령리, 애월읍, 제주시, 제주특별자치도, 63062, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "제주시 애월읍 평화로 2844-3",
+          "display_address": "제주특별자치도 제주시 애월읍 2844-3",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "2844-3",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "horizon_hours": 0,
@@ -961,12 +961,12 @@
           "gateway_inflow_status": "unavailable",
           "geometry_json": "[[[126.42947018,33.44104808],[126.42881004,33.44029633],[126.42806612,33.43961716]]]",
           "has_geometry": true,
-          "location_label": "제주시 광령리 평화로",
-          "display_address": "평화로, 광령리, 애월읍, 제주시, 제주특별자치도, 63062, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "제주시 애월읍 평화로 2844-3",
+          "display_address": "제주특별자치도 제주시 애월읍 2844-3",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "2844-3",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "horizon_hours": 0,
@@ -1025,12 +1025,12 @@
           "gateway_inflow_status": "unavailable",
           "geometry_json": "[[[126.59916949,33.32156581],[126.59885246,33.32143986],[126.59822274,33.32102854],[126.59789499,33.32070104],[126.59774782,33.32025838],[126.59774968,33.31993551],[126.59789807,33.31958292],[126.59850888,33.31860846],[126.59861662,33.31830538],[126.59859751,33.31797708],[126.59854453,33.31782441]]]",
           "has_geometry": true,
-          "location_label": "서귀포시 하례리 516로",
-          "display_address": "516로, 하례리, 남원읍, 서귀포시, 제주특별자치도, 63607, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "서귀포시 남원읍 516로 59",
+          "display_address": "제주특별자치도 서귀포시 남원읍 산59",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "59",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "horizon_hours": 0,
@@ -1057,12 +1057,12 @@
           "gateway_inflow_status": "unavailable",
           "geometry_json": "[[[126.35528805,33.33375499],[126.35530063,33.33370511],[126.35519967,33.33279619],[126.35511052,33.33223064],[126.35504361,33.33198805],[126.35504626,33.33177913],[126.3549965,33.33131861],[126.3549833,33.33113168],[126.35498608,33.3309884],[126.3549945,33.33077859],[126.35498226,33.33073989]]]",
           "has_geometry": true,
-          "location_label": "서귀포시 광평리 평화로",
-          "display_address": "평화로, 광평리, 안덕면, 서귀포시, 제주특별자치도, 63524, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "서귀포시 안덕면 평화로 109-3",
+          "display_address": "제주특별자치도 서귀포시 안덕면 산109-3",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "109-3",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "horizon_hours": 1,
@@ -1089,12 +1089,12 @@
           "gateway_inflow_status": "unavailable",
           "geometry_json": "[[[126.55120928,33.45607391],[126.55113172,33.45633952],[126.55106474,33.45654583],[126.55095736,33.45695097],[126.55093011,33.45724571],[126.55093245,33.45749457],[126.55092867,33.45784592],[126.55092597,33.45831024],[126.55092569,33.45839001],[126.55092917,33.45872312],[126.55090292,33.45898785],[126.55089028,33.45908331],[126.55083666,33.45931663],[126.55076187,33.45946551]]]",
           "has_geometry": true,
-          "location_label": "제주시 아라동 중앙로",
-          "display_address": "중앙로, 아라일동, 아라동, 제주시, 제주특별자치도, 63241, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "제주시 아라동 중앙로 440-6",
+          "display_address": "제주특별자치도 제주시 아라동 440-6",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "440-6",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "horizon_hours": 1,
@@ -1121,12 +1121,12 @@
           "gateway_inflow_status": "unavailable",
           "geometry_json": "[[[126.6205904,33.38448894],[126.62054666,33.38462925],[126.62049398,33.384959]]]",
           "has_geometry": true,
-          "location_label": "서귀포시 신례리 516로",
-          "display_address": "516로, 신례리, 남원읍, 서귀포시, 제주특별자치도, 63345, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "서귀포시 남원읍 516로 2-13",
+          "display_address": "제주특별자치도 서귀포시 남원읍 산2-13",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "2-13",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "horizon_hours": 1,
@@ -1153,12 +1153,12 @@
           "gateway_inflow_status": "unavailable",
           "geometry_json": "[[[126.67985786,33.4119256],[126.68037384,33.4104522],[126.68102002,33.40867751]]]",
           "has_geometry": true,
-          "location_label": "제주시 교래리 남조로",
-          "display_address": "렛츠런팜제주, 남조로, 교래리, 조천읍, 제주시, 제주특별자치도, 63346, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "제주시 조천읍 남조로 70-4",
+          "display_address": "제주특별자치도 제주시 조천읍 산70-4",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "70-4",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "horizon_hours": 1,
@@ -1185,12 +1185,12 @@
           "gateway_inflow_status": "unavailable",
           "geometry_json": "[[[126.40591065,33.41942192],[126.40623539,33.41948155],[126.40636439,33.41953929],[126.40647631,33.41953504],[126.40670047,33.41972383],[126.40688494,33.41991424],[126.40708971,33.42017532],[126.40800285,33.42142326],[126.40813666,33.4216302],[126.40865779,33.42255053],[126.40872508,33.42262564],[126.40879586,33.42277883],[126.40879975,33.42281499]]]",
           "has_geometry": true,
-          "location_label": "제주시 유수암리 평화로",
-          "display_address": "유수암리, 애월읍, 제주시, 제주특별자치도, 63067, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "제주시 애월읍 평화로 1071-1",
+          "display_address": "제주특별자치도 제주시 애월읍 1071-1",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "1071-1",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "horizon_hours": 1,
@@ -1217,12 +1217,12 @@
           "gateway_inflow_status": "unavailable",
           "geometry_json": "[[[126.42814659,33.43955521],[126.42888154,33.4402262],[126.42952774,33.44096207]]]",
           "has_geometry": true,
-          "location_label": "제주시 광령리 평화로",
-          "display_address": "평화로, 광령리, 애월읍, 제주시, 제주특별자치도, 63062, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "제주시 애월읍 평화로 2844-3",
+          "display_address": "제주특별자치도 제주시 애월읍 2844-3",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "2844-3",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "horizon_hours": 1,
@@ -1249,12 +1249,12 @@
           "gateway_inflow_status": "unavailable",
           "geometry_json": "[[[126.42947018,33.44104808],[126.42881004,33.44029633],[126.42806612,33.43961716]]]",
           "has_geometry": true,
-          "location_label": "제주시 광령리 평화로",
-          "display_address": "평화로, 광령리, 애월읍, 제주시, 제주특별자치도, 63062, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "제주시 애월읍 평화로 2844-3",
+          "display_address": "제주특별자치도 제주시 애월읍 2844-3",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "2844-3",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "horizon_hours": 1,
@@ -1313,12 +1313,12 @@
           "gateway_inflow_status": "unavailable",
           "geometry_json": "[[[126.59916949,33.32156581],[126.59885246,33.32143986],[126.59822274,33.32102854],[126.59789499,33.32070104],[126.59774782,33.32025838],[126.59774968,33.31993551],[126.59789807,33.31958292],[126.59850888,33.31860846],[126.59861662,33.31830538],[126.59859751,33.31797708],[126.59854453,33.31782441]]]",
           "has_geometry": true,
-          "location_label": "서귀포시 하례리 516로",
-          "display_address": "516로, 하례리, 남원읍, 서귀포시, 제주특별자치도, 63607, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "서귀포시 남원읍 516로 59",
+          "display_address": "제주특별자치도 서귀포시 남원읍 산59",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "59",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "horizon_hours": 1,
@@ -1345,12 +1345,12 @@
           "gateway_inflow_status": "unavailable",
           "geometry_json": "[[[126.35528805,33.33375499],[126.35530063,33.33370511],[126.35519967,33.33279619],[126.35511052,33.33223064],[126.35504361,33.33198805],[126.35504626,33.33177913],[126.3549965,33.33131861],[126.3549833,33.33113168],[126.35498608,33.3309884],[126.3549945,33.33077859],[126.35498226,33.33073989]]]",
           "has_geometry": true,
-          "location_label": "서귀포시 광평리 평화로",
-          "display_address": "평화로, 광평리, 안덕면, 서귀포시, 제주특별자치도, 63524, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "서귀포시 안덕면 평화로 109-3",
+          "display_address": "제주특별자치도 서귀포시 안덕면 산109-3",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "109-3",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "horizon_hours": 3,
@@ -1377,12 +1377,12 @@
           "gateway_inflow_status": "unavailable",
           "geometry_json": "[[[126.55120928,33.45607391],[126.55113172,33.45633952],[126.55106474,33.45654583],[126.55095736,33.45695097],[126.55093011,33.45724571],[126.55093245,33.45749457],[126.55092867,33.45784592],[126.55092597,33.45831024],[126.55092569,33.45839001],[126.55092917,33.45872312],[126.55090292,33.45898785],[126.55089028,33.45908331],[126.55083666,33.45931663],[126.55076187,33.45946551]]]",
           "has_geometry": true,
-          "location_label": "제주시 아라동 중앙로",
-          "display_address": "중앙로, 아라일동, 아라동, 제주시, 제주특별자치도, 63241, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "제주시 아라동 중앙로 440-6",
+          "display_address": "제주특별자치도 제주시 아라동 440-6",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "440-6",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "horizon_hours": 3,
@@ -1409,12 +1409,12 @@
           "gateway_inflow_status": "unavailable",
           "geometry_json": "[[[126.6205904,33.38448894],[126.62054666,33.38462925],[126.62049398,33.384959]]]",
           "has_geometry": true,
-          "location_label": "서귀포시 신례리 516로",
-          "display_address": "516로, 신례리, 남원읍, 서귀포시, 제주특별자치도, 63345, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "서귀포시 남원읍 516로 2-13",
+          "display_address": "제주특별자치도 서귀포시 남원읍 산2-13",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "2-13",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "horizon_hours": 3,
@@ -1441,12 +1441,12 @@
           "gateway_inflow_status": "unavailable",
           "geometry_json": "[[[126.67985786,33.4119256],[126.68037384,33.4104522],[126.68102002,33.40867751]]]",
           "has_geometry": true,
-          "location_label": "제주시 교래리 남조로",
-          "display_address": "렛츠런팜제주, 남조로, 교래리, 조천읍, 제주시, 제주특별자치도, 63346, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "제주시 조천읍 남조로 70-4",
+          "display_address": "제주특별자치도 제주시 조천읍 산70-4",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "70-4",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "horizon_hours": 3,
@@ -1473,12 +1473,12 @@
           "gateway_inflow_status": "unavailable",
           "geometry_json": "[[[126.40591065,33.41942192],[126.40623539,33.41948155],[126.40636439,33.41953929],[126.40647631,33.41953504],[126.40670047,33.41972383],[126.40688494,33.41991424],[126.40708971,33.42017532],[126.40800285,33.42142326],[126.40813666,33.4216302],[126.40865779,33.42255053],[126.40872508,33.42262564],[126.40879586,33.42277883],[126.40879975,33.42281499]]]",
           "has_geometry": true,
-          "location_label": "제주시 유수암리 평화로",
-          "display_address": "유수암리, 애월읍, 제주시, 제주특별자치도, 63067, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "제주시 애월읍 평화로 1071-1",
+          "display_address": "제주특별자치도 제주시 애월읍 1071-1",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "1071-1",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "horizon_hours": 3,
@@ -1505,12 +1505,12 @@
           "gateway_inflow_status": "unavailable",
           "geometry_json": "[[[126.42814659,33.43955521],[126.42888154,33.4402262],[126.42952774,33.44096207]]]",
           "has_geometry": true,
-          "location_label": "제주시 광령리 평화로",
-          "display_address": "평화로, 광령리, 애월읍, 제주시, 제주특별자치도, 63062, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "제주시 애월읍 평화로 2844-3",
+          "display_address": "제주특별자치도 제주시 애월읍 2844-3",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "2844-3",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "horizon_hours": 3,
@@ -1537,12 +1537,12 @@
           "gateway_inflow_status": "unavailable",
           "geometry_json": "[[[126.42947018,33.44104808],[126.42881004,33.44029633],[126.42806612,33.43961716]]]",
           "has_geometry": true,
-          "location_label": "제주시 광령리 평화로",
-          "display_address": "평화로, 광령리, 애월읍, 제주시, 제주특별자치도, 63062, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "제주시 애월읍 평화로 2844-3",
+          "display_address": "제주특별자치도 제주시 애월읍 2844-3",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "2844-3",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "horizon_hours": 3,
@@ -1601,12 +1601,12 @@
           "gateway_inflow_status": "unavailable",
           "geometry_json": "[[[126.59916949,33.32156581],[126.59885246,33.32143986],[126.59822274,33.32102854],[126.59789499,33.32070104],[126.59774782,33.32025838],[126.59774968,33.31993551],[126.59789807,33.31958292],[126.59850888,33.31860846],[126.59861662,33.31830538],[126.59859751,33.31797708],[126.59854453,33.31782441]]]",
           "has_geometry": true,
-          "location_label": "서귀포시 하례리 516로",
-          "display_address": "516로, 하례리, 남원읍, 서귀포시, 제주특별자치도, 63607, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "서귀포시 남원읍 516로 59",
+          "display_address": "제주특별자치도 서귀포시 남원읍 산59",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "59",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "horizon_hours": 3,
@@ -1633,12 +1633,12 @@
           "gateway_inflow_status": "unavailable",
           "geometry_json": "[[[126.35528805,33.33375499],[126.35530063,33.33370511],[126.35519967,33.33279619],[126.35511052,33.33223064],[126.35504361,33.33198805],[126.35504626,33.33177913],[126.3549965,33.33131861],[126.3549833,33.33113168],[126.35498608,33.3309884],[126.3549945,33.33077859],[126.35498226,33.33073989]]]",
           "has_geometry": true,
-          "location_label": "서귀포시 광평리 평화로",
-          "display_address": "평화로, 광평리, 안덕면, 서귀포시, 제주특별자치도, 63524, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "서귀포시 안덕면 평화로 109-3",
+          "display_address": "제주특별자치도 서귀포시 안덕면 산109-3",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "109-3",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "horizon_hours": 6,
@@ -1665,12 +1665,12 @@
           "gateway_inflow_status": "unavailable",
           "geometry_json": "[[[126.55120928,33.45607391],[126.55113172,33.45633952],[126.55106474,33.45654583],[126.55095736,33.45695097],[126.55093011,33.45724571],[126.55093245,33.45749457],[126.55092867,33.45784592],[126.55092597,33.45831024],[126.55092569,33.45839001],[126.55092917,33.45872312],[126.55090292,33.45898785],[126.55089028,33.45908331],[126.55083666,33.45931663],[126.55076187,33.45946551]]]",
           "has_geometry": true,
-          "location_label": "제주시 아라동 중앙로",
-          "display_address": "중앙로, 아라일동, 아라동, 제주시, 제주특별자치도, 63241, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "제주시 아라동 중앙로 440-6",
+          "display_address": "제주특별자치도 제주시 아라동 440-6",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "440-6",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "horizon_hours": 6,
@@ -1697,12 +1697,12 @@
           "gateway_inflow_status": "unavailable",
           "geometry_json": "[[[126.6205904,33.38448894],[126.62054666,33.38462925],[126.62049398,33.384959]]]",
           "has_geometry": true,
-          "location_label": "서귀포시 신례리 516로",
-          "display_address": "516로, 신례리, 남원읍, 서귀포시, 제주특별자치도, 63345, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "서귀포시 남원읍 516로 2-13",
+          "display_address": "제주특별자치도 서귀포시 남원읍 산2-13",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "2-13",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "horizon_hours": 6,
@@ -1729,12 +1729,12 @@
           "gateway_inflow_status": "unavailable",
           "geometry_json": "[[[126.67985786,33.4119256],[126.68037384,33.4104522],[126.68102002,33.40867751]]]",
           "has_geometry": true,
-          "location_label": "제주시 교래리 남조로",
-          "display_address": "렛츠런팜제주, 남조로, 교래리, 조천읍, 제주시, 제주특별자치도, 63346, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "제주시 조천읍 남조로 70-4",
+          "display_address": "제주특별자치도 제주시 조천읍 산70-4",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "70-4",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "horizon_hours": 6,
@@ -1761,12 +1761,12 @@
           "gateway_inflow_status": "unavailable",
           "geometry_json": "[[[126.40591065,33.41942192],[126.40623539,33.41948155],[126.40636439,33.41953929],[126.40647631,33.41953504],[126.40670047,33.41972383],[126.40688494,33.41991424],[126.40708971,33.42017532],[126.40800285,33.42142326],[126.40813666,33.4216302],[126.40865779,33.42255053],[126.40872508,33.42262564],[126.40879586,33.42277883],[126.40879975,33.42281499]]]",
           "has_geometry": true,
-          "location_label": "제주시 유수암리 평화로",
-          "display_address": "유수암리, 애월읍, 제주시, 제주특별자치도, 63067, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "제주시 애월읍 평화로 1071-1",
+          "display_address": "제주특별자치도 제주시 애월읍 1071-1",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "1071-1",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "horizon_hours": 6,
@@ -1793,12 +1793,12 @@
           "gateway_inflow_status": "unavailable",
           "geometry_json": "[[[126.42814659,33.43955521],[126.42888154,33.4402262],[126.42952774,33.44096207]]]",
           "has_geometry": true,
-          "location_label": "제주시 광령리 평화로",
-          "display_address": "평화로, 광령리, 애월읍, 제주시, 제주특별자치도, 63062, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "제주시 애월읍 평화로 2844-3",
+          "display_address": "제주특별자치도 제주시 애월읍 2844-3",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "2844-3",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "horizon_hours": 6,
@@ -1825,12 +1825,12 @@
           "gateway_inflow_status": "unavailable",
           "geometry_json": "[[[126.42947018,33.44104808],[126.42881004,33.44029633],[126.42806612,33.43961716]]]",
           "has_geometry": true,
-          "location_label": "제주시 광령리 평화로",
-          "display_address": "평화로, 광령리, 애월읍, 제주시, 제주특별자치도, 63062, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "제주시 애월읍 평화로 2844-3",
+          "display_address": "제주특별자치도 제주시 애월읍 2844-3",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "2844-3",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "horizon_hours": 6,
@@ -1889,12 +1889,12 @@
           "gateway_inflow_status": "unavailable",
           "geometry_json": "[[[126.59916949,33.32156581],[126.59885246,33.32143986],[126.59822274,33.32102854],[126.59789499,33.32070104],[126.59774782,33.32025838],[126.59774968,33.31993551],[126.59789807,33.31958292],[126.59850888,33.31860846],[126.59861662,33.31830538],[126.59859751,33.31797708],[126.59854453,33.31782441]]]",
           "has_geometry": true,
-          "location_label": "서귀포시 하례리 516로",
-          "display_address": "516로, 하례리, 남원읍, 서귀포시, 제주특별자치도, 63607, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "서귀포시 남원읍 516로 59",
+          "display_address": "제주특별자치도 서귀포시 남원읍 산59",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "59",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "horizon_hours": 6,
@@ -1921,12 +1921,12 @@
           "gateway_inflow_status": "unavailable",
           "geometry_json": "[[[126.35528805,33.33375499],[126.35530063,33.33370511],[126.35519967,33.33279619],[126.35511052,33.33223064],[126.35504361,33.33198805],[126.35504626,33.33177913],[126.3549965,33.33131861],[126.3549833,33.33113168],[126.35498608,33.3309884],[126.3549945,33.33077859],[126.35498226,33.33073989]]]",
           "has_geometry": true,
-          "location_label": "서귀포시 광평리 평화로",
-          "display_address": "평화로, 광평리, 안덕면, 서귀포시, 제주특별자치도, 63524, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "서귀포시 안덕면 평화로 109-3",
+          "display_address": "제주특별자치도 서귀포시 안덕면 산109-3",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "109-3",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         }
       ],
       "source": {
@@ -2062,12 +2062,12 @@
               "status": "not_requested"
             }
           ],
-          "location_label": "서귀포시 신례리 516로",
-          "display_address": "516로, 신례리, 남원읍, 서귀포시, 제주특별자치도, 63345, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "서귀포시 남원읍 516로 2-13",
+          "display_address": "제주특별자치도 서귀포시 남원읍 산2-13",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "2-13",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "task_id": "link:4050484600:h0",
@@ -2151,12 +2151,12 @@
               "status": "not_requested"
             }
           ],
-          "location_label": "제주시 광령리 평화로",
-          "display_address": "평화로, 광령리, 애월읍, 제주시, 제주특별자치도, 63062, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "제주시 애월읍 평화로 2844-3",
+          "display_address": "제주특별자치도 제주시 애월읍 2844-3",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "2844-3",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "task_id": "link:4050484700:h0",
@@ -2240,12 +2240,12 @@
               "status": "not_requested"
             }
           ],
-          "location_label": "제주시 광령리 평화로",
-          "display_address": "평화로, 광령리, 애월읍, 제주시, 제주특별자치도, 63062, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "제주시 애월읍 평화로 2844-3",
+          "display_address": "제주특별자치도 제주시 애월읍 2844-3",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "2844-3",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "task_id": "link:4050456800:h0",
@@ -2329,12 +2329,12 @@
               "status": "not_requested"
             }
           ],
-          "location_label": "제주시 유수암리 평화로",
-          "display_address": "유수암리, 애월읍, 제주시, 제주특별자치도, 63067, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "제주시 애월읍 평화로 1071-1",
+          "display_address": "제주특별자치도 제주시 애월읍 1071-1",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "1071-1",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "task_id": "link:4050005521:h0",
@@ -2418,12 +2418,12 @@
               "status": "not_requested"
             }
           ],
-          "location_label": "제주시 아라동 중앙로",
-          "display_address": "중앙로, 아라일동, 아라동, 제주시, 제주특별자치도, 63241, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "제주시 아라동 중앙로 440-6",
+          "display_address": "제주특별자치도 제주시 아라동 440-6",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "440-6",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "task_id": "link:4060024900:h0",
@@ -2596,12 +2596,12 @@
               "status": "not_requested"
             }
           ],
-          "location_label": "서귀포시 하례리 516로",
-          "display_address": "516로, 하례리, 남원읍, 서귀포시, 제주특별자치도, 63607, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "서귀포시 남원읍 516로 59",
+          "display_address": "제주특별자치도 서귀포시 남원읍 산59",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "59",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "task_id": "link:4060456800:h0",
@@ -2685,12 +2685,12 @@
               "status": "not_requested"
             }
           ],
-          "location_label": "서귀포시 광평리 평화로",
-          "display_address": "평화로, 광평리, 안덕면, 서귀포시, 제주특별자치도, 63524, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "서귀포시 안덕면 평화로 109-3",
+          "display_address": "제주특별자치도 서귀포시 안덕면 산109-3",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "109-3",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         }
       ],
       "source": {
@@ -2770,12 +2770,12 @@
           "fire_channel_status": "active",
           "fire_contact_method": "119 긴급 신고·인계",
           "fire_automation_status": "manual_operator_handoff",
-          "location_label": "제주시 아라동 중앙로",
-          "display_address": "중앙로, 아라일동, 아라동, 제주시, 제주특별자치도, 63241, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "제주시 아라동 중앙로 440-6",
+          "display_address": "제주특별자치도 제주시 아라동 440-6",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "440-6",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "link_id": "4050396600",
@@ -2862,12 +2862,12 @@
           "fire_channel_status": "active",
           "fire_contact_method": "119 긴급 신고·인계",
           "fire_automation_status": "manual_operator_handoff",
-          "location_label": "서귀포시 신례리 516로",
-          "display_address": "516로, 신례리, 남원읍, 서귀포시, 제주특별자치도, 63345, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "서귀포시 남원읍 516로 2-13",
+          "display_address": "제주특별자치도 서귀포시 남원읍 산2-13",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "2-13",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "link_id": "4050429802",
@@ -2954,12 +2954,12 @@
           "fire_channel_status": "active",
           "fire_contact_method": "119 긴급 신고·인계",
           "fire_automation_status": "manual_operator_handoff",
-          "location_label": "제주시 유수암리 평화로",
-          "display_address": "유수암리, 애월읍, 제주시, 제주특별자치도, 63067, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "제주시 애월읍 평화로 1071-1",
+          "display_address": "제주특별자치도 제주시 애월읍 1071-1",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "1071-1",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "link_id": "4050484600",
@@ -3003,12 +3003,12 @@
           "fire_channel_status": "active",
           "fire_contact_method": "119 긴급 신고·인계",
           "fire_automation_status": "manual_operator_handoff",
-          "location_label": "제주시 광령리 평화로",
-          "display_address": "평화로, 광령리, 애월읍, 제주시, 제주특별자치도, 63062, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "제주시 애월읍 평화로 2844-3",
+          "display_address": "제주특별자치도 제주시 애월읍 2844-3",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "2844-3",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "link_id": "4050484700",
@@ -3052,12 +3052,12 @@
           "fire_channel_status": "active",
           "fire_contact_method": "119 긴급 신고·인계",
           "fire_automation_status": "manual_operator_handoff",
-          "location_label": "제주시 광령리 평화로",
-          "display_address": "평화로, 광령리, 애월읍, 제주시, 제주특별자치도, 63062, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "제주시 애월읍 평화로 2844-3",
+          "display_address": "제주특별자치도 제주시 애월읍 2844-3",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "2844-3",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "link_id": "4060024900",
@@ -3150,12 +3150,12 @@
           "fire_channel_status": "active",
           "fire_contact_method": "119 긴급 신고·인계",
           "fire_automation_status": "manual_operator_handoff",
-          "location_label": "서귀포시 하례리 516로",
-          "display_address": "516로, 하례리, 남원읍, 서귀포시, 제주특별자치도, 63607, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "서귀포시 남원읍 516로 59",
+          "display_address": "제주특별자치도 서귀포시 남원읍 산59",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "59",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         },
         {
           "link_id": "4060456800",
@@ -3199,12 +3199,12 @@
           "fire_channel_status": "active",
           "fire_contact_method": "119 긴급 신고·인계",
           "fire_automation_status": "manual_operator_handoff",
-          "location_label": "서귀포시 광평리 평화로",
-          "display_address": "평화로, 광평리, 안덕면, 서귀포시, 제주특별자치도, 63524, 대한민국",
-          "address_precision": "road_or_locality",
-          "lot_or_house_number": null,
+          "location_label": "서귀포시 안덕면 평화로 109-3",
+          "display_address": "제주특별자치도 서귀포시 안덕면 산109-3",
+          "address_precision": "official_parcel",
+          "lot_or_house_number": "109-3",
           "intersection_name": null,
-          "provider": "OpenStreetMap Nominatim"
+          "provider": "SGIS 국가데이터처"
         }
       ],
       "source": {

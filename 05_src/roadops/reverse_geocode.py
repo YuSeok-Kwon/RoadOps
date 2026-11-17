@@ -204,40 +204,39 @@ def enrich_link_locations(
         cache_key = f"{latitude:.6f},{longitude:.6f}"
         if sgis_token:
             official_payloads = sgis_cache.get(cache_key)
-            if official_payloads is None:
+            if not isinstance(official_payloads, Mapping):
+                official_payloads = {}
+            for payload_name, address_type in (("parcel", 21), ("road", 10)):
+                if payload_name in official_payloads:
+                    continue
                 if sgis_cache_misses:
                     time.sleep(request_delay_seconds)
                 try:
-                    official_payloads = {
-                        "parcel": reverse_sgis(
-                            latitude,
-                            longitude,
-                            access_token=sgis_token,
-                            address_type=21,
-                            timeout_seconds=timeout_seconds,
-                        ),
-                        "road": reverse_sgis(
-                            latitude,
-                            longitude,
-                            access_token=sgis_token,
-                            address_type=10,
-                            timeout_seconds=timeout_seconds,
-                        ),
-                    }
-                    sgis_cache[cache_key] = official_payloads
+                    official_payloads[payload_name] = reverse_sgis(
+                        latitude,
+                        longitude,
+                        access_token=sgis_token,
+                        address_type=address_type,
+                        timeout_seconds=timeout_seconds,
+                    )
                     sgis_cache_misses += 1
                 except Exception as exc:  # fall through to public map provider
-                    failures.append({"link_id": str(row["link_id"]), "reason": f"sgis:{type(exc).__name__}"})
-                    official_payloads = None
+                    failures.append(
+                        {
+                            "link_id": str(row["link_id"]),
+                            "reason": f"sgis_{payload_name}:{type(exc).__name__}",
+                        }
+                    )
             if official_payloads:
+                sgis_cache[cache_key] = official_payloads
                 records.append(
                     {
                         "link_id": str(row["link_id"]),
                         "latitude": latitude,
                         "longitude": longitude,
                         **location_from_sgis(
-                            official_payloads["parcel"],
-                            official_payloads["road"],
+                            official_payloads.get("parcel", {}),
+                            official_payloads.get("road", {}),
                             road_name=str(row.get("road_name") or "") or None,
                         ),
                     }
@@ -279,8 +278,15 @@ def enrich_link_locations(
         "cache_miss_count": cache_misses,
         "failure_count": len(failures),
         "failures": failures,
-        "exact_parcel_or_building_count": sum(row["address_precision"] == "parcel_or_building" for row in records),
-        "road_or_locality_count": sum(row["address_precision"] == "road_or_locality" for row in records),
+        "exact_parcel_or_building_count": sum(
+            row["address_precision"]
+            in {"parcel_or_building", "official_parcel", "official_road_address"}
+            for row in records
+        ),
+        "road_or_locality_count": sum(
+            row["address_precision"] in {"road_or_locality", "official_locality"}
+            for row in records
+        ),
         "official_sgis_count": official_count,
         "openstreetmap_fallback_count": len(records) - official_count,
         "sgis_credentials_configured": bool(sgis_consumer_key and sgis_consumer_secret),

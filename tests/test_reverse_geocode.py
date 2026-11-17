@@ -1,4 +1,9 @@
-from roadops.reverse_geocode import location_from_nominatim, location_from_sgis, midpoint
+from roadops.reverse_geocode import (
+    enrich_link_locations,
+    location_from_nominatim,
+    location_from_sgis,
+    midpoint,
+)
 
 
 def test_midpoint_uses_central_shape_point():
@@ -31,3 +36,54 @@ def test_location_from_sgis_combines_official_parcel_and_road_fields():
     assert row["lot_or_house_number"] == "123-4"
     assert row["address_precision"] == "official_parcel"
     assert row["provider"] == "SGIS 국가데이터처"
+
+
+def test_enrichment_keeps_official_parcel_when_road_address_is_missing(
+    monkeypatch, tmp_path
+):
+    monkeypatch.setattr(
+        "roadops.reverse_geocode.sgis_access_token", lambda *args, **kwargs: "token"
+    )
+
+    def partial_sgis(*args, address_type, **kwargs):
+        if address_type == 21:
+            return {
+                "errCd": 0,
+                "result": [
+                    {
+                        "sgg_nm": "제주시",
+                        "emdong_nm": "애월읍",
+                        "main_no": "123",
+                        "sub_no": "4",
+                    }
+                ],
+            }
+        raise RuntimeError("sgis_reverse_error:-100:검색결과가 존재하지 않습니다.")
+
+    monkeypatch.setattr("roadops.reverse_geocode.reverse_sgis", partial_sgis)
+    monkeypatch.setattr(
+        "roadops.reverse_geocode.reverse_nominatim",
+        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("fallback called")),
+    )
+
+    rows, report = enrich_link_locations(
+        [
+            {
+                "link_id": "link-1",
+                "latitude": 33.4,
+                "longitude": 126.5,
+                "road_name": "평화로",
+            }
+        ],
+        cache_path=tmp_path / "osm.json",
+        sgis_consumer_key="service-id",
+        sgis_consumer_secret="security-key",
+        sgis_cache_path=tmp_path / "sgis.json",
+        request_delay_seconds=0,
+    )
+
+    assert rows[0]["provider"] == "SGIS 국가데이터처"
+    assert rows[0]["location_label"] == "제주시 애월읍 평화로 123-4"
+    assert report["official_sgis_count"] == 1
+    assert report["openstreetmap_fallback_count"] == 0
+    assert report["exact_parcel_or_building_count"] == 1
