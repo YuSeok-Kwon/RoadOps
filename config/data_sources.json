@@ -347,6 +347,30 @@
       "join_key": "link geometry",
       "coordinate_system": "EPSG:4326",
       "expected_fields": ["index", "line_string", "anals_value", "anals_grd"]
+    },
+    {
+      "id": "koroad_local_government_accident_hotspots",
+      "name": "KoROAD local-government frequent-accident areas",
+      "name_ko": "한국도로교통공단 지자체별 교통사고 다발지역",
+      "documentation_url": "https://opendata.koroad.or.kr/api/selectLgDataSet.do",
+      "endpoint_url": "https://opendata.koroad.or.kr/data/rest/frequentzone/lg",
+      "fallback_download_url": "https://opendata.koroad.or.kr/api/down/lgdown.jsp",
+      "kind": "json_api_with_official_csv_fallback",
+      "authentication": {
+        "environment_variable": "TAAS_API_KEY",
+        "query_parameter": "authKey"
+      },
+      "default_params": {
+        "searchYearCd": 2025,
+        "siDo": "50",
+        "guGun": "110 or 130",
+        "type": "json",
+        "numOfRows": 100,
+        "pageNo": 1
+      },
+      "join_key": "hotspot polygon and centroid",
+      "coordinate_system": "EPSG:4326",
+      "expected_fields": ["afos_fid", "spot_nm", "occrrnc_cnt", "caslt_cnt", "lo_crd", "la_crd", "geom_json"]
     }
   ]
 }

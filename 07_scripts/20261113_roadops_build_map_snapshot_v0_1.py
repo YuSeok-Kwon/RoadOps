@@ -75,6 +75,12 @@ def parse_args() -> argparse.Namespace:
         / "02_outputs/data/travel_time_matrix_v0_1/travel_time_matrix.json",
     )
     parser.add_argument(
+        "--accident-hotspots",
+        type=Path,
+        default=PROJECT_ROOT
+        / "02_outputs/data/accident_hotspots_v0_1/accident_hotspots.json",
+    )
+    parser.add_argument(
         "--output-dir",
         type=Path,
         default=PROJECT_ROOT / "02_outputs/data/map_snapshot_v0_1",
@@ -172,6 +178,15 @@ def build_data_app_snapshot(
             [
                 "Temperature and humidity are shown as ranges across the reviewed Jeju forecast grids.",
                 "Maximum wind speed is the largest value among usable grid forecasts, not a single-site observation.",
+            ],
+        ),
+        "accident_hotspots": source(
+            "KoROAD local-government frequent-accident areas",
+            [inputs["accident_hotspots"]],
+            ["roadops-map"],
+            [
+                "The layer is an official annual hotspot selection, not a current accident feed.",
+                "It is displayed independently and is not added again to the operational priority score.",
             ],
         ),
         "road_background": source(
@@ -276,6 +291,7 @@ def main() -> int:
         "allocation": args.allocation,
         "road_links": args.road_links,
         "travel_time": args.travel_time,
+        "accident_hotspots": args.accident_hotspots,
     }
     for name, path in inputs.items():
         if not path.exists():
@@ -289,6 +305,7 @@ def main() -> int:
         resources=read_json(args.resources),
         allocation=read_json(args.allocation),
         travel_time=read_json(args.travel_time),
+        accident_rows=read_json(args.accident_hotspots).get("records", []),
         link_rows=read_csv(args.road_links),
         generated_at=generated_at,
     )

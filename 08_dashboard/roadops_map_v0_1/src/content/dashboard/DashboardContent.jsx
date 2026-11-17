@@ -317,7 +317,7 @@ function WeatherForecastStrip({ rows, horizon, onSelect }) {
   </DataComponent>;
 }
 
-function MapLegend({ showScenario }) {
+function MapLegend({ showScenario, showAccidentHotspots }) {
   return <div className="roadops-map-legend" aria-label="지도 범례">
     <div className="legend-group">
       <span className="legend-title">점검 우선순위</span>
@@ -325,6 +325,10 @@ function MapLegend({ showScenario }) {
       <span><i data-priority="caution">주의</i>주의해서 확인</span>
       <span><i data-priority="normal">일반</i>일반 순서</span>
     </div>
+    {showAccidentHotspots && <div className="legend-group">
+      <span className="legend-title">과거 사고</span>
+      <span><i className="legend-accident" />공단 선정 사고다발지역</span>
+    </div>}
     <div className="legend-group">
       <span className="legend-title">순찰 코스</span>
       <span><i className="legend-line" />팀 색 점선·이동</span>
@@ -384,6 +388,8 @@ function RoadMap({
   routeRows,
   replanRows,
   impactRows,
+  accidentRows,
+  showAccidentHotspots,
   selectedRisk,
   selectedRoute,
   onSelectRisk,
@@ -481,6 +487,13 @@ function RoadMap({
         {backgroundRows.map((row) => <path key={row.road_name}
           d={pathFor(geometry(row.geometry_json), project)} />)}
       </g>
+
+      {showAccidentHotspots && <g className="accident-hotspots" data-reviewed-rows="accident_hotspots">
+        {accidentRows.map((row) => <path key={row.hotspot_id}
+          d={pathFor(geometry(row.geometry_json), project)}>
+          <title>{`${row.location_name} · ${row.analysis_year}년 사고 ${row.accident_count}건·사상 ${row.casualty_count}명`}</title>
+        </path>)}
+      </g>}
 
       {scenarioActive && <g className="scenario-impact" data-reviewed-rows="scenario_impacts">
         {impactRows.map((row) => <path key={`${row.scenario_id}-${row.link_id}`}
@@ -594,7 +607,7 @@ function RoadMap({
       teamRows={teamRows} onClose={onCloseRoute} />
     <a className="map-attribution" href="https://www.openstreetmap.org/copyright"
       target="_blank" rel="noopener">© OpenStreetMap contributors</a>
-    <MapLegend showScenario={scenarioActive} />
+    <MapLegend showScenario={scenarioActive} showAccidentHotspots={showAccidentHotspots} />
   </div>;
 }
 
@@ -780,6 +793,7 @@ export function DashboardContent() {
   const [workflowState, setWorkflowState] = useState(/** @type {any} */ (null));
   const [inspectorTab, setInspectorTab] = useState("priorities");
   const [mapGuideOpen, setMapGuideOpen] = useState(false);
+  const [mapLayers, setMapLayers] = useState({ accidentHotspots: true });
   const [colorMode, setColorMode] = useState(() => {
     if (typeof localStorage === "undefined") return "dark";
     return localStorage.getItem("roadops-color-mode") === "light" ? "light" : "dark";
@@ -849,7 +863,7 @@ export function DashboardContent() {
   const impactRows = rows("scenario_impacts").filter((row) => row.scenario_id === scenarioId);
   const highRiskCount = riskRows.filter((row) => ["high", "critical"].includes(row.risk_level)).length;
   const scenarioChoices = ["none", ...rows("scenario_summary").map((row) => row.scenario_id)];
-  const mapQueryIds = ["risk_links", "road_background", "field_tasks", "governance_authorities", "teams", "plan_routes", "replan_routes", "scenario_impacts"];
+  const mapQueryIds = ["risk_links", "road_background", "accident_hotspots", "field_tasks", "governance_authorities", "teams", "plan_routes", "replan_routes", "scenario_impacts"];
   const sourceRowsByQuery = Object.fromEntries(mapQueryIds.map((queryId) => [queryId, rows(queryId)]));
 
   const selectTask = (linkId) => {
@@ -953,6 +967,12 @@ export function DashboardContent() {
             { field: "alternative_id", label: "배분 대안", value: selectedPlan },
             { field: "scenario_id", label: "재계획 시나리오", value: scenarioId },
           ]} className="roadops-map-card">
+          <div className="map-layer-controls" role="group" aria-label="지도 계층 선택">
+            <span>지도 계층</span>
+            <label><input type="checkbox" checked={mapLayers.accidentHotspots}
+              onChange={(event) => setMapLayers((current) => ({ ...current, accidentHotspots: event.target.checked }))} />
+              사고다발지역 <b>{rows("accident_hotspots").length}</b></label>
+          </div>
           <button type="button" className="map-guide-toggle" aria-expanded={mapGuideOpen}
             onClick={() => setMapGuideOpen((open) => !open)}>
             <span>지도 읽는 방법</span><small>배경지도 + 분석도로 11개 · {mapGuideOpen ? "접기" : "펼치기"}</small>
@@ -964,10 +984,12 @@ export function DashboardContent() {
             <span><i data-guide="point" /><b>팀 색 숫자 원</b> 점검 순서 · 집 아이콘은 공개자료 기반 도로관리 거점</span>
             <span><i data-guide="unassigned" /><b>‘미’ 원</b> 현재 근무시간·경로 제약 안에서 배정되지 않은 후보</span>
             <span><i data-guide="excluded" /><b>‘제’ 원</b> 담당자가 설정한 점검 제외 조건이 적용된 후보</span>
+            <span><i data-guide="accident" /><b>빗금 영역</b> 한국도로교통공단이 선정한 2025년 사고다발지역</span>
           </div>}
           <RoadMap backgroundRows={rows("road_background")} riskRows={riskRows}
             taskRows={effectiveTaskRows} teamRows={effectiveTeamRows} routeRows={routeRows}
             replanRows={replanRows} impactRows={impactRows} selectedRisk={selectedRisk}
+            accidentRows={rows("accident_hotspots")} showAccidentHotspots={mapLayers.accidentHotspots}
             selectedRoute={selectedRoute} onSelectRisk={selectRisk} onSelectTask={selectTask}
             onSelectRoute={selectRoute} onCloseRoute={() => setSelectedRouteKey(null)}
             scenarioId={scenarioId} />
