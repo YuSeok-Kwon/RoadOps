@@ -3,7 +3,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
   DataComponent,
   Dropdown,
-  Slider,
   useDataApp,
   useDashboardTabs,
 } from "../../data-app-public.jsx";
@@ -50,6 +49,29 @@ const HANDOFF_STATUS_LABELS = {
   accepted: "인계 접수",
   completed: "인계 완료",
 };
+const INTEGRATION_LABELS = {
+  exact_link_id: "도로구간 번호로 정확히 연결",
+  spatial_fallback: "가까운 도로 위치를 기준으로 연결",
+  excluded: "분석 대상에서 제외",
+};
+const DRIVER_LABELS = {
+  "event:active_road_event": "현재 도로 위험상황",
+  "structural:taas": "과거 교통사고 위험",
+  "traffic:speed_to_limit_ratio": "통행속도 저하",
+  "weather_road:kma_wind_speed": "강풍 위험",
+  "weather_road:cits_visibility": "시야 확보 상태",
+  "weather_road:cits_friction": "노면 미끄럼 위험",
+};
+const QUALITY_LABELS = {
+  cits_source_timestamp_unavailable: "도로 위험정보의 발생시각을 확인해야 합니다.",
+  "component:traffic:missing_or_stale": "실시간 교통정보가 없거나 오래되었습니다.",
+  "integration:spatial_fallback": "정확한 도로번호 대신 가까운 도로 위치로 연결했습니다.",
+  "traffic:missing_link": "해당 구간의 교통정보 연결 지점을 찾지 못했습니다.",
+  "traffic:missing_or_stale_at_scoring": "점수 계산 시 최신 교통정보를 사용하지 못했습니다.",
+  "assumption:cits_visibility_unit_meters": "가시거리 단위를 미터로 가정했습니다.",
+  "scenario:event_persistence_without_end_time": "종료 시각이 없는 위험정보를 계속 유효한 것으로 보았습니다.",
+  "hold:insufficient_evidence_coverage": "사용할 수 있는 근거가 부족해 현장 확인 전에 추가 검토가 필요합니다.",
+};
 
 function geometry(value) {
   if (Array.isArray(value)) return value;
@@ -79,6 +101,22 @@ function dateTime(value) {
     hour: "2-digit",
     minute: "2-digit",
   }).format(new Date(value));
+}
+
+function parseDriver(value) {
+  const text = String(value || "");
+  const splitAt = text.lastIndexOf(":");
+  const key = splitAt > -1 ? text.slice(0, splitAt) : text;
+  const contribution = splitAt > -1 ? Number(text.slice(splitAt + 1)) : null;
+  return {
+    raw: text,
+    label: DRIVER_LABELS[key] || "기타 확인 요소",
+    contribution: Number.isFinite(contribution) ? contribution : null,
+  };
+}
+
+function qualityMessage(flag) {
+  return QUALITY_LABELS[flag] || "일부 데이터의 최신성 또는 연결 상태를 추가로 확인해야 합니다.";
 }
 
 function pathFor(parts, project) {
@@ -132,15 +170,16 @@ function Metric({ label, value, note, tone = "neutral" }) {
 function MapLegend({ showScenario }) {
   return <div className="roadops-map-legend" aria-label="지도 범례">
     <div className="legend-group">
-      <span className="legend-title">위험</span>
-      <span><i data-risk="high" />높음</span>
-      <span><i data-risk="moderate" />보통</span>
-      <span><i data-risk="low" />낮음</span>
+      <span className="legend-title">도로 위험도</span>
+      <span><i data-risk="high" />먼저 확인</span>
+      <span><i data-risk="moderate" />주의 확인</span>
+      <span><i data-risk="low" />일반 확인</span>
     </div>
     <div className="legend-group">
-      <span className="legend-title">표현</span>
-      <span><i className="legend-line" />팀 경로</span>
-      <span><i className="legend-uncertain" />불확실성 있음</span>
+      <span className="legend-title">현장 표시</span>
+      <span><i className="legend-line" />순찰팀 이동</span>
+      <span><i className="legend-point" />점검 위치</span>
+      <span><i className="legend-uncertain" />데이터 확인 필요</span>
       {showScenario && <span><i className="legend-before" />변경 전</span>}
       {showScenario && <span><i className="legend-after" />변경 후</span>}
     </div>
@@ -170,7 +209,7 @@ function RoadMap({
       <strong>{selectedRisk.road_name}</strong>
       <div>
         <b>{number(selectedRisk.priority_score)}</b>
-        <small>{RISK_LABELS[selectedRisk.risk_level] || "위험 미분류"} · {selectedRisk.link_id}</small>
+        <small>{RISK_LABELS[selectedRisk.risk_level] || "위험 미분류"} 단계</small>
       </div>
     </div>}
     <svg className="roadops-map" viewBox={`0 0 ${width} ${height}`} role="img"
@@ -266,30 +305,44 @@ function RoadMap({
 
 function RiskDetail({ row, sourceRows, horizon }) {
   if (!row) return <div className="empty-detail">표시할 위험 링크가 없습니다.</div>;
-  const drivers = String(row.risk_drivers || "").split(" | ").filter(Boolean);
+  const drivers = String(row.risk_drivers || "").split(" | ").filter(Boolean).map(parseDriver);
+  const qualityFlags = String(row.quality_flags || "").split("|")
+    .map((flag) => flag.trim()).filter((flag) => flag && flag !== "none");
+  const strongestDriver = [...drivers].sort((left, right) => Number(right.contribution || 0) - Number(left.contribution || 0))[0];
   return <DataComponent variant="plain" id="risk-detail" queryId="risk_links" kind="custom"
-    title={`${row.road_name} · ${row.link_id}`}
-    description="선택한 링크의 운영 우선순위 점수, 불확실성 범위, 근거와 데이터 품질입니다."
+    title={`${row.road_name} 위험 요약`}
+    description="왜 이 구간을 먼저 확인해야 하는지 쉬운 말로 설명합니다."
     sourceRows={sourceRows} displayRows={[row]}
     scopeFilters={[{ field: "horizon_hours", label: "예측 시점", value: horizon }, { field: "link_id", label: "링크", value: row.link_id }]}
     className="risk-detail-card">
     <div className="risk-score-block">
-      <div><span>우선순위 점수</span><strong>{number(row.priority_score)}</strong></div>
-      <span className="risk-band">{number(row.score_lower_bound)}–{number(row.score_upper_bound)}</span>
+      <div><span>현장 확인 우선순위</span><strong>{number(row.priority_score)}</strong></div>
+      <span className="risk-band">예상 범위 {number(row.score_lower_bound)}–{number(row.score_upper_bound)}</span>
     </div>
     <div className="risk-detail-grid">
       <div><span>위험 단계</span><b data-risk-level={row.risk_level}>{RISK_LABELS[row.risk_level] || "미분류"}</b></div>
-      <div><span>근거 충족률</span><b>{percentage(row.evidence_coverage_ratio)}</b></div>
-      <div><span>결합 방식</span><b>{row.integration_class || "확인 불가"}</b></div>
-      <div><span>대상 시각</span><b>{dateTime(row.target_at)}</b></div>
+      <div><span>사용 가능한 근거 반영률</span><b>{percentage(row.evidence_coverage_ratio)}</b></div>
+      <div><span>도로 연결 상태</span><b>{INTEGRATION_LABELS[row.integration_class] || "확인 필요"}</b></div>
+      <div><span>예상 시각</span><b>{dateTime(row.target_at)}</b></div>
+    </div>
+    <div className="risk-explanation">
+      <span>왜 먼저 확인해야 하나요?</span>
+      <strong>{strongestDriver ? `${strongestDriver.label}이 우선순위 점수에 가장 크게 반영됐습니다.` : "점수를 설명할 충분한 근거가 없어 추가 확인이 필요합니다."}</strong>
     </div>
     <div className="driver-list">
-      <span>점수 근거</span>
-      {drivers.length ? <ul>{drivers.map((driver) => <li key={driver}>{driver}</li>)}</ul> : <p>사용 가능한 근거가 없습니다.</p>}
+      <span>점수에 반영된 항목</span>
+      {drivers.length ? <ul>{drivers.map((driver) => <li key={driver.raw}><strong>{driver.label}</strong><span>{driver.contribution != null ? `${number(driver.contribution)}점 반영` : "반영 정도 확인 필요"}</span></li>)}</ul> : <p>사용 가능한 근거가 없습니다.</p>}
     </div>
-    <div className="quality-note">
-      <span>품질 플래그</span><p>{row.quality_flags || "none"}</p>
-    </div>
+    {qualityFlags.length > 0 && <div className="quality-note">
+      <span>확인할 데이터 한계</span>
+      <ul>{qualityFlags.map((flag) => <li key={flag}>{qualityMessage(flag)}</li>)}</ul>
+    </div>}
+    <details className="technical-details">
+      <summary>상세 기술정보</summary>
+      <code>도로 연결: {row.integration_class || "none"}</code>
+      <code>점수 근거: {row.risk_drivers || "none"}</code>
+      <code>품질 코드: {row.quality_flags || "none"}</code>
+    </details>
   </DataComponent>;
 }
 
@@ -342,7 +395,7 @@ function TaskQueue({ rows, selectedLinkId, onSelect }) {
   const sorted = [...rows].filter((row) => !row.excluded)
     .sort((left, right) => Number(right.priority_score) - Number(left.priority_score));
   return <DataComponent variant="plain" id="task-queue" queryId="field_tasks" kind="table"
-    title="현장 점검 대기열" description="제외 조건을 통과한 현재 시점 점검 후보입니다."
+    title="먼저 확인할 도로" description="점수가 높은 순서입니다. 도로를 누르면 이유와 담당기관을 확인할 수 있습니다."
     sourceRows={rows} displayRows={sorted} className="task-queue-card">
     <div className="task-queue-list">
       {sorted.slice(0, 6).map((row, index) => <button type="button" key={row.task_id}
@@ -357,7 +410,7 @@ function TaskQueue({ rows, selectedLinkId, onSelect }) {
 
 function PlanComparison({ rows, selectedPlan, onSelect }) {
   return <DataComponent variant="plain" id="plan-comparison" queryId="plan_metrics" kind="table"
-    title="대안 비교" description="안전 우선과 균형 운영 대안의 네트워크 이동시간과 업무 편차를 비교합니다."
+    title="배분안 비교" description="안전을 우선할지, 팀별 업무를 고르게 나눌지 비교합니다."
     sourceRows={rows} displayRows={rows} className="plan-comparison-card">
     <div className="plan-comparison-table">
       <div className="plan-table-head"><span>대안</span><span>이동</span><span>최대 업무</span><span>편차</span></div>
@@ -405,6 +458,7 @@ export function DashboardContent() {
   const [scenarioId, setScenarioId] = useState("none");
   const [selectedRiskId, setSelectedRiskId] = useState(/** @type {any} */ (null));
   const [workflowState, setWorkflowState] = useState(/** @type {any} */ (null));
+  const [inspectorTab, setInspectorTab] = useState("priorities");
   const horizon = HORIZONS[horizonIndex] ?? 0;
 
   useEffect(() => {
@@ -453,23 +507,35 @@ export function DashboardContent() {
 
   const selectTask = (linkId) => {
     const match = riskRows.find((row) => row.link_id === linkId);
-    if (match) setSelectedRiskId(match.link_id);
+    if (match) {
+      setSelectedRiskId(match.link_id);
+      setInspectorTab("segment");
+    }
+  };
+
+  const selectRisk = (row) => {
+    setSelectedRiskId(row.link_id);
+    setInspectorTab("segment");
   };
 
   return <article className="roadops-page" data-dashboard-layout="viewport">
     <section className="roadops-toolbar" aria-label="지도 제어">
       <div className="toolbar-title">
         <div><span className="eyebrow">ROADOPS / JEJU</span><strong>도로 현장 운영 상황판</strong></div>
-        <span className={`roadops-freshness-badge ${metadata.freshness_status === "recent_snapshot" ? "recent" : "stale"}`}>
-          {metadata.freshness_status === "recent_snapshot" ? "최신 데이터" : "데이터 갱신 필요"} · {dateTime(metadata.latest_risk_target_at)}
-        </span>
+        <div className="data-status-group">
+          <span className="roadops-freshness-badge stored">저장된 데이터 · 기준 {dateTime(metadata.latest_risk_target_at)}</span>
+          <small>현재 자동 갱신 안 함</small>
+        </div>
       </div>
       <div className="toolbar-controls">
         <div className="horizon-control">
-          <span>예측 시점</span>
-          <Slider label="예측 시점" labelPlacement="hidden" min={0} max={3} step={1}
-            value={horizonIndex} onChange={setHorizonIndex} showBounds={false}
-            formatValue={(value) => `+${HORIZONS[value] ?? 0}h`} />
+          <span>언제의 상황을 볼까요?</span>
+          <div className="horizon-buttons" role="group" aria-label="예측 시간 선택">
+            {HORIZONS.map((hours, index) => <button type="button" key={hours}
+              aria-pressed={horizonIndex === index} onClick={() => setHorizonIndex(index)}>
+              {hours === 0 ? "현재" : `${hours}시간 후`}
+            </button>)}
+          </div>
         </div>
         <Dropdown label="배분 대안" showLabel value={selectedPlan}
           choices={planMetrics.map((row) => row.alternative_id)} choiceLabels={PLAN_LABELS}
@@ -485,11 +551,10 @@ export function DashboardContent() {
         showHeading={false} sourceRows={planMetrics} displayRows={[selectedMetrics]}
         scopeFilters={[{ field: "alternative_id", label: "배분 대안", value: selectedPlan }]}>
         <div className="roadops-metric-grid">
-          <Metric label="점검 대상" value={riskRows.length} note={`+${horizon}시간 · 고위험 ${highRiskCount}개`} tone={highRiskCount ? "warning" : "neutral"} />
+          <Metric label="점검 대상" value={riskRows.length} note={horizon === 0 ? "현재 확인 후보" : `${horizon}시간 후 확인 후보`} />
+          <Metric label="먼저 확인" value={highRiskCount} note="위험 단계가 높은 도로" tone={highRiskCount ? "warning" : "neutral"} />
           <Metric label="배분 완료" value={`${selectedMetrics.assigned_task_count ?? "—"}/${selectedMetrics.candidate_task_count ?? "—"}`} note="제외 조건 통과 업무" tone="positive" />
-          <Metric label="위험 커버리지" value={percentage(selectedMetrics.risk_weighted_coverage_ratio)} note="배정 우선순위 합 기준" tone="positive" />
-          <Metric label="네트워크 이동" value={`${number(selectedMetrics.network_total_travel_minutes)}분`} note="자유흐름 추정 · 실시간 ETA 아님" />
-          <Metric label="제약 위반" value={number(selectedMetrics.constraint_violation_count, 0)} note={scenarioId === "none" ? "기본 대안" : "What-if · 담당자 승인 필요"} tone="positive" />
+          <Metric label="제약 위반" value={number(selectedMetrics.constraint_violation_count, 0)} note={scenarioId === "none" ? "기본 배분안" : "가정 상황 · 담당자 승인 필요"} tone="positive" />
         </div>
       </DataComponent>
     </section>
@@ -497,38 +562,56 @@ export function DashboardContent() {
     <div className="roadops-workspace">
       <section className="roadops-map-column">
         <DataComponent variant="plain" id="roadops-map" queryId="risk_links" queryIds={mapQueryIds}
-          kind="custom" title="현장 우선순위 지도"
-          description="위험 링크, 점검 후보, 팀 경로와 What-if 재계획 전후를 실제 표준링크 좌표로 겹쳐 표시합니다."
+          kind="custom" title="어디를 먼저 확인해야 하나요?"
+          description="도로 색은 확인 우선순위를, 색 선은 순찰팀의 이동 경로를 보여줍니다."
           sourceRows={allRiskRows} displayRows={riskRows} sourceRowsByQuery={sourceRowsByQuery}
           scopeFilters={[
             { field: "horizon_hours", label: "예측 시점", value: String(horizon) },
             { field: "alternative_id", label: "배분 대안", value: selectedPlan },
             { field: "scenario_id", label: "재계획 시나리오", value: scenarioId },
           ]} className="roadops-map-card">
+          <div className="map-reading-guide" aria-label="지도 읽는 방법">
+            <strong>지도 읽는 방법</strong>
+            <span><i data-guide="risk" />굵고 밝은 도로는 먼저 확인할 구간</span>
+            <span><i data-guide="route" />색 선은 순찰팀 이동 경로</span>
+            <span><i data-guide="point" />흰 원은 현장 점검 위치</span>
+          </div>
           <RoadMap backgroundRows={rows("road_background")} riskRows={riskRows}
             taskRows={effectiveTaskRows} teamRows={effectiveTeamRows} routeRows={routeRows}
             replanRows={replanRows} impactRows={impactRows} selectedRisk={selectedRisk}
-            onSelectRisk={(row) => setSelectedRiskId(row.link_id)} scenarioId={scenarioId} />
+            onSelectRisk={selectRisk} scenarioId={scenarioId} />
         </DataComponent>
         <ReplanSummary rows={rows("scenario_summary")} scenarioId={scenarioId} />
       </section>
 
       <aside className="roadops-inspector">
-        <RiskDetail row={selectedRisk} sourceRows={allRiskRows} horizon={horizon} />
-        <AuthorityDetail task={selectedTask} authority={selectedAuthority}
-          taskRows={rows("field_tasks")} authorityRows={rows("governance_authorities")} />
-        <WorkflowPanel teams={rows("teams")} tasks={rows("field_tasks")}
-          governanceRows={rows("governance_authorities")}
-          routes={rows("plan_routes")} planMetrics={planMetrics} metadata={metadata}
-          selectedPlan={selectedPlan} scenarioId={scenarioId} onStateChange={setWorkflowState} />
-        <TaskQueue rows={effectiveTaskRows} selectedLinkId={selectedRisk?.link_id} onSelect={selectTask} />
-        <PlanComparison rows={planMetrics} selectedPlan={selectedPlan} onSelect={setSelectedPlan} />
-        <DataComponent variant="plain" id="gateway-availability" queryId="data_availability" kind="custom"
-          title="외부 유입압력" description="공항·항만 유입압력 데이터의 연결 상태입니다."
-          sourceRows={rows("data_availability")} displayRows={rows("data_availability")}
-          className="availability-card">
-          <div className="availability-state"><span>데이터 미연결</span><p>{rows("data_availability")[0]?.reason}</p></div>
-        </DataComponent>
+        <div className="inspector-tabs" role="tablist" aria-label="현장 운영 정보">
+          {[{ id: "priorities", label: "우선순위 목록" }, { id: "segment", label: "선택 구간" }, { id: "plan", label: "배분·승인" }].map((tab) =>
+            <button type="button" role="tab" key={tab.id} aria-selected={inspectorTab === tab.id}
+              onClick={() => setInspectorTab(tab.id)}>{tab.label}</button>)}
+        </div>
+        <div className="inspector-tab-content" role="tabpanel">
+          {inspectorTab === "priorities" && <TaskQueue rows={effectiveTaskRows}
+            selectedLinkId={selectedRisk?.link_id} onSelect={selectTask} />}
+          {inspectorTab === "segment" && <>
+            <RiskDetail row={selectedRisk} sourceRows={allRiskRows} horizon={horizon} />
+            <AuthorityDetail task={selectedTask} authority={selectedAuthority}
+              taskRows={rows("field_tasks")} authorityRows={rows("governance_authorities")} />
+          </>}
+          {inspectorTab === "plan" && <>
+            <PlanComparison rows={planMetrics} selectedPlan={selectedPlan} onSelect={setSelectedPlan} />
+            <WorkflowPanel teams={rows("teams")} tasks={rows("field_tasks")}
+              governanceRows={rows("governance_authorities")}
+              routes={rows("plan_routes")} planMetrics={planMetrics} metadata={metadata}
+              selectedPlan={selectedPlan} scenarioId={scenarioId} onStateChange={setWorkflowState} />
+            <DataComponent variant="plain" id="gateway-availability" queryId="data_availability" kind="custom"
+              title="외부 유입정보" description="공항·항만 유입 데이터의 연결 상태입니다."
+              sourceRows={rows("data_availability")} displayRows={rows("data_availability")}
+              className="availability-card">
+              <div className="availability-state"><span>데이터 미연결</span><p>{rows("data_availability")[0]?.reason}</p></div>
+            </DataComponent>
+          </>}
+        </div>
       </aside>
     </div>
 

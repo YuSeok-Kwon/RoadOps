@@ -4,6 +4,8 @@
   "generatedAt": "2026-11-17T18:30:00+09:00",
   "status": "reviewed_local_snapshot",
   "surface": "dashboard",
+  "authoredRevision": 1,
+  "buildStatus": "complete",
   "filters": [],
   "queries": {
     "map_metadata": {
@@ -3582,7 +3584,6 @@
       }
     }
   },
-  "buildStatus": "complete",
   "exportPreferences": {
     "selected": null,
     "destinations": []
