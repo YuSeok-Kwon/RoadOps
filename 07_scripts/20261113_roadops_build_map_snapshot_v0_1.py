@@ -321,8 +321,12 @@ def build_data_app_snapshot(
         "risk_links": source(
             "RoadOps explainable risk forecasts",
             [inputs["risk_forecasts"], inputs["road_links"], inputs["reverse_geocode"]],
-            ["roadops-map", "risk-detail"],
-            shared_caveats,
+            ["roadops-map", "risk-detail", "priority-road-score"],
+            shared_caveats + [
+                "Each link uses the highest individual event score at the selected horizon. "
+                "score_basis_drivers explains that event; risk_drivers contains drivers across all events. "
+                "Only the leading component contributions are recorded; any remainder is not an additional observation."
+            ],
         ),
         "field_tasks": source(
             "RoadOps field-task candidates",

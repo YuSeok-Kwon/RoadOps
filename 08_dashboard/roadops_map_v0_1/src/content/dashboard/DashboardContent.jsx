@@ -15,6 +15,7 @@ import {
   tasksForDepot,
 } from "./operation-flow.js";
 import radarSnapshot from "../assets/kma-radar.json";
+import { prioritySummary, scoreExplanation } from "./score-explanation.js";
 import "./dashboard.css";
 
 const HORIZONS = [0, 1, 3, 6];
@@ -54,15 +55,6 @@ const INTEGRATION_LABELS = {
   exact_link_id: "도로구간 번호로 정확히 연결",
   spatial_fallback: "가까운 도로 위치를 기준으로 연결",
   excluded: "분석 대상에서 제외",
-};
-const DRIVER_LABELS = {
-  "event:active_road_event": "현재 도로 위험상황",
-  "structural:taas": "과거 교통사고 위험",
-  "traffic:speed_to_limit_ratio": "통행속도 저하",
-  "weather_road:kma_wind_speed": "강풍 위험",
-  "weather_road:cits_visibility": "시야 확보 상태",
-  "weather_road:cits_friction": "노면 미끄럼 위험",
-  "gateway:airport_inflow_pressure": "제주공항 시간대별 유입 압력",
 };
 const QUALITY_LABELS = {
   cits_source_timestamp_unavailable: "도로 위험정보의 발생시각을 확인해야 합니다.",
@@ -286,18 +278,6 @@ function dateTime(value) {
   }).format(new Date(value));
 }
 
-function parseDriver(value) {
-  const text = String(value || "");
-  const splitAt = text.lastIndexOf(":");
-  const key = splitAt > -1 ? text.slice(0, splitAt) : text;
-  const contribution = splitAt > -1 ? Number(text.slice(splitAt + 1)) : null;
-  return {
-    raw: text,
-    label: DRIVER_LABELS[key] || "기타 확인 요소",
-    contribution: Number.isFinite(contribution) ? contribution : null,
-  };
-}
-
 function qualityMessage(flag) {
   return QUALITY_LABELS[flag] || "일부 데이터의 최신성 또는 연결 상태를 추가로 확인해야 합니다.";
 }
@@ -307,9 +287,7 @@ function priorityReasons(row) {
     ? row.event_types
     : String(row.event_types || "").split(/[|,]/).map((value) => value.trim()).filter(Boolean);
   const reasons = [];
-  if (["critical", "high"].includes(row.risk_level)) {
-    reasons.push(`위험 단계가 '${RISK_LABELS[row.risk_level]}'입니다.`);
-  }
+  if (scoreExplanation(row).available) reasons.push(prioritySummary(row));
   if (Number(row.event_count) > 0) {
     const labels = eventTypes.map((value) => EVENT_LABELS[value] || "현장 위험정보").join("·");
     reasons.push(`${labels} ${number(row.event_count, 0)}건이 반영됐습니다.`);
@@ -1006,7 +984,7 @@ function RoadMap({
 
 function RiskDetail({ row, task, sourceRows, horizon }) {
   if (!row) return <div className="empty-detail">표시할 위험 링크가 없습니다.</div>;
-  const drivers = String(row.risk_drivers || "").split(" | ").filter(Boolean).map(parseDriver);
+  const drivers = scoreExplanation(row).drivers;
   const qualityFlags = String(row.quality_flags || "").split("|")
     .map((flag) => flag.trim()).filter((flag) => flag && flag !== "none");
   const strongestDriver = [...drivers].sort((left, right) => Number(right.contribution || 0) - Number(left.contribution || 0))[0];
@@ -1197,9 +1175,50 @@ function patrolCrimeCategories(row) {
     .slice(0, 4);
 }
 
+function PriorityScoreDetail({ row, riskRows, horizon }) {
+  if (!row) return <p className="priority-score-unavailable">선택한 시점의 점수 근거가 없습니다.</p>;
+  const explanation = scoreExplanation(row);
+  const qualityFlags = String(row.quality_flags || "").split("|").map((flag) => flag.trim());
+  return <DataComponent variant="plain" id="priority-road-score" queryId="risk_links" kind="custom"
+    title={explanation.score == null ? "점수 산정 보류" : `${number(row.priority_score)}점의 산정 근거`}
+    sourceRows={riskRows} displayRows={[row]}
+    scopeFilters={[{ field: "horizon_hours", label: "예측 시점", value: horizon }, { field: "link_id", label: "도로 구간", value: row.link_id }]}
+    className="priority-score-detail">
+    <div data-reviewed-rows>
+      <p className="priority-score-basis">{horizon === 0 ? "현재" : `${horizon}시간 후`} · {dateTime(row.target_at)}
+        {Number(row.event_count) > 1 && ` · 위험정보 ${number(row.event_count, 0)}건 중 가장 높은 개별 점수를 사용합니다.`}</p>
+      {explanation.available ? <>
+        <dl className="priority-score-drivers">
+          {explanation.drivers.map((driver) => <div key={driver.raw}>
+            <dt>{driver.label}<span>{driver.description}</span></dt>
+            <dd>{number(driver.contribution)}점</dd>
+          </div>)}
+          {explanation.remainder != null && <div>
+            <dt>그 외 반영 요인<span>전체 점수에서 기록된 주요 요인을 뺀 나머지입니다. 세부 항목은 제공되지 않았습니다.</span></dt>
+            <dd>{number(explanation.remainder)}점</dd>
+          </div>}
+          {explanation.capAdjustment != null && <div>
+            <dt>100점 상한 조정</dt><dd>−{number(explanation.capAdjustment)}점</dd>
+          </div>}
+        </dl>
+        <p className="priority-score-method">가중치와 근거 반영률을 적용한 기여점수입니다. 반올림 때문에 표시값의 합계는 다를 수 있습니다.</p>
+      </> : <p className="priority-score-unavailable">{explanation.score == null
+        ? "점수 산정에 필요한 근거가 부족하거나 유효하지 않아 점수를 산정하지 않았습니다."
+        : "이 점수에 대응하는 요인별 기여점수가 없어 산정 근거를 확인할 수 없습니다."}</p>}
+      {horizon > 0 && qualityFlags.includes("scenario:event_persistence_without_end_time") && <p className="priority-score-caution">종료 시각이 없는 위험정보가 선택한 시점까지 지속된다고 가정한 점수입니다.</p>}
+      {qualityFlags.includes("assumption:cits_visibility_unit_meters") && <p className="priority-score-caution">가시거리 단위를 미터로 가정한 점수입니다. 센서 원시값과 실제 시야를 확인하세요.</p>}
+      {row.evidence_coverage_ratio != null && Number(row.evidence_coverage_ratio) < 1 && <p className="priority-score-caution">근거 반영률 {percentage(row.evidence_coverage_ratio)} · {explanation.score == null
+        ? "누락되거나 오래된 자료를 확인해야 합니다."
+        : "누락된 근거를 0점으로 처리하지 않고, 가용한 근거로 환산했습니다."}</p>}
+    </div>
+  </DataComponent>;
+}
+
 function DepotEvidence({
   depot,
   tasks,
+  riskRows,
+  horizon,
   accidents,
   history,
   weather,
@@ -1209,7 +1228,11 @@ function DepotEvidence({
   onShowOnMap,
 }) {
   const [expandedEvidence, setExpandedEvidence] = useState(null);
-  useEffect(() => setExpandedEvidence(null), [depot?.team_id, weather?.horizon_hours]);
+  const [expandedRoadId, setExpandedRoadId] = useState(null);
+  useEffect(() => {
+    setExpandedEvidence(null);
+    setExpandedRoadId(null);
+  }, [depot?.team_id, horizon]);
   if (!depot) return <div className="operation-empty-state">
     <HomeIcon />
     <strong>왼쪽에서 출발 거점을 선택하세요.</strong>
@@ -1237,12 +1260,26 @@ function DepotEvidence({
     </div>
     <section className="evidence-section">
       <div className="evidence-section-head"><strong>우선 검토 도로</strong><span>{tasks.length}곳</span></div>
-      <div className="evidence-road-list">
-        {tasks.slice(0, 4).map((task) => <button type="button" key={task.task_id}
-          onClick={() => onSelectTask(task.link_id)}>
-          <span><strong>{locationLabel(task)}</strong><small>{priorityReasons(task)[0] || "현장 상태 확인 필요"}</small></span>
-          <b data-priority={effectivePriorityLevel(task)}>{number(task.priority_score)}점</b>
-        </button>)}
+      <div className="evidence-road-list" data-reviewed-rows>
+        {tasks.slice(0, 4).map((task) => {
+          const risk = riskRows.find((row) => String(row.link_id) === String(task.link_id));
+          const expanded = expandedRoadId === task.task_id;
+          const detailId = `priority-score-${task.task_id}`;
+          return <div className="evidence-road-item" key={task.task_id} data-expanded={expanded || undefined}>
+            <button type="button" className="evidence-road-toggle" aria-expanded={expanded} aria-controls={detailId}
+              onClick={() => {
+                setExpandedRoadId(expanded ? null : task.task_id);
+                if (!expanded) onSelectTask(task.link_id);
+              }}>
+              <span><strong>{locationLabel(task)}</strong><small>{prioritySummary(risk || task)}</small></span>
+              <span className="evidence-road-score"><b data-priority={effectivePriorityLevel(task)}>{task.priority_score == null ? "산정 보류" : `${number(task.priority_score)}점`}</b>
+                <small>{expanded ? "접기 −" : "점수 근거 +"}</small></span>
+            </button>
+            {expanded && <div id={detailId}>
+              <PriorityScoreDetail row={risk} riskRows={riskRows} horizon={horizon} />
+            </div>}
+          </div>;
+        })}
       </div>
     </section>
     <section className="evidence-section evidence-compact-grid">
@@ -2139,6 +2176,7 @@ export function DashboardContent() {
       <section className="operation-map-slot">{mapPanel}</section>
       <section className="operation-evidence-slot">
         <DepotEvidence depot={selectedDepot} tasks={candidates} accidents={nearbyAccidents}
+          riskRows={riskRows} horizon={horizon}
           history={similarHistory} weather={selectedWeather}
           crimeRows={rows("crime_statistics")}
           crimeOverlayRows={rows("crime_caution_overlay")}

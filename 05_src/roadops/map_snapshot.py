@@ -298,7 +298,9 @@ def _aggregate_risks(
     for (horizon, link_id), candidates in sorted(grouped.items()):
         ranked = sorted(
             candidates,
-            key=lambda item: (_number(item.get("forecast_priority_score")) or -1.0),
+            key=lambda item: (
+                score if (score := _number(item.get("forecast_priority_score"))) is not None else -1.0
+            ),
             reverse=True,
         )
         representative = ranked[0]
@@ -364,6 +366,10 @@ def _aggregate_risks(
                     sorted({str(row.get("event_type")) for row in candidates})
                 ),
                 "risk_drivers": " | ".join(drivers),
+                # The link score is a maximum, not a sum of all event drivers.
+                "score_basis_drivers": representative.get("risk_drivers") or "",
+                "score_basis_event_id": representative.get("event_id"),
+                "score_basis_event_type": representative.get("event_type"),
                 "quality_flags": " | ".join(flags) or "none",
                 "weather_evidence_kind": representative.get("weather_evidence_kind"),
                 "weather_valid_at": representative.get("weather_valid_at"),

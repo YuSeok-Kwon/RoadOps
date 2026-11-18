@@ -857,14 +857,33 @@
 .evidence-section-head strong { font-size: 10px; }
 .evidence-section-head span { color: var(--secondary); font-size: 8px; }
 .evidence-road-list { display: flex; flex-direction: column; }
-.evidence-road-list button { display: grid; padding: 7px 0; grid-template-columns: minmax(0, 1fr) auto; gap: 9px; border: 0; border-bottom: 1px solid var(--border); color: var(--text); background: transparent; font: inherit; text-align: left; cursor: pointer; }
-.evidence-road-list button:last-child { border-bottom: 0; }
-.evidence-road-list button > span { display: flex; min-width: 0; flex-direction: column; }
-.evidence-road-list strong { overflow: hidden; font-size: 10px; line-height: 15px; text-overflow: ellipsis; white-space: nowrap; }
-.evidence-road-list small { color: var(--secondary); font-size: 8px; line-height: 13px; }
-.evidence-road-list button > b { align-self: center; color: var(--secondary); font-size: 10px; }
-.evidence-road-list button > b[data-priority="first"] { color: var(--negative); }
-.evidence-road-list button > b[data-priority="caution"] { color: #d9820c; }
+.evidence-road-item { border-bottom: 1px solid var(--border); }
+.evidence-road-item:last-child { border-bottom: 0; }
+.evidence-road-toggle { display: grid; width: 100%; padding: 10px 0; grid-template-columns: minmax(0, 1fr) auto; gap: 9px; border: 0; color: var(--text); background: transparent; font: inherit; text-align: left; cursor: pointer; }
+.evidence-road-toggle:hover,
+.evidence-road-item[data-expanded] > .evidence-road-toggle { color: var(--chart-1); }
+.evidence-road-toggle:focus-visible { outline: 2px solid var(--chart-1); outline-offset: 2px; border-radius: 3px; }
+.evidence-road-toggle > span { display: flex; min-width: 0; flex-direction: column; }
+.evidence-road-toggle strong { font-size: 11px; line-height: 17px; overflow-wrap: anywhere; }
+.evidence-road-toggle small { color: var(--secondary); font-size: 10px; line-height: 16px; }
+.evidence-road-score { align-self: center; align-items: flex-end; white-space: nowrap; }
+.evidence-road-score b { color: var(--text); font-size: 12px; }
+.evidence-road-score b[data-priority="first"] { color: var(--negative); }
+.evidence-road-score b[data-priority="caution"] { color: var(--chart-4); }
+.priority-score-detail { margin-bottom: 10px; padding: 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--muted); }
+.priority-score-detail .component-header { margin-bottom: 6px; }
+.priority-score-detail .component-title { font-size: 12px; }
+.priority-score-detail p { margin: 6px 0 0; font-size: 10px; line-height: 16px; overflow-wrap: anywhere; }
+.priority-score-basis,
+.priority-score-method { color: var(--secondary); }
+.priority-score-drivers { margin: 8px 0; }
+.priority-score-drivers > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.priority-score-drivers > div:last-child { border-bottom: 0; }
+.priority-score-drivers dt { color: var(--text); font-size: 11px; line-height: 17px; font-weight: 650; }
+.priority-score-drivers dt span { display: block; margin-top: 2px; color: var(--secondary); font-size: 10px; line-height: 16px; font-weight: 400; }
+.priority-score-drivers dd { margin: 0; color: var(--text); font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.priority-score-caution { padding-left: 8px; border-left: 2px solid var(--chart-4); color: var(--text); }
+.priority-score-unavailable { color: var(--secondary); font-size: 11px; line-height: 17px; }
 .evidence-compact-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 .evidence-compact-grid > div { min-width: 0; }
 .evidence-compact-grid p { display: flex; margin: 0 0 6px; flex-direction: column; }
@@ -988,7 +1007,8 @@
   .roadops-operation-page { overflow-y: auto; }
   .operation-stage-initial,
   .operation-stage-plan { display: grid; overflow: visible; grid-template-columns: minmax(0, 1fr); }
-  .operation-stage-initial { grid-template-rows: auto; }
+  .operation-stage-initial { grid-template-rows: auto; flex: 0 0 auto; }
+  .operation-stage-initial .depot-evidence-card { height: auto; overflow: visible; }
   .depot-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .route-choice-bar { grid-column: 1; }
   .operation-map-card .roadops-map-wrap { height: 520px; }

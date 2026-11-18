@@ -250,6 +250,8 @@ def test_build_map_snapshot_aggregates_risk_and_marks_unavailable_gateway():
     assert risk["event_count"] == 2
     assert "closure" in risk["risk_drivers"]
     assert "rain" in risk["risk_drivers"]
+    assert risk["score_basis_drivers"] == "weather:rain:12"
+    assert risk["score_basis_event_type"] == "road_weather"
     assert json.loads(risk["geometry_json"])[0][0] == [126.3, 33.3]
     assert queries["data_availability"][0]["status"] == "unavailable"
     assert queries["map_metadata"][0]["freshness_status"] == "stale_snapshot"
@@ -314,3 +316,17 @@ def test_build_map_snapshot_reports_missing_required_geometry():
     assert quality["status"] == "degraded"
     assert quality["missing_required_link_ids"] == ["4050000999"]
     assert queries["risk_links"][0]["has_geometry"] is False
+
+
+def test_zero_score_basis_is_preferred_to_unscored_event():
+    from roadops.map_snapshot import _aggregate_risks
+
+    rows = [
+        {"effective_link_id": "1", "forecast_priority_score": None, "event_id": "held"},
+        {"effective_link_id": "1", "forecast_priority_score": 0, "event_id": "scored",
+         "risk_drivers": "weather_road:kma_wind_speed:0.000"},
+    ]
+    risk = _aggregate_risks(rows, {})[0]
+    assert risk["priority_score"] == 0
+    assert risk["score_basis_event_id"] == "scored"
+    assert risk["score_basis_drivers"] == "weather_road:kma_wind_speed:0.000"
