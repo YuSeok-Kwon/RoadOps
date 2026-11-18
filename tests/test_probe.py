@@ -80,13 +80,14 @@ def test_project_registry_has_unique_expected_sources():
     source_ids = [spec.source_id for spec in specs]
     by_id = {spec.source_id: spec for spec in specs}
 
-    assert len(source_ids) == 25
+    assert len(source_ids) == 26
     assert len(source_ids) == len(set(source_ids))
     assert "jeju_cits_road_event" in source_ids
     assert "molit_standard_node_link" in source_ids
     assert "kma_ultra_short_forecast" in source_ids
     assert "kma_ultra_short_nowcast" in source_ids
     assert "kma_short_forecast" in source_ids
+    assert "kma_radar_rain_zone" in source_ids
     assert "kac_realtime_flights" in source_ids
     assert "kac_hourly_arrival_passengers" in source_ids
     assert "komsa_ferry_schedule" in source_ids
@@ -156,6 +157,14 @@ def test_runtime_params_separate_kma_observation_and_forecast_cycles():
     assert runtime_params_for("kma_short_forecast", after_release) == {
         "base_date": "20261112",
         "base_time": "1700",
+    }
+
+
+def test_runtime_params_choose_safely_published_radar_slot():
+    now = datetime(2026, 11, 18, 20, 37, tzinfo=ZoneInfo("Asia/Seoul"))
+
+    assert runtime_params_for("kma_radar_latest", now) == {
+        "dateTime": "202611182010"
     }
 
 

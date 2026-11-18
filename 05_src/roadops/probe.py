@@ -217,6 +217,17 @@ def _kma_short_forecast_runtime_params(current: datetime) -> dict[str, str]:
     return {"base_date": base.strftime("%Y%m%d"), "base_time": base.strftime("%H00")}
 
 
+def _kma_radar_runtime_params(current: datetime) -> dict[str, str]:
+    """Choose a safely published 10-minute radar observation slot."""
+
+    rounded = current.replace(
+        minute=(current.minute // 10) * 10,
+        second=0,
+        microsecond=0,
+    )
+    return {"dateTime": (rounded - timedelta(minutes=20)).strftime("%Y%m%d%H%M")}
+
+
 def runtime_params_for(
     runtime_params: str | None, now: datetime | None = None
 ) -> dict[str, str]:
@@ -236,6 +247,8 @@ def runtime_params_for(
         return _kma_ultra_forecast_runtime_params(current)
     if runtime_params == "kma_short_forecast":
         return _kma_short_forecast_runtime_params(current)
+    if runtime_params == "kma_radar_latest":
+        return _kma_radar_runtime_params(current)
     if runtime_params == "kma_ultra_short_now":
         return _kma_nowcast_runtime_params(current)
     if runtime_params == "current_day_flight_search":

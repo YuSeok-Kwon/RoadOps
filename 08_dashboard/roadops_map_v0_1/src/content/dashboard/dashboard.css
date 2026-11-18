@@ -729,6 +729,10 @@
 .operation-stage-plan .operation-map-card .roadops-map-wrap { min-height: 490px; height: 100%; }
 .operation-map-card.expanded .roadops-map-wrap { min-height: 520px; }
 .operation-map-toolbar { display: flex; min-height: 34px; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.operation-view-switch { display: inline-grid; flex: 0 0 auto; padding: 2px; grid-template-columns: repeat(2, minmax(66px, 1fr)); border: 1px solid var(--border); border-radius: 6px; background: var(--background); }
+.operation-view-switch button { min-height: 27px; padding: 0 10px; border: 0; border-radius: 4px; color: var(--secondary); background: transparent; font: inherit; font-size: 9px; font-weight: 750; cursor: pointer; }
+.operation-view-switch button[aria-pressed="true"] { color: white; background: #1468b3; }
+.operation-map-tools { display: flex; min-width: 0; align-items: center; justify-content: flex-end; gap: 12px; }
 .operation-layer-buttons { display: flex; min-width: 0; align-items: center; flex-wrap: wrap; gap: 6px 12px; }
 .operation-layer-buttons label { display: inline-flex; align-items: center; gap: 5px; color: var(--secondary); font-size: 9px; font-weight: 650; cursor: pointer; }
 .operation-layer-buttons input { display: grid; width: 14px; height: 14px; box-sizing: border-box; appearance: none; place-items: center; margin: 0; border: 1px solid var(--border-strong); border-radius: 3px; background: var(--background); }
@@ -741,6 +745,47 @@
 .roadops-operation-page input:focus-visible,
 .roadops-operation-page textarea:focus-visible { outline: 2px solid color-mix(in srgb, #6aa52d 62%, transparent); outline-offset: 2px; }
 .map-size-button { min-height: 28px; padding: 0 9px; border: 1px solid var(--border); border-radius: 4px; color: var(--text); background: var(--surface); font: inherit; font-size: 9px; font-weight: 700; cursor: pointer; }
+
+.operation-weather-view { display: flex; min-width: 0; min-height: 300px; flex: 1 1 auto; flex-direction: column; gap: 10px; }
+.weather-view-summary { display: grid; flex: 0 0 auto; padding: 11px 12px; grid-template-columns: minmax(155px, .72fr) minmax(360px, 1.55fr); gap: 16px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface); }
+.weather-view-time { display: flex; min-width: 0; flex-direction: column; justify-content: center; }
+.weather-view-time span { color: #1468b3; font-size: 9px; font-weight: 800; }
+.weather-view-time strong { margin-top: 2px; font-size: 14px; }
+.weather-view-time small { margin-top: 3px; color: var(--secondary); font-size: 8px; }
+.weather-view-metrics { display: grid; margin: 0; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.weather-view-metrics div { display: flex; min-width: 0; padding: 1px 12px; flex-direction: column; justify-content: center; border-left: 1px solid var(--border); }
+.weather-view-metrics dt { color: var(--secondary); font-size: 8px; font-weight: 700; }
+.weather-view-metrics dd { margin: 3px 0 0; color: var(--text); font-family: Poppins, var(--font-sans); font-size: 13px; font-weight: 750; white-space: nowrap; }
+.weather-view-metrics small { margin-top: 2px; overflow: hidden; color: var(--secondary); font-size: 7px; text-overflow: ellipsis; white-space: nowrap; }
+.weather-view-body { display: grid; min-width: 0; min-height: 0; flex: 1 1 auto; grid-template-columns: minmax(0, 1.45fr) minmax(210px, .55fr); gap: 10px; }
+.weather-radar-map { position: relative; min-height: 238px; overflow: hidden; border: 1px solid var(--border); border-radius: 7px; background: #d8edf3; }
+.weather-radar-map svg { display: block; width: 100%; height: 100%; min-height: 238px; }
+.weather-radar-map .basemap-tiles { opacity: .74; }
+.weather-road-context path { fill: none; stroke: color-mix(in srgb, #1468b3 50%, transparent); stroke-width: 1.1; vector-effect: non-scaling-stroke; }
+.weather-radar-status { position: absolute; top: 50%; left: 50%; display: flex; width: min(350px, calc(100% - 36px)); box-sizing: border-box; padding: 13px 15px; flex-direction: column; border: 1px solid color-mix(in srgb, #1468b3 35%, var(--border)); border-radius: 8px; box-shadow: 0 10px 30px color-mix(in srgb, #0d2438 18%, transparent); background: color-mix(in srgb, var(--surface) 92%, transparent); transform: translate(-50%, -50%); backdrop-filter: blur(8px); }
+.weather-radar-status span { color: #1468b3; font-size: 8px; font-weight: 800; }
+.weather-radar-status strong { margin-top: 3px; color: var(--text); font-size: 14px; }
+.weather-radar-status p { margin: 6px 0 0; color: var(--secondary); font-size: 8px; line-height: 14px; }
+.weather-map-badge { position: absolute; top: 10px; left: 10px; padding: 5px 8px; border: 1px solid color-mix(in srgb, #1468b3 28%, var(--border)); border-radius: 999px; color: #125992; background: color-mix(in srgb, var(--surface) 90%, transparent); font-size: 8px; font-weight: 800; }
+.weather-map-attribution { position: absolute; right: 6px; bottom: 5px; padding: 2px 4px; color: #53616b; background: color-mix(in srgb, white 82%, transparent); font-size: 6px; }
+.weather-timeline { display: flex; min-width: 0; padding: 11px; flex-direction: column; border: 1px solid var(--border); border-radius: 7px; background: var(--surface); }
+.weather-timeline header { display: flex; flex-direction: column; }
+.weather-timeline header span { font-size: 11px; font-weight: 750; }
+.weather-timeline header small { margin-top: 2px; color: var(--secondary); font-size: 7px; }
+.weather-timeline-list { display: flex; margin-top: 8px; flex-direction: column; border-top: 1px solid var(--border); }
+.weather-timeline-list button { display: grid; min-width: 0; min-height: 43px; padding: 6px 4px; grid-template-columns: 55px 1fr; align-items: center; border: 0; border-bottom: 1px solid var(--border); color: var(--text); background: transparent; font: inherit; text-align: left; cursor: pointer; }
+.weather-timeline-list button[aria-pressed="true"] { color: #125992; background: color-mix(in srgb, #1468b3 8%, var(--surface)); }
+.weather-timeline-list button > span { color: inherit; font-size: 8px; font-weight: 800; }
+.weather-timeline-list button > strong { font-family: Poppins, var(--font-sans); font-size: 11px; text-align: right; }
+.weather-timeline-list button > small { grid-column: 1 / -1; overflow: hidden; color: var(--secondary); font-size: 7px; text-overflow: ellipsis; white-space: nowrap; }
+.weather-data-quality { display: grid; margin: auto 0 0; padding-top: 8px; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.weather-data-quality div { padding: 6px 7px; border: 1px solid var(--border); border-radius: 5px; background: var(--background); }
+.weather-data-quality dt { color: var(--secondary); font-size: 7px; }
+.weather-data-quality dd { margin: 2px 0 0; color: var(--text); font-size: 10px; font-weight: 750; }
+.weather-timeline > p { margin: 7px 0 0; color: var(--secondary); font-size: 7px; line-height: 12px; }
+.operation-stage-initial .operation-map-card.weather-active .operation-weather-view { min-height: 310px; }
+.operation-stage-plan .operation-map-card.weather-active .operation-weather-view { min-height: 490px; }
+.operation-map-card.expanded.weather-active .operation-weather-view { min-height: 520px; }
 
 .depot-selector-card,
 .depot-evidence-card,
@@ -928,6 +973,12 @@
   .route-choice-bar { align-items: stretch; flex-direction: column; }
   .route-choice-bar > div { margin-right: 0; }
   .operation-map-toolbar { align-items: flex-start; flex-direction: column; }
+  .operation-map-tools { width: 100%; align-items: flex-start; flex-direction: column; }
+  .weather-view-summary { grid-template-columns: minmax(0, 1fr); }
+  .weather-view-metrics div:first-child { border-left: 0; }
+  .weather-view-body { grid-template-columns: minmax(0, 1fr); }
+  .weather-timeline-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .weather-timeline-list button:nth-child(odd) { border-right: 1px solid var(--border); }
   .operation-map-card .roadops-map-wrap { min-height: 430px; height: 58vh; }
   .evidence-compact-grid { grid-template-columns: minmax(0, 1fr); }
   .operation-stage-ai-config .workflow-resource-list,

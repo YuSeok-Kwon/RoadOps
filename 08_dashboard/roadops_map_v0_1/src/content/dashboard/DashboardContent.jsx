@@ -94,6 +94,7 @@ function readOperationSession() {
     selectedRiskId: null,
     selectedRouteKey: null,
     mapExpanded: false,
+    surfaceView: "map",
     mapLayers: { accidentHotspots: true, complaintHotspots: false, crimeCaution: false },
   };
   if (typeof sessionStorage === "undefined") return fallback;
@@ -105,6 +106,7 @@ function readOperationSession() {
       ...stored,
       phase: OPERATION_PHASES.has(stored.phase) ? stored.phase : fallback.phase,
       manualTaskIds: Array.isArray(stored.manualTaskIds) ? stored.manualTaskIds.map(String) : [],
+      surfaceView: ["map", "weather"].includes(stored.surfaceView) ? stored.surfaceView : fallback.surfaceView,
       mapLayers: { ...fallback.mapLayers, ...(stored.mapLayers || {}) },
     };
   } catch {
@@ -475,6 +477,90 @@ function WeatherForecastStrip({ rows, validationRows, horizon, onSelect }) {
       </div>
     </div>
   </DataComponent>;
+}
+
+function weatherHumidityDetail(row) {
+  const minimum = Number(row?.humidity_min_percent);
+  const maximum = Number(row?.humidity_max_percent);
+  if (!Number.isFinite(minimum) || !Number.isFinite(maximum)) return "확인 불가";
+  if (minimum === maximum) return `${number(minimum, 0)}%`;
+  return `${number(minimum, 0)}–${number(maximum, 0)}%`;
+}
+
+function weatherSourceLabel(row) {
+  const source = String(row?.forecast_sources || "");
+  if (source.includes("ultra_short")) return "기상청 초단기예보";
+  if (source.includes("village")) return "기상청 단기예보";
+  return "기상청 예보";
+}
+
+function WeatherMapView({ backgroundRows, weatherRows, selectedWeather, horizon, onSelectHorizon }) {
+  const { width, height, project, projectMercator, mapToMercator } = useProjection(backgroundRows, []);
+  const mapView = { zoom: 1, centerX: width / 2, centerY: height / 2 };
+  const viewBox = `0 0 ${width} ${height}`;
+  const coverage = Number(selectedWeather?.coverage_ratio);
+  const gridCount = Number(selectedWeather?.grid_count);
+  const usableGridCount = Number(selectedWeather?.usable_grid_count);
+  const currentView = Number(horizon) === 0;
+
+  return <div className="operation-weather-view">
+    <div className="weather-view-summary" aria-label="선택 시점 기상 요약">
+      <div className="weather-view-time">
+        <span>{currentView ? "현재 기상" : `${horizon}시간 후 예보`}</span>
+        <strong>{dateTime(selectedWeather?.target_at)}</strong>
+        <small>{weatherSourceLabel(selectedWeather)} · 제주 전역 격자 종합</small>
+      </div>
+      <dl className="weather-view-metrics">
+        <div><dt>기온</dt><dd>{weatherTemperature(selectedWeather)}</dd></div>
+        <div><dt>강수</dt><dd>{weatherRainfallDetail(selectedWeather)}</dd><small>{selectedWeather?.precipitation_summary || "강수 형태 확인 불가"}</small></div>
+        <div><dt>습도</dt><dd>{weatherHumidityDetail(selectedWeather)}</dd></div>
+        <div><dt>최대풍속</dt><dd>{selectedWeather?.maximum_wind_speed_mps == null ? "확인 불가" : `${number(selectedWeather.maximum_wind_speed_mps)}m/s`}</dd></div>
+      </dl>
+    </div>
+
+    <div className="weather-view-body">
+      <div className="weather-radar-map" aria-label="제주 강수 분포 지도">
+        <svg viewBox={viewBox} role="img" aria-label="제주도 기상 배경지도">
+          <BasemapTiles width={width} height={height} zoom={mapView.zoom}
+            centerX={mapView.centerX} centerY={mapView.centerY}
+            projectMercator={projectMercator} mapToMercator={mapToMercator} />
+          <g className="weather-road-context" aria-hidden="true">
+            {backgroundRows.map((row, index) => <path key={row.link_id || index}
+              d={pathFor(geometry(row.geometry_json), project)} />)}
+          </g>
+        </svg>
+        <div className="weather-radar-status" data-current={currentView || undefined}>
+          <span>{currentView ? "현재 강수 관측" : `${horizon}시간 후 강수 예측`}</span>
+          <strong>{currentView ? "레이더 자료 권한 확인 중" : "초단기 강수예측 자료 연결 대기"}</strong>
+          <p>{currentView
+            ? "현재 강수영역은 관측 레이더 실응답이 확인된 뒤 표시합니다. 그전에는 강수영역을 임의로 만들지 않습니다."
+            : "기상청 초단기 강수예측 자료로 예상 강수영역을 표시할 예정입니다. 현재는 검증된 수치 예보만 제공합니다."}</p>
+        </div>
+        <span className="weather-map-badge">{selectedWeather?.sky_summary || "기상 확인"}</span>
+        <span className="weather-map-attribution">© OpenStreetMap contributors</span>
+      </div>
+
+      <aside className="weather-timeline" aria-label="시간대별 기상 예보">
+        <header><span>시간대별 기상</span><small>같은 시점으로 지도와 위험도를 함께 바꿉니다.</small></header>
+        <div className="weather-timeline-list">
+          {weatherRows.map((row) => {
+            const rowHorizon = Number(row.horizon_hours);
+            return <button type="button" key={rowHorizon}
+              aria-pressed={rowHorizon === Number(horizon)} onClick={() => onSelectHorizon(rowHorizon)}>
+              <span>{rowHorizon === 0 ? "현재" : `${rowHorizon}시간 후`}</span>
+              <strong>{weatherTemperature(row)}</strong>
+              <small>{weatherRainfallDetail(row)} · {weatherWindDetail(row)}</small>
+            </button>;
+          })}
+        </div>
+        <dl className="weather-data-quality">
+          <div><dt>사용 격자</dt><dd>{Number.isFinite(usableGridCount) && Number.isFinite(gridCount) ? `${usableGridCount}/${gridCount}` : "확인 불가"}</dd></div>
+          <div><dt>자료 반영률</dt><dd>{Number.isFinite(coverage) ? percentage(coverage) : "확인 불가"}</dd></div>
+        </dl>
+        <p>강수량은 제주 전역 격자의 범위이며 한 지점의 정확한 측정값이 아닙니다.</p>
+      </aside>
+    </div>
+  </div>;
 }
 
 function MapLegend({
@@ -1712,6 +1798,7 @@ export function DashboardContent() {
   const [workflowState, setWorkflowState] = useState(null);
   const [workflowPlan, setWorkflowPlan] = useState(null);
   const [mapExpanded, setMapExpanded] = useState(initialOperation.mapExpanded);
+  const [surfaceView, setSurfaceView] = useState(initialOperation.surfaceView);
   const [confirmedMessage, setConfirmedMessage] = useState("");
   const [currentTime, setCurrentTime] = useState(() => new Date());
   const [mapLayers, setMapLayers] = useState(initialOperation.mapLayers);
@@ -1749,10 +1836,11 @@ export function DashboardContent() {
       selectedRiskId,
       selectedRouteKey,
       mapExpanded,
+      surfaceView,
       mapLayers,
     }));
   }, [phase, selectedDepotId, manualTaskIds, horizonIndex, selectedPlan, scenarioId,
-    selectedRiskId, selectedRouteKey, mapExpanded, mapLayers]);
+    selectedRiskId, selectedRouteKey, mapExpanded, surfaceView, mapLayers]);
 
   useEffect(() => {
     setSelectedRiskId(null);
@@ -1835,7 +1923,8 @@ export function DashboardContent() {
     : [];
   const impactRows = phase === "ai-result" ? rows("scenario_impacts").filter((row) => row.scenario_id === scenarioId) : [];
   const mapQueryIds = ["risk_links", "road_background", "accident_hotspots", "complaint_hotspots", "crime_caution_overlay", "field_tasks", "teams", "plan_routes", "travel_route_options", "travel_route_links", "replan_routes", "scenario_impacts"];
-  const sourceRowsByQuery = Object.fromEntries(mapQueryIds.map((queryId) => [queryId, rows(queryId)]));
+  const viewQueryIds = [...mapQueryIds, "weather_forecast"];
+  const sourceRowsByQuery = Object.fromEntries(viewQueryIds.map((queryId) => [queryId, rows(queryId)]));
 
   const chooseDepot = (teamId) => {
     setSelectedDepotId(teamId);
@@ -1879,32 +1968,43 @@ export function DashboardContent() {
     setMapExpanded(false);
   };
 
-  const mapPanel = <DataComponent variant="plain" id="roadops-operation-map" queryId="risk_links"
-    queryIds={mapQueryIds} kind="custom" title={phase === "manual" || phase === "manual-review"
-      ? "순찰 지점을 순서대로 선택하세요"
-      : phase === "ai-result" ? "AI 추천 경로" : "선택 거점과 주변 점검 후보"}
-    description={phase === "select" ? "경로는 거점을 선택한 뒤에만 만들어집니다."
-      : "배경지도 위에 선택 거점, 점검 후보와 확정된 경로만 표시합니다."}
-    sourceRows={allRiskRows} displayRows={riskRows} sourceRowsByQuery={sourceRowsByQuery}
+  const mapPanel = <DataComponent variant="plain" id="roadops-operation-map"
+    queryId={surfaceView === "weather" ? "weather_forecast" : "risk_links"}
+    queryIds={viewQueryIds} kind="custom"
+    title={surfaceView === "weather" ? "제주 기상 상황"
+      : phase === "manual" || phase === "manual-review" ? "순찰 지점을 순서대로 선택하세요"
+        : phase === "ai-result" ? "AI 추천 경로" : "선택 거점과 주변 점검 후보"}
+    description={surfaceView === "weather" ? "현재 강수 관측과 1·3·6시간 후 예상 강수 분포를 구분해 확인합니다."
+      : phase === "select" ? "경로는 거점을 선택한 뒤에만 만들어집니다."
+        : "배경지도 위에 선택 거점, 점검 후보와 확정된 경로만 표시합니다."}
+    sourceRows={surfaceView === "weather" ? weatherRows : allRiskRows}
+    displayRows={surfaceView === "weather" ? (selectedWeather ? [selectedWeather] : []) : riskRows}
+    sourceRowsByQuery={sourceRowsByQuery}
     scopeFilters={[{ field: "horizon_hours", label: "예측 시점", value: String(horizon) }]}
-    className={`operation-map-card${mapExpanded ? " expanded" : ""}`}>
+    className={`operation-map-card${mapExpanded ? " expanded" : ""}${surfaceView === "weather" ? " weather-active" : ""}`}>
     <div className="operation-map-toolbar">
-      <div className="operation-layer-buttons" role="group" aria-label="지도 참고 계층">
-        <label title="한국도로교통공단 교통사고 다발지역"><input type="checkbox" checked={mapLayers.accidentHotspots}
-          onChange={(event) => setMapLayers((current) => ({ ...current, accidentHotspots: event.target.checked }))} />
-          <LayerIcon type="accident" />교통사고 다발</label>
-        <label title="경찰청 범죄주의 밀도 계층"><input type="checkbox" checked={mapLayers.crimeCaution}
-          onChange={(event) => setMapLayers((current) => ({ ...current, crimeCaution: event.target.checked }))} />
-          <LayerIcon type="crime" />범죄주의</label>
-        {rows("complaint_hotspots").length > 0 && <label title="비식별 도로민원 다발지역"><input type="checkbox" checked={mapLayers.complaintHotspots}
-          onChange={(event) => setMapLayers((current) => ({ ...current, complaintHotspots: event.target.checked }))} />
-          <LayerIcon type="complaint" />민원</label>}
+      <div className="operation-view-switch" role="group" aria-label="상황판 보기 선택">
+        <button type="button" aria-pressed={surfaceView === "map"} onClick={() => setSurfaceView("map")}>지도뷰</button>
+        <button type="button" aria-pressed={surfaceView === "weather"} onClick={() => setSurfaceView("weather")}>날씨뷰</button>
       </div>
-      <button type="button" className="map-size-button" onClick={() => setMapExpanded((value) => !value)}>
-        {mapExpanded ? "기본 크기" : "지도 크게"}
-      </button>
+      <div className="operation-map-tools">
+        {surfaceView === "map" && <div className="operation-layer-buttons" role="group" aria-label="지도 참고 계층">
+          <label title="한국도로교통공단 교통사고 다발지역"><input type="checkbox" checked={mapLayers.accidentHotspots}
+            onChange={(event) => setMapLayers((current) => ({ ...current, accidentHotspots: event.target.checked }))} />
+            <LayerIcon type="accident" />교통사고 다발</label>
+          <label title="경찰청 범죄주의 밀도 계층"><input type="checkbox" checked={mapLayers.crimeCaution}
+            onChange={(event) => setMapLayers((current) => ({ ...current, crimeCaution: event.target.checked }))} />
+            <LayerIcon type="crime" />범죄주의</label>
+          {rows("complaint_hotspots").length > 0 && <label title="비식별 도로민원 다발지역"><input type="checkbox" checked={mapLayers.complaintHotspots}
+            onChange={(event) => setMapLayers((current) => ({ ...current, complaintHotspots: event.target.checked }))} />
+            <LayerIcon type="complaint" />민원</label>}
+        </div>}
+        <button type="button" className="map-size-button" onClick={() => setMapExpanded((value) => !value)}>
+          {mapExpanded ? "기본 크기" : `${surfaceView === "weather" ? "날씨뷰" : "지도"} 크게`}
+        </button>
+      </div>
     </div>
-    <RoadMap backgroundRows={rows("road_background")} riskRows={riskRows}
+    {surfaceView === "map" ? <RoadMap backgroundRows={rows("road_background")} riskRows={riskRows}
       taskRows={visibleTasks} teamRows={effectiveTeamRows} routeRows={visibleRoutes}
       replanRows={replanRows} impactRows={impactRows} selectedRisk={selectedRisk}
       accidentRows={rows("accident_hotspots")} showAccidentHotspots={mapLayers.accidentHotspots}
@@ -1917,6 +2017,9 @@ export function DashboardContent() {
       scenarioId={phase === "ai-result" ? scenarioId : "none"} horizon={horizon}
       mode={phase === "manual" || phase === "manual-review" ? "manual" : phase}
       selectedDepotId={selectedDepotId} manualTaskIds={manualTaskIds} />
+      : <WeatherMapView backgroundRows={rows("road_background")} weatherRows={weatherRows}
+        selectedWeather={selectedWeather} horizon={horizon}
+        onSelectHorizon={(hours) => setHorizonIndex(Math.max(0, HORIZONS.indexOf(hours)))} />}
   </DataComponent>;
 
   return <article className="roadops-page roadops-operation-page" data-dashboard-layout="viewport" data-color-mode={colorMode}>
@@ -1957,7 +2060,7 @@ export function DashboardContent() {
           onSelectTask={(linkId) => setSelectedRiskId(linkId)} />
       </section>
       <RouteChoice depot={selectedDepot}
-        onManual={() => { setPhase("manual"); setMapExpanded(true); setManualTaskIds([]); }}
+        onManual={() => { setPhase("manual"); setSurfaceView("map"); setMapExpanded(true); setManualTaskIds([]); }}
         onAi={() => { setPhase("ai-config"); setMapExpanded(false); }} />
     </section>}
 
@@ -2000,7 +2103,7 @@ export function DashboardContent() {
       <div className="ai-generate-bar"><div><span>조건 검토가 끝났나요?</span><strong>AI가 위험도와 이동시간을 비교해 추천 코스를 만듭니다.</strong></div>
         <button type="button" className="primary-action"
           disabled={workflowPlan?.optimizationStatus !== "ready" || !(workflowPlan?.routes?.length)}
-          onClick={() => { setPhase("ai-result"); setMapExpanded(true); }}>추천 경로 만들기</button></div>
+          onClick={() => { setPhase("ai-result"); setSurfaceView("map"); setMapExpanded(true); }}>추천 경로 만들기</button></div>
     </section>}
 
     {phase === "ai-result" && <section className="operation-stage operation-stage-plan">

@@ -259,6 +259,29 @@
       "expected_fields": ["baseDate", "baseTime", "category", "fcstDate", "fcstTime", "fcstValue", "nx", "ny"]
     },
     {
+      "id": "kma_radar_rain_zone",
+      "name": "KMA radar rain-zone observations",
+      "name_ko": "기상청 레이더 강수영역",
+      "documentation_url": "https://www.data.go.kr/data/15057166/openapi.do",
+      "endpoint_url": "https://apis.data.go.kr/1360000/RadarObsInfoService/getRadarRnZone",
+      "kind": "json_api",
+      "authentication": {
+        "environment_variable": "DATA_GO_KR_SERVICE_KEY",
+        "query_parameter": "ServiceKey"
+      },
+      "runtime_params": "kma_radar_latest",
+      "default_params": {"pageNo": 1, "numOfRows": 10, "dataType": "JSON", "qcType": "FQC"},
+      "join_key": "dateTime,qcType",
+      "coordinate_system": "WGS84 1km grid",
+      "expected_fields": ["cappiCompressData", "dateTime", "gridKm", "lat", "lon", "qcType", "xdim", "ydim"],
+      "quality_contract": {
+        "record_key": ["dateTime", "qcType"],
+        "timestamp_field": "dateTime",
+        "source_timezone": "Asia/Seoul",
+        "freshness_max_minutes": 40
+      }
+    },
+    {
       "id": "kac_realtime_flights",
       "name": "KAC real-time flight operations",
       "name_ko": "한국공항공사 실시간 항공기 운항정보",
