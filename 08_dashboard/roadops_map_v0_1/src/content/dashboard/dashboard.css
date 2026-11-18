@@ -719,7 +719,7 @@
 .operation-map-slot,
 .operation-evidence-slot,
 .operation-plan-slot { min-width: 0; min-height: 0; }
-.operation-map-slot { display: flex; }
+.operation-map-slot { display: flex; overflow: hidden; }
 .operation-map-card { display: flex; min-width: 0; min-height: 0; width: 100%; flex-direction: column; }
 .operation-map-card > .component-header { margin-bottom: 8px; }
 .operation-map-card .component-title { font-size: 15px; }
@@ -752,10 +752,10 @@
 .weather-view-time span { color: #1468b3; font-size: 9px; font-weight: 800; }
 .weather-view-time strong { margin-top: 2px; font-size: 14px; }
 .weather-view-time small { margin-top: 3px; color: var(--secondary); font-size: 8px; }
-.weather-view-metrics { display: grid; min-width: 0; width: 100%; box-sizing: border-box; margin: 0; grid-template-columns: .8fr 1.15fr .75fr .8fr; }
-.weather-view-metrics div { display: grid; min-width: 0; box-sizing: border-box; padding: 1px 9px; grid-template-rows: 14px 22px 12px; align-content: center; border-left: 1px solid var(--border); }
+.weather-view-metrics { display: grid; min-width: 0; width: 100%; box-sizing: border-box; margin: 0; grid-template-columns: .9fr 1.15fr .9fr .8fr; }
+.weather-view-metrics div { display: grid; min-width: 0; box-sizing: border-box; padding: 1px 7px; grid-template-rows: 14px 22px 12px; align-content: center; border-left: 1px solid var(--border); }
 .weather-view-metrics dt { overflow: hidden; color: var(--secondary); font-size: 8px; font-weight: 700; line-height: 14px; text-overflow: ellipsis; white-space: nowrap; }
-.weather-view-metrics dd { min-width: 0; overflow: hidden; margin: 0; color: var(--text); font-family: Poppins, var(--font-sans); font-size: 13px; font-weight: 750; line-height: 22px; text-overflow: ellipsis; white-space: nowrap; }
+.weather-view-metrics dd { min-width: 0; overflow: hidden; margin: 0; color: var(--text); font-family: Poppins, var(--font-sans); font-size: 12px; font-weight: 750; line-height: 22px; text-overflow: ellipsis; white-space: nowrap; }
 .weather-view-metrics small { overflow: hidden; color: var(--secondary); font-size: 7px; line-height: 12px; text-overflow: ellipsis; white-space: nowrap; }
 .weather-view-body { display: grid; min-width: 0; min-height: 0; flex: 1 1 auto; grid-template-columns: minmax(0, 1.45fr) minmax(210px, .55fr); gap: 10px; }
 .weather-radar-map { position: relative; min-height: 238px; overflow: hidden; border: 1px solid var(--border); border-radius: 7px; background: #d8edf3; }
@@ -769,22 +769,23 @@
 .weather-radar-status p { margin: 6px 0 0; color: var(--secondary); font-size: 8px; line-height: 14px; }
 .weather-map-badge { position: absolute; top: 10px; left: 10px; padding: 5px 8px; border: 1px solid color-mix(in srgb, #1468b3 28%, var(--border)); border-radius: 999px; color: #125992; background: color-mix(in srgb, var(--surface) 90%, transparent); font-size: 8px; font-weight: 800; }
 .weather-map-attribution { position: absolute; right: 6px; bottom: 5px; padding: 2px 4px; color: #53616b; background: color-mix(in srgb, white 82%, transparent); font-size: 6px; }
-.weather-timeline { display: flex; min-width: 0; padding: 11px; flex-direction: column; border: 1px solid var(--border); border-radius: 7px; background: var(--surface); }
+.weather-timeline { display: flex; min-width: 0; padding: 9px; flex-direction: column; border: 1px solid var(--border); border-radius: 7px; background: var(--surface); }
 .weather-timeline header { display: flex; flex-direction: column; }
 .weather-timeline header span { font-size: 11px; font-weight: 750; }
 .weather-timeline header small { margin-top: 2px; color: var(--secondary); font-size: 7px; }
-.weather-timeline-list { display: flex; margin-top: 8px; flex-direction: column; border-top: 1px solid var(--border); }
-.weather-timeline-list button { display: grid; min-width: 0; min-height: 43px; padding: 6px 4px; grid-template-columns: 55px 1fr; align-items: center; border: 0; border-bottom: 1px solid var(--border); color: var(--text); background: transparent; font: inherit; text-align: left; cursor: pointer; }
+.weather-timeline-list { display: flex; margin-top: 6px; flex-direction: column; border-top: 1px solid var(--border); }
+.weather-timeline-list button { display: grid; min-width: 0; min-height: 39px; padding: 4px; grid-template-columns: 55px 1fr; align-items: center; border: 0; border-bottom: 1px solid var(--border); color: var(--text); background: transparent; font: inherit; text-align: left; cursor: pointer; }
 .weather-timeline-list button[aria-pressed="true"] { color: #125992; background: color-mix(in srgb, #1468b3 8%, var(--surface)); }
 .weather-timeline-list button > span { color: inherit; font-size: 8px; font-weight: 800; }
 .weather-timeline-list button > strong { font-family: Poppins, var(--font-sans); font-size: 11px; text-align: right; }
 .weather-timeline-list button > small { grid-column: 1 / -1; overflow: hidden; color: var(--secondary); font-size: 7px; text-overflow: ellipsis; white-space: nowrap; }
-.weather-data-quality { display: grid; margin: auto 0 0; padding-top: 8px; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-.weather-data-quality div { padding: 6px 7px; border: 1px solid var(--border); border-radius: 5px; background: var(--background); }
+.weather-data-quality { display: grid; margin: auto 0 0; padding-top: 6px; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.weather-data-quality div { padding: 5px 6px; border: 1px solid var(--border); border-radius: 5px; background: var(--background); }
 .weather-data-quality dt { color: var(--secondary); font-size: 7px; }
 .weather-data-quality dd { margin: 2px 0 0; color: var(--text); font-size: 10px; font-weight: 750; }
-.weather-timeline > p { margin: 7px 0 0; color: var(--secondary); font-size: 7px; line-height: 12px; }
-.operation-stage-initial .operation-map-card.weather-active .operation-weather-view { min-height: 310px; }
+.weather-timeline > p { margin: 5px 0 0; color: var(--secondary); font-size: 7px; line-height: 11px; }
+.operation-stage-initial .operation-map-card.weather-active { height: 100%; max-height: 100%; overflow: hidden; }
+.operation-stage-initial .operation-map-card.weather-active .operation-weather-view { min-height: 0; overflow: hidden; }
 .operation-stage-plan .operation-map-card.weather-active .operation-weather-view { min-height: 490px; }
 .operation-map-card.expanded.weather-active .operation-weather-view { min-height: 520px; }
 
