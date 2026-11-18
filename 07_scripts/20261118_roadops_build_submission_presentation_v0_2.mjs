@@ -18,7 +18,7 @@ function number(s,n,dark=false){txt(s,String(n).padStart(2,'0')+' / 17',1105,674
 function src(s,v,dark=false){txt(s,v,66,668,1015,34,14,dark?'#BFBFBF':C.gray);}
 function note(s,v,...refs){s.speakerNotes.text=v+'\n\n근거 자료\n'+refs.join('\n');}
 function pic(s,path,x,y,w,h,crop){s.images.add({path,alt:path.split('/').pop(),fit:'contain',position:{left:x,top:y,width:w,height:h},...(crop?{crop}:{})});}
-function scene(s,path,alt){s.images.add({path,alt,fit:'cover',position:{left:0,top:0,width:1280,height:720}});}
+function scene(s,path,alt,position,crop){s.images.add({path,alt,fit:'cover',position,...(crop?{crop}:{})});}
 function block(s,label,body,x,y,w=400){txt(s,label,x,y,w,50,30,C.blue,true);txt(s,body,x,y+62,w,128,25);}
 function tab(s,values,x,y,w,h,widths,z=23){
  const t=s.tables.add({rows:values.length,columns:values[0].length,left:x,top:y,width:w,height:h,values,columnWidths:widths});
@@ -38,22 +38,21 @@ export async function writeRoadOpsStory({presentation:p,input}){
  for(const n of input.slides){let s;
  switch(n){
  case 1:
-  s=page(p,n,'','',true);
-  scene(s,a+'/09_jeju_road_original_cover_v1.png','제주의 현무암 돌담과 빗속 도로에서 착안한 AI 생성 상황 재현 이미지. 실제 장소·사건을 촬영한 사진이 아니다.');
-  txt(s,'RoadOps',70,139,700,141,102,C.white,true,'Poppins');
-  txt(s,'제주 도로관리 담당자의\n현장계획 Agent',76,310,635,117,38,C.white,true);
-  txt(s,'어디를 먼저 확인하고,\n누구를 보낼 것인가',78,511,600,100,31,C.green,true);
-  src(s,'제출 기획서 · 2026.11.18 · AI 생성 상황 재현 이미지',true);
-  number(s,n,true);
+  s=page(p,n,'');
+  txt(s,'RoadOps',64,70,640,141,102,C.black,true,'Poppins');
+  txt(s,'제주 도로관리 담당자의\n현장계획 Agent',720,105,500,107,34,C.black,true);
+  scene(s,a+'/09_jeju_road_original_cover_v1.png','제주의 현무암 돌담과 빗속 도로에서 착안한 AI 생성 상황 재현 이미지. 실제 장소·사건을 촬영한 사진이 아니다.',{left:0,top:278,width:1280,height:372});
+  txt(s,'어디를 먼저 확인하고,\n누구를 보낼 것인가',68,363,580,110,34,C.white,true);
+  src(s,'제출 기획서 · 2026.11.18 · AI 생성 상황 재현 이미지');
+  number(s,n);
   note(s,'RoadOps는 도로관리 담당자의 작업계획과 변경 검토를 보조한다. 배경은 image_gen으로 새로 생성한 상황 재현 이미지이며 실제 제주 장소·재난·RoadOps 현장 운영 사례를 촬영한 자료가 아니다. 뉴스 사진을 입력이나 편집 대상으로 사용하지 않았다. 프롬프트와 제작 방식은 생성 기록에 보존한다. 3장부터 저장 입력·가정 자원·What-if 시뮬레이션으로 이어진다.','04_docs/presentation/assets/roadops_submission_20261118/generated_visuals.json','PROJECT_BRIEF.md');break;
  case 2:
-  s=page(p,n,'','',true);
-  scene(s,a+'/10_jeju_road_original_detail_v1.png','제주 도로에서 착안한 비와 얕은 물고임의 AI 생성 상황 재현 이미지. 실제 현장 기록이 아니다.');
-  txt(s,'비가 쏟아지면,\n어느 도로부터\n확인해야 할까요?',74,128,640,245,54,C.white,true);
-  txt(s,'점검할 곳은 여러 곳.\n움직일 수 있는 자원은\n한정돼 있습니다.',78,485,555,131,29,C.green,true);
-  src(s,'AI 생성 · 상황 재현 이미지 · 실제 장소나 재난 현장을 촬영한 자료가 아닙니다.',true);
-  number(s,n,true);
-  note(s,'젖은 노면과 물고임으로 도로 점검 필요성을 표현한 원본 생성 이미지다. 뉴스 사진을 변형하거나 실재 사건을 재현하지 않았다. 실제 사고·침수의 근거 자료로 해석하지 않는다. 표지와 동일한 색감, 왼쪽 텍스트 여백, 자연스러운 노면 질감을 사용한다.','04_docs/presentation/assets/roadops_submission_20261118/generated_visuals.json');break;
+  s=page(p,n,'비가 쏟아지면, 어느 도로부터 확인할까요?');
+  scene(s,a+'/10_jeju_road_original_detail_v1.png','제주 도로에서 착안한 비와 얕은 물고임의 AI 생성 상황 재현 이미지. 실제 현장 기록이 아니다.',{left:64,top:215,width:565,height:414},{left:0.42,top:0.28,right:0,bottom:0.03});
+  txt(s,'점검할 곳은\n여러 곳.',695,251,500,135,46,C.black,true);
+  txt(s,'움직일 수 있는 자원은\n한정돼 있습니다.',698,466,500,110,32,C.blue,true);
+  src(s,'AI 생성 · 상황 재현 이미지 · 실제 장소나 재난 현장을 촬영한 자료가 아닙니다.');
+  note(s,'젖은 노면과 물고임으로 도로 점검 필요성을 표현한 원본 생성 이미지다. 실제 사고·침수의 근거 자료로 해석하지 않는다. 원본 이미지와 색감을 유지하고, 슬라이드에서 노면 중심으로 확대 배치한다. 표지는 도로 전경, 이 장은 세부 위험 상황을 보여주며 흰 배경과 제목 위치를 본문에 맞춘다.','04_docs/presentation/assets/roadops_submission_20261118/generated_visuals.json');break;
  case 3:
   s=page(p,n,'오늘의 점검 계획은 담당자가 정해야 합니다','이제 도로관리 담당자의 판단 과정을 따라가는 운영 시뮬레이션을 시작합니다.');
   txt(s,'폭우가 예보된 날, 업무를 인계받았습니다.\n위험정보를 오늘 수행할 점검 계획으로 바꿔야 합니다.',74,242,1120,118,38,C.black,true);
