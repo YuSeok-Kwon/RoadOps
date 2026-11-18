@@ -10,7 +10,7 @@ function txt(s,v,x,y,w,h,z=25,c=C.black,b=false,f='Pretendard'){
 function page(p,a,n,t,sub='',dark=false){
  const s=n<=p.slides.items.length?p.slides.getItem(n-1):p.slides.add({width:1280,height:720});
  s.background.fill=dark?C.black:C.white;
- if(!dark)scene(s,a+'/14_roadops_route_background_v1.png','RoadOps 공통 장식 배경: 파란 도로 경로선과 녹색 거점 모티프. 지리·운영 데이터를 나타내지 않는다.',{left:0,top:0,width:1280,height:720});
+ if(!dark&&n!==1)scene(s,a+'/14_roadops_route_background_v2.png','RoadOps 공통 장식 배경: 옅은 회색 도로선과 파랑·초록 거점. 지리·운영 데이터를 나타내지 않는다.',{left:0,top:0,width:1280,height:720});
  if(t)txt(s,t,64,54,1148,100,43,dark?C.white:C.black,true);
  if(sub)txt(s,sub,66,153,1145,52,19,dark?'#CCD9E5':C.muted);
  if(t)number(s,n,dark);return s;

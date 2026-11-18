@@ -49,6 +49,31 @@
   ],
   "decorative_backgrounds": [
     {
+      "file": "14_roadops_route_background_v2.png",
+      "slides": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        13,
+        14,
+        15,
+        16
+      ],
+      "role": "Reusable white background with light neutral-gray route lines and blue/green waypoint dots only. Cover excluded. Decorative only; no geographic data.",
+      "prompt": "Edit the supplied RoadOps decorative slide background. Change ONLY the colors of the road/path lines. Every continuous path stroke, including the main left-edge vertical route with its bend and every curved stroke in the upper-right corner, must become a subtle light NEUTRAL GRAY, around #D2D6DA for the main lines and #E9ECEF for the faint secondary lines. No blue or cyan may remain in ANY line segment. Preserve the small filled circular waypoint dots exactly: the lower-left dot stays brand blue #1468B3, the upper-left dot and upper-right endpoint stay lime green #8CC63F. Only these circular dots should carry blue or green color. Preserve the original line geometry, thickness, positions, dot sizes, aspect ratio, pure white background, large central empty area, and all spacing. Do not add any new elements, shadows, texture, gradients, text, logos or labels. The lines should sit quietly behind presentation content, with the colored dots as the sole accents. This is a targeted color edit, not a redesign.",
+      "reference_image": "14_roadops_route_background_v1.png",
+      "reference_role": "Edit target. Preserve geometry and dots; recolor all route strokes to gray."
+    }
+  ],
+  "superseded_decorative_backgrounds": [
+    {
       "file": "14_roadops_route_background_v1.png",
       "slides": [
         1,
@@ -68,7 +93,8 @@
         16
       ],
       "role": "Reusable white background with blue route lines and green waypoint accents. Decorative only; no geographic data.",
-      "prompt": "Use case: productivity-visual. Asset type: reusable background artwork for an existing professional 16:9 Korean RoadOps presentation, not an entire composed slide. Create a refined minimal road-route brand motif on a perfectly pure white #FFFFFF 2048x1152 canvas. The central 88 percent of the slide must remain completely blank pure white for editable slide content. Decorative artwork is confined to a narrow strip at the extreme LEFT edge and a small shallow area at the TOP RIGHT corner. At left, one precise thin blue route line (#1468B3), entering from off-canvas at mid-height, bends once, runs vertically close to the edge, with two restrained small waypoint dots, one lime green #8CC63F. Keep all left motif within the first 3 percent of canvas width. At top right, a small elegant set of sparse very pale ice-blue road contours curves off the top and right edges, with one short stronger blue segment and one tiny green endpoint. Keep this top-right motif entirely within the rightmost 12 percent of width and uppermost 7 percent of height, so it cannot touch a slide title starting below 8 percent height. Flat precise editorial line art, crisp geometric curves, quiet blue and green punctuation, restrained professional Korean civic-tech identity. No gradients, shadows, grids, cards, boxes, pills, text, letters, numbers, icons, logos, watermarks, maps or photorealism. Do not add anything along the bottom. The vast majority of the image stays pure white. This is purely decorative route-inspired background art, not geographic data."
+      "prompt": "Use case: productivity-visual. Asset type: reusable background artwork for an existing professional 16:9 Korean RoadOps presentation, not an entire composed slide. Create a refined minimal road-route brand motif on a perfectly pure white #FFFFFF 2048x1152 canvas. The central 88 percent of the slide must remain completely blank pure white for editable slide content. Decorative artwork is confined to a narrow strip at the extreme LEFT edge and a small shallow area at the TOP RIGHT corner. At left, one precise thin blue route line (#1468B3), entering from off-canvas at mid-height, bends once, runs vertically close to the edge, with two restrained small waypoint dots, one lime green #8CC63F. Keep all left motif within the first 3 percent of canvas width. At top right, a small elegant set of sparse very pale ice-blue road contours curves off the top and right edges, with one short stronger blue segment and one tiny green endpoint. Keep this top-right motif entirely within the rightmost 12 percent of width and uppermost 7 percent of height, so it cannot touch a slide title starting below 8 percent height. Flat precise editorial line art, crisp geometric curves, quiet blue and green punctuation, restrained professional Korean civic-tech identity. No gradients, shadows, grids, cards, boxes, pills, text, letters, numbers, icons, logos, watermarks, maps or photorealism. Do not add anything along the bottom. The vast majority of the image stays pure white. This is purely decorative route-inspired background art, not geographic data.",
+      "status": "superseded_by_gray_road_lines_and_cover_exclusion"
     }
   ]
 }
