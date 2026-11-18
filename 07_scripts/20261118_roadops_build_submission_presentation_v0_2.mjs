@@ -48,11 +48,11 @@ export async function writeRoadOpsStory({presentation:p,input}){
   note(s,'RoadOps는 도로관리 담당자의 작업계획과 변경 검토를 보조한다. 배경은 image_gen으로 새로 생성한 상황 재현 이미지이며 실제 제주 장소·재난·RoadOps 현장 운영 사례를 촬영한 자료가 아니다. 뉴스 사진을 입력이나 편집 대상으로 사용하지 않았다. 프롬프트와 제작 방식은 생성 기록에 보존한다. 3장부터 저장 입력·가정 자원·What-if 시뮬레이션으로 이어진다.','04_docs/presentation/assets/roadops_submission_20261118/generated_visuals.json','PROJECT_BRIEF.md');break;
  case 2:
   s=page(p,n,'비가 쏟아지면, 어느 도로부터 확인할까요?');
-  scene(s,a+'/11_jeju_road_inspector_v1.png','비 오는 제주 도로에서 착안한 환경에서 담당자가 손전등으로 배수구와 물고임을 점검하는 AI 생성 장면. 실제 인물이나 현장 기록이 아니다.',{left:64,top:215,width:565,height:414});
-  txt(s,'점검할 곳은\n여러 곳.',695,251,500,135,46,C.black,true);
-  txt(s,'움직일 수 있는 자원은\n한정돼 있습니다.',698,466,500,110,32,C.blue,true);
-  src(s,'AI 생성 · 상황 재현 이미지 · 실제 장소나 재난 현장을 촬영한 자료가 아닙니다.');
-  note(s,'기존 이미지의 차분한 비·안개·현무암 돌담 색감을 참고해 담당자의 현장 점검 동작을 중심으로 새로 생성했다. 인물은 가상의 도로관리 점검 담당자이며 실제 직원·기관·출동 기록을 나타내지 않는다. 표지는 도로 전경, 이 장은 사람이 노면과 배수 상태를 살피는 장면을 보여준다. 흰 배경과 제목 위치는 본문과 일치한다.','04_docs/presentation/assets/roadops_submission_20261118/generated_visuals.json');break;
+  scene(s,a+'/12_roadops_control_room_v1.png','상황실에서 모니터의 도로·기상 정보와 종이 작업계획을 검토하는 가상의 도로관리 담당자. AI 생성 장면이며 실제 기관·인물·RoadOps 운영 화면이 아니다.',{left:64,top:215,width:565,height:414});
+  txt(s,'상황은 계속\n바뀝니다.',695,251,500,135,46,C.black,true);
+  txt(s,'담당자는 한정된 자원으로\n우선순위를 정해야 합니다.',698,466,500,110,32,C.blue,true);
+  src(s,'AI 생성 · 상황 재현 이미지 · 실제 기관·인물·운영 화면을 촬영한 자료가 아닙니다.');
+  note(s,'차분한 차콜·스틸 블루와 절제된 녹색의 분위기를 유지하면서, 실내 상황실에서 모니터와 종이 작업계획을 함께 확인하는 담당자 중심 장면을 새로 생성했다. 화면은 일반적인 도로·기상 관제 분위기를 보여주는 가상 이미지이며 실제 RoadOps UI가 아니다. 표지는 도로 전경, 이 장은 계획을 판단하는 사람을 보여준다. 흰 배경과 제목 위치는 본문과 일치한다.','04_docs/presentation/assets/roadops_submission_20261118/generated_visuals.json');break;
  case 3:
   s=page(p,n,'오늘의 점검 계획은 담당자가 정해야 합니다','이제 도로관리 담당자의 판단 과정을 따라가는 운영 시뮬레이션을 시작합니다.');
   txt(s,'폭우가 예보된 날, 업무를 인계받았습니다.\n위험정보를 오늘 수행할 점검 계획으로 바꿔야 합니다.',74,242,1120,118,38,C.black,true);
@@ -69,9 +69,9 @@ export async function writeRoadOpsStory({presentation:p,input}){
   note(s,'웹에서 용담 제설전진기지를 선택한 상태다. 전체 자원 시나리오 중 하나의 거점 검토 화면이다. 화면 데이터는 캡처 당시 스냅샷이며 현재 도로 현황 보장이 아니다.','04_docs/presentation/assets/roadops_submission_20261118/01_depot_review.jpg');break;
  case 5:
   s=page(p,n,'오늘 움직일 수 있는 현장반 조건을 입력합니다','담당자가 출동 가능 여부·인원·가용시간을 수정하면 가능한 계획을 다시 비교합니다.');
-  pic(s,a+'/02_resource_reallocation.jpg',63,230,762,403,{left:0.01,top:0.27,right:0.01,bottom:0.06});
-  block(s,'가용 자원 확인','현장반·차량·인원\n이동 + 점검 가능 시간',861,244,353);
-  block(s,'조건에 맞는 배분','고정·제외·우선순위 반영\n기관·관할·필수 장비 검사',861,431,353);
+  pic(s,a+'/02_resource_reallocation.jpg',455,230,762,403,{left:0.01,top:0.27,right:0.01,bottom:0.06});
+  block(s,'가용 자원 확인','현장반·차량·인원\n이동 + 점검 가능 시간',66,244,353);
+  block(s,'조건에 맞는 배분','고정·제외·우선순위 반영\n기관·관할·필수 장비 검사',66,431,353);
   src(s,'실제 웹 재배분 기능 · 저장된 경로 후보를 사용하는 브라우저 최적화기이며 새 도로 경로 탐색은 후속 범위');
   note(s,'웹 최적화는 Python 서버 직접 호출이 아니다. 검토된 경로 후보와 자원·작업 조건으로 브라우저에서 제약 배분을 다시 계산한다. 실행 불가능 조건을 표시하고 계획 유효성을 검사한다.','08_dashboard/roadops_map_v0_1/src/content/dashboard/web-optimizer.js','04_docs/presentation/assets/roadops_submission_20261118/02_resource_reallocation.jpg');break;
  case 6:
@@ -84,19 +84,23 @@ export async function writeRoadOpsStory({presentation:p,input}){
   note(s,'용담 거점 추천안 화면에는 3곳 점검, 이동 48.3분, 총 예상 93.3분이 표시된다. 이는 전체 3팀의 성과가 아니라 선택 거점 시연 결과다. 도로 링크 단위로 작업을 구분하므로 동일 주소에 여러 작업이 나타날 수 있다.','04_docs/presentation/assets/roadops_submission_20261118/03_recommended_route.jpg');break;
  case 7:
   s=page(p,n,'담당자는 첫 점검 후보의 추천 이유를 확인합니다','추천 근거를 열어, 현재 신호와 과거 특성이 우선순위에 어떻게 반영됐는지 살펴봅니다.');
-  const score=[['현재 이벤트','35','통제·사고·작업 신호'],['구조위험','25','과거 사고와 도로 선형'],['기상·노면','25','강수·바람·시정·노면'],['교통 노출','15','교통량·속도·혼잡']];
-  score.forEach((r,i)=>{const y=239+i*83;txt(s,r[1],74,y,110,70,49,C.blue,true,'Poppins');txt(s,r[0],210,y+9,285,48,29,C.black,true);txt(s,r[2],550,y+13,650,45,25,C.gray);});
-  txt(s,'점수를 구성한 요인을 확인한 뒤, 과거 자료의 출처를 살펴봅니다.',76,590,1120,55,29,C.blue,true);
+  const score=[['현재 이벤트',35,'통제·사고·작업 신호',C.blue],['구조위험',25,'과거 사고와 도로 선형',C.green],['기상·노면',25,'강수·바람·시정·노면',C.cyan],['교통 노출',15,'교통량·속도·혼잡',C.gray]];
+  s.charts.add('doughnut',{position:{left:62,top:221,width:447,height:354},categories:score.map(r=>r[0]),series:[{name:'구성별 최대 배점',values:score.map(r=>r[1]),points:score.map((r,i)=>({idx:i,fill:r[3]}))}],doughnutOptions:{holeSize:70,firstSliceAngle:270},hasLegend:false,dataLabels:{showValue:false,showPercent:false,showCategoryName:false},chartFill:C.white,plotAreaFill:C.white});
+  txt(s,'100',230,340,210,95,67,C.black,true,'Poppins');
+  txt(s,'상한 합계 · 점',228,432,215,38,22,C.gray);
+  score.forEach((r,i)=>{const y=234+i*85;txt(s,String(r[1]),560,y,105,70,49,r[3],true,'Poppins');txt(s,r[0],693,y+4,510,43,28,C.black,true);txt(s,r[2],695,y+46,509,38,23,C.gray);});
+  txt(s,'점수를 구성한 요인을 확인한 뒤, 과거 자료의 출처를 살펴봅니다.',76,607,1120,48,28,C.blue,true);
   src(s,'위험점수 v0.1 · 구성별 상한 합계 100점 · 커버리지 60% 미만 보류 · 현장 점검 우선순위이며 사고확률이 아닙니다.');
   note(s,'각 숫자는 구성 점수의 상한이다. 결과는 추정치와 하한·상한, 근거 커버리지를 함께 제공한다. 결측을 0으로 대체하지 않는다.','04_docs/model/20261112_roadops_explainable_risk_score_v0_1.md');break;
  case 8:
-  s=page(p,n,'과거 사고 자료로 도로 유형의 위험 특성을 확인합니다','담당자는 제주데이터허브 ID 1027 「제주 도로 선형별 교통사고 현황」의 사용 방식을 확인합니다.');
-  txt(s,'51',75,241,325,120,86,C.blue,true,'Poppins');txt(s,'개 원천 행',80,351,340,47,30,C.black,true);
-  txt(s,'37,087',560,241,640,120,86,C.blue,true,'Poppins');txt(s,'개 링크에 선형 프록시 연결',565,351,630,47,30,C.black,true);
-  txt(s,'2018–2020년 집계\n상·하위 합계 검증 9/9\n중복·결측·음수 0건',80,425,430,137,26);
-  txt(s,'구조위험 내 제주 데이터 비중 30%\nTAAS 70%와 함께 상한 25점 안에서 반영\n사고가 났을 때의 조건부 심각도 사용',565,425,641,137,25);
-  txt(s,'과거 집계의 의미를 확인한 뒤, 현재 정보의 상태를 점검합니다.',80,599,1120,47,28,C.blue,true);
-  src(s,'출처: jejudatahub.net/data/view/data/1027 · 2026-11-12 명세 · 통행량 분모가 없어 사고 발생확률로 해석하지 않음');
+  s=page(p,n,'과거 사고 자료로 도로 유형의 위험 특성을 확인합니다','담당자는 제주데이터허브 ID 1027 「제주 도로 선형별 교통사고 현황」의 사용 방식을 확인합니다.',true);
+  s.background.fill=C.blue;
+  txt(s,'51',75,230,325,132,100,C.white,true,'Poppins');txt(s,'개 원천 행',80,362,340,47,30,C.white,true);
+  txt(s,'37,087',560,230,640,132,100,C.white,true,'Poppins');txt(s,'개 링크에 선형 프록시 연결',565,362,630,47,30,C.white,true);
+  txt(s,'2018–2020년 집계\n상·하위 합계 검증 9/9\n중복·결측·음수 0건',80,438,430,137,26,'#E4F0FA');
+  txt(s,'구조위험 내 제주 데이터 비중 30%\nTAAS 70%와 함께 상한 25점 안에서 반영\n사고가 났을 때의 조건부 심각도 사용',565,438,641,137,25,'#E4F0FA');
+  txt(s,'과거 집계의 의미를 확인한 뒤, 현재 정보의 상태를 점검합니다.',80,604,1120,47,28,C.white,true);
+  txt(s,'출처: jejudatahub.net/data/view/data/1027 · 2026-11-12 명세 · 통행량 분모가 없어 사고 발생확률로 해석하지 않음',66,668,1015,34,14,'#E4F0FA');
   note(s,'51행은 개별 사고가 아니라 연도×선형별 집계다. 도로 링크 매핑은 형상 굴곡도 휴리스틱이므로 원천이 37,087링크를 직접 관측했다는 뜻이 아니다. 30%는 전체 점수가 아닌 구조위험 내부 비중이다.','https://www.jejudatahub.net/data/view/data/1027','04_docs/data_quality/20261112_roadops_jeju_datahub_geometry_prior_audit_v0_1.md','04_docs/model/20261112_roadops_explainable_risk_score_v0_1.md');break;
  case 9:
   s=page(p,n,'오래되거나 부족한 근거는 따로 확인합니다','담당자는 출처·관측시각·도로 연결을 살펴, 사용할 근거와 추가 확인이 필요한 정보를 구분합니다.');
@@ -124,17 +128,24 @@ export async function writeRoadOpsStory({presentation:p,input}){
   note(s,'서사상 담당자가 첫 계획을 확정한 뒤 점검을 시작한다. 이는 운영 시뮬레이션이며 실제 출동 실적이 아니다. 차트는 6장의 단일 거점 화면과 다른 고정 입력의 검증이다. 45.1%=(164.253−90.167)/164.253. 위험순과 최근접은 최대 팀 소요시간 120분을 넘겼으며 두 최적화안은 위반 0건이다. 단일 시나리오 결과를 일반 효과로 확대하지 않는다.','04_docs/evaluation/20261113_roadops_allocation_evaluation_v0_1.md','04_docs/presentation/assets/roadops_submission_20261118/evaluation_snapshot.json');break;
  case 12:
   s=page(p,n,'','',true);
-  txt(s,'첫 계획을 확정하고 점검을 시작한 뒤,',78,127,1100,74,38,'#D1D1D1');
-  txt(s,'북부팀의 이동 경로에\n도로 통제가 발생합니다',75,254,1120,180,64,C.white,true);
-  txt(s,'완료한 업무는 유지하면서,\n남은 점검을 어떻게 이어갈까요?',81,498,1100,118,36,C.green,true);
-  src(s,'점검 진행 중을 가정한 통제 주입 What-if · 실제 발생 사건이나 RoadOps의 현장 출동 기록이 아닙니다.',true);
+  scene(s,a+'/13_jeju_road_closure_v1.png','비가 내리는 제주 도로에서 착안한 가상의 통제 장면. AI 생성 상황 재현 이미지이며 실제 통제 발생이나 현장 출동 기록이 아니다.',{left:0,top:0,width:1280,height:720});
+  txt(s,'첫 계획을 확정하고 점검을 시작한 뒤,',76,113,850,68,31,'#E4E8EB');
+  txt(s,'북부팀 이동 경로에\n도로 통제가 발생합니다',73,247,817,164,56,C.white,true);
+  txt(s,'완료한 업무는 유지하면서,\n남은 점검을 어떻게 이어갈까요?',78,506,790,110,32,C.white,true);
+  src(s,'AI 생성 상황 재현 이미지 · 점검 진행 중 통제 주입 What-if · 실제 사건이나 현장 출동 기록이 아닙니다.',true);
   number(s,n,true);
-  note(s,'첫 계획을 확정하고 현장반이 점검을 시작한 뒤 일부 업무가 완료된 시점에 통제를 주입하는 운영 시뮬레이션이다. road_closure는 기존 경로의 통제 링크에 영향을 주입한다. 변경 영향이 없는 팀과 완료·고정 업무를 보존하는지 검사한다.','04_docs/presentation/assets/roadops_submission_20261118/evaluation_snapshot.json');break;
+  note(s,'첫 계획을 확정하고 현장반이 점검을 시작한 뒤 일부 업무가 완료된 시점에 통제를 주입하는 운영 시뮬레이션이다. road_closure는 기존 경로의 통제 링크에 영향을 주입한다. 변경 영향이 없는 팀과 완료·고정 업무를 보존하는지 검사한다. 배경은 AI로 생성한 가상의 제주 도로 통제 장면이며 실제 사건이나 도로 링크의 촬영 자료가 아니다.','04_docs/presentation/assets/roadops_submission_20261118/evaluation_snapshot.json','04_docs/presentation/assets/roadops_submission_20261118/generated_visuals.json');break;
  case 13:
   s=page(p,n,'완료한 업무는 남기고, 북부팀만 다시 계획합니다','Agent는 통제 영향을 확인한 뒤 남은 업무만 조정하고, 변경 이유와 제약을 재검사합니다.');
-  tab(s,[['현장반','통제 전 계획','통제 후 처리'],['북부팀','통제 링크를 포함한 경로','남은 방문 순서·경로 재계획'],['동부팀','통제 영향 없음','기존 계획 유지'],['서부팀','통제 영향 없음','기존 계획 유지']],70,239,1138,262,[236,422,480],26);
-  txt(s,'보존',78,545,225,53,34,C.blue,true);txt(s,'완료 업무 · 고정 업무 · 비영향팀',273,551,925,51,30,C.black,true);
-  txt(s,'폭우 주입 시에는 북부·서부팀만 재계획. 두 시나리오 모두 제약 위반 0건',78,615,1115,48,25,C.gray);
+  txt(s,'1',74,230,180,162,126,C.blue,true,'Poppins');
+  txt(s,'개 팀 재계획',229,296,355,61,35,C.blue,true);
+  txt(s,'북부팀',80,414,476,48,31,C.black,true);
+  txt(s,'통제 링크의 영향을 받은\n남은 방문 순서·경로를 조정',80,477,476,90,26,C.gray);
+  txt(s,'2',686,230,180,162,126,C.black,true,'Poppins');
+  txt(s,'개 팀 유지',843,296,360,61,35,C.black,true);
+  txt(s,'동부팀 · 서부팀',692,414,510,48,31,C.black,true);
+  txt(s,'영향이 없는 팀의 계획과\n완료 업무·고정 업무를 보존',692,477,510,90,26,C.gray);
+  txt(s,'폭우 주입 시에는 북부·서부팀만 재계획. 두 시나리오 모두 제약 위반 0건',78,611,1125,48,25,C.blue,true);
   src(s,'부분 재계획 검증 스냅샷: '+e.replanning_generated_at.slice(0,19).replace('T',' ')+' KST · What-if 정책 검사');
   note(s,'고정 평가 스냅샷의 affected_team_ids와 unchanged_team_ids, preserved_completed_task_ids, preserved_fixed_task_ids를 확인했다. 통제는 북부1팀, 폭우는 북부·서부2팀 재계획이다. 두 결과 모두 constraint_violation_count=0.','04_docs/presentation/assets/roadops_submission_20261118/evaluation_snapshot.json','04_docs/agent/20261113_roadops_partial_replanning_v0_1.md');break;
  case 14:
@@ -147,8 +158,10 @@ export async function writeRoadOpsStory({presentation:p,input}){
   note(s,'이미지는 거점별 추천안의 확정 완료 메시지다. 이전 장의 통제 What-if를 실제로 이 화면에서 승인한 동일 실행 기록은 아니다. 최신 거점별 확정과 기존 상세 승인 패널은 다른 UI 경로이며 모든 경로에서 동일한 3종 안전확인이 강제된다고 주장하지 않는다.','04_docs/presentation/assets/roadops_submission_20261118/04_operator_confirmation.jpg','04_docs/model/20261117_roadops_institution_aware_operations_v0_1.md','08_dashboard/roadops_map_v0_1/src/content/dashboard/DashboardContent.jsx');break;
  case 15:
   s=page(p,n,'정보 수신이 끊겨도 다음 행동을 확인할 수 있습니다','운영 중 API가 실패하면, 담당자는 자료 상태와 보류·갱신·수동 개입 여부를 확인합니다.');
-  tab(s,[['주입한 실패','담당자가 보게 되는 처리'],['API 실패 + 유효 캐시','출처·나이를 표시하고 캐시 재생'],['캐시 없음 / 121분 경과','보류 · 자료 갱신 또는 담당자 확인'],['잘못된 링크','제외 · 원본과 제외 이유 보존'],['실행 가능한 배분 없음','하드 제약 유지 · 수동 개입 요청'],['설명 생성 실패','검증된 결과만 결정적 설명으로 대체']],72,237,1135,317,[460,675],24);
-  txt(s,'6개 실패 시나리오  ·  53개 자동 검사 통과',78,595,1120,54,34,C.blue,true);
+  txt(s,'53',72,258,270,157,116,C.blue,true,'Poppins');
+  txt(s,'개 자동 검사 통과',78,434,274,50,29,C.black,true);
+  txt(s,'6개 실패 시나리오',79,506,274,49,25,C.gray);
+  tab(s,[['주입한 실패','담당자가 보게 되는 처리'],['API 실패 + 유효 캐시','출처·나이를 표시하고 캐시 재생'],['캐시 없음 / 121분 경과','보류 · 자료 갱신 또는 담당자 확인'],['잘못된 링크','제외 · 원본과 제외 이유 보존'],['실행 가능한 배분 없음','하드 제약 유지 · 수동 개입 요청'],['설명 생성 실패','검증된 결과만 결정적 설명으로 대체']],376,235,832,363,[306,526],22);
   src(s,'2026-11-16 저장 입력 기반 장애 주입 평가 · 운영 SLA·실제 복구시간·현장 안전성 실증을 뜻하지 않습니다.');
   note(s,'API 무캐시 실패와 stale은 별도 시나리오로 총6개다. 설명 실패는 LLM 서비스 장애가 아닌 결과 생성기 실패 가정이다. 다중 장애와 장시간 운영 장애는 후속 검증이다.','04_docs/evaluation/20261116_roadops_resilience_evaluation_v0_1.md');break;
  case 16:
@@ -161,10 +174,11 @@ export async function writeRoadOpsStory({presentation:p,input}){
   note(s,'request_interpreter는 deterministic_korean_demo_grammar_not_general_llm이다. result_explainer는 검증 결과 기반 설명이다. run_demo.sh/run_demo.ps1, requirements.txt, config/.env.example, 실행 매뉴얼로 재현 경로를 제공한다. 실제 센터PC·현장 조직 연계 검증은 후속 범위다.','05_src/roadops/agent_flow.py','04_docs/agent/20261113_roadops_agent_flow_v0_1.md','04_docs/deployment/20261116_roadops_execution_user_manual_v0_1.md');break;
  case 17:
   s=page(p,n,'RoadOps','',true);
-  txt(s,'담당자에게 남는 것은\n근거 있는 현장계획입니다',76,229,1124,180,54,C.white,true);
-  txt(s,'어디를 먼저 확인할지, 누가 갈 수 있는지,\n상황이 바뀌면 무엇을 바꿔야 하는지.',80,463,1100,113,33,'#D1D1D1');
-  txt(s,'근거를 설명하고, 필요한 부분만 다시 계획하고, 사람이 결정합니다.',80,613,1100,42,26,C.green,true);
-  src(s,'제주 도로관리 담당자를 위한 승인형 운영 보조 Agent',true);
+  s.background.fill=C.blue;
+  txt(s,'담당자에게 남는 것은\n근거 있는 현장계획입니다',76,218,1124,191,65,C.white,true);
+  txt(s,'어디를 먼저 확인할지, 누가 갈 수 있는지,\n상황이 바뀌면 무엇을 바꿔야 하는지.',80,459,1100,113,33,'#E4F0FA');
+  txt(s,'근거를 설명하고, 필요한 부분만 다시 계획하고, 사람이 결정합니다.',80,610,1100,45,26,C.white,true);
+  txt(s,'제주 도로관리 담당자를 위한 승인형 운영 보조 Agent',66,668,1015,34,14,'#E4F0FA');
   note(s,'제안 가치는 위험정보를 관할·자원 제약에 맞는 작업안으로 연결하고 최소 변경 재계획과 검토 근거를 제공하는 것이다. 현장 운영 도입 완료·자동 지휘·예측 우월성을 주장하지 않는다.','PROJECT_BRIEF.md');break;
  default:throw new Error('Unsupported slide '+n);
  }
