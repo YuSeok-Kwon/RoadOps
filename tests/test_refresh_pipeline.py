@@ -12,6 +12,8 @@ def test_operational_refresh_order_preserves_dependencies():
     stage_ids = [stage_id for stage_id, _ in commands(PROJECT_ROOT, "operational")]
     assert stage_ids.index("cits_snapshots") < stage_ids.index("spatial_join")
     assert stage_ids.index("integrated_events") < stage_ids.index("risk_scores")
+    assert stage_ids.index("historical_similarity") < stage_ids.index("risk_forecasts")
+    assert stage_ids.index("reverse_geocode") < stage_ids.index("risk_forecasts")
     assert stage_ids.index("weather_timeline") < stage_ids.index("kma_radar")
     assert stage_ids.index("kma_radar") < stage_ids.index("dashboard_snapshot")
     assert stage_ids.index("safemap_response_layers") < stage_ids.index("dashboard_snapshot")
@@ -28,7 +30,8 @@ def test_dry_run_does_not_execute_provider_calls():
 
 def test_full_refresh_finishes_with_dashboard_after_reference_sources():
     stage_ids = [stage_id for stage_id, _ in commands(PROJECT_ROOT, "full")]
-    assert stage_ids.index("crime_statistics") < stage_ids.index("dashboard_snapshot")
+    assert stage_ids.index("crime_statistics") < stage_ids.index("risk_forecasts")
+    assert stage_ids.index("accident_hotspots") < stage_ids.index("risk_forecasts")
     assert stage_ids.index("gateway_api_audit") < stage_ids.index("dashboard_snapshot")
     assert stage_ids[-1] == "dashboard_snapshot"
 

@@ -44,6 +44,8 @@ def main() -> int:
             "dataset": "roadops_historical_weather_incident_similarity",
             "current_observed_at": report.get("current_observed_at"),
             "records": matches,
+            "status": report.get("status"),
+            "scoring_records": report.pop("scoring_records", []),
         },
     )
     report["outputs"] = {

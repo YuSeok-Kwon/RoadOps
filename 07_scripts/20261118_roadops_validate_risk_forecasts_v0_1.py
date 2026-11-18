@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import csv
 import json
 import subprocess
@@ -121,10 +122,11 @@ def _archive_current(risk_path: Path, archive_dir: Path) -> dict[str, Any]:
     if len(generated_values) != 1:
         raise SystemExit("Current forecasts must contain exactly one generated_at value")
     generated_at = generated_values[0]
-    archive_name = generated_at.replace(":", "").replace("+", "_") + ".json"
+    version_hash = hashlib.sha256("|".join(sorted({str(row.get("forecast_version")) for row in rows})).encode()).hexdigest()[:12]
+    archive_name = generated_at.replace(":", "").replace("+", "_") + "_" + version_hash + ".json"
     archive_path = archive_dir / archive_name
     snapshot = _snapshot(
-        f"archive:{generated_at}",
+        f"archive:{generated_at}:{version_hash}",
         generated_at,
         rows,
         provenance={"path": _relative(risk_path)},

@@ -304,6 +304,7 @@ export function optimizeAllocation({
 
 export function optimizationInputFingerprint(state) {
   return JSON.stringify({
+    scoringPolicy: state.scoringPolicy ?? null,
     resources: state.resources.map((resource) => ({
       teamId: resource.teamId,
       available: resource.available,
@@ -312,6 +313,7 @@ export function optimizationInputFingerprint(state) {
     })),
     tasks: state.tasks.map((task) => ({
       taskId: task.taskId,
+      priorityScore: task.priorityScore,
       assignedTeamId: task.fixed ? task.assignedTeamId : null,
       excluded: task.excluded,
       fixed: task.fixed,

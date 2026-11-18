@@ -199,3 +199,20 @@ def test_validated_gateway_pressure_only_affects_nearby_target_hour():
     assert current["gateway_score"] > 0
     assert "gateway:airport_inflow_pressure" in current["risk_drivers"]
     assert report["failed_checks"] == []
+
+
+def test_operator_policy_drives_forecast_and_retains_recomputable_inputs():
+    import json
+    from pathlib import Path
+    from roadops.map_snapshot import _aggregate_risks
+    policy = json.loads((Path(__file__).resolve().parents[1] / "config/scoring/operator_priority_v0_2.json").read_text())
+    policy["weights"] = {key: 100 if key == "event" else 0 for key in policy["weights"]}
+    rows, report = build_risk_forecasts([_event()], _weather_rows(), generated_at=NOW, scoring_policy=policy)
+    assert report["failed_checks"] == []
+    assert rows[0]["forecast_priority_score"] == 70
+    assert json.loads(rows[0]["priority_result_json"])["factors"][0]["contribution"] == 70
+    assert rows[0]["forecast_version"].startswith("roadops-operator-priority-v0.2:")
+    links = _aggregate_risks(rows, {})
+    assert len(links[0]["priority_candidates"]) == 1
+    assert links[0]["priority_candidates"][0]["event_id"] == "event-1"
+    assert links[0]["scoring_policy_json"] == rows[0]["scoring_policy_json"]

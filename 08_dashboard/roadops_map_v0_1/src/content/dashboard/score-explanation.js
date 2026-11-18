@@ -32,10 +32,26 @@ export function parseDriver(value) {
   return { raw, key, label, description, contribution: splitAt > -1 ? finiteNumber(raw.slice(splitAt + 1)) : null };
 }
 
+export function priorityResult(row) {
+  if (row?.priority_result) return row.priority_result;
+  try { return JSON.parse(row?.priority_result_json || "null"); } catch { return null; }
+}
+
 export function scoreExplanation(row) {
   const score = finiteNumber(row?.priority_score);
   const unavailable = { score, drivers: [], remainder: null, capAdjustment: null, available: false };
   if (score == null) return unavailable;
+  const result = priorityResult(row);
+  if (result) {
+    const drivers = (result.factors || []).filter((factor) => factor.contribution != null).map((factor) => ({
+      ...factor, raw: `policy:${factor.key}`, contribution: finiteNumber(factor.contribution),
+      label: factor.driver && DRIVER_DETAILS[`${factor.key}:${factor.driver}`] ? DRIVER_DETAILS[`${factor.key}:${factor.driver}`][0] : factor.label,
+    })).sort((a, b) => b.contribution - a.contribution);
+    const sum = drivers.reduce((total, driver) => total + (driver.contribution ?? 0), 0);
+    if (!result.available || !drivers.length || drivers.some((driver) => driver.contribution == null || driver.contribution < 0)
+        || Math.abs(sum - score) > .001) return unavailable;
+    return { score, drivers, remainder: null, capAdjustment: null, available: true };
+  }
   // Older multi-event snapshots merge drivers from different scores. Do not add them.
   const basis = row.score_basis_drivers ?? (Number(row.event_count) <= 1 ? row.risk_drivers : null);
   const drivers = String(basis || "").split("|").filter((value) => value.trim()).map(parseDriver)

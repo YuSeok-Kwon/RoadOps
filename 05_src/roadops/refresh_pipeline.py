@@ -33,14 +33,14 @@ OPERATIONAL_STAGES = (
     ("kma_radar", "20261118_roadops_collect_kma_radar_v0_1.py"),
     ("gateway_api_audit", "20261112_roadops_audit_gateway_apis_v0_1.py"),
     ("gateway_pressure", "20261117_roadops_build_gateway_pressure_v0_1.py"),
+    ("reverse_geocode", "20261117_roadops_reverse_geocode_links_v0_1.py"),
+    ("historical_similarity", "20261117_roadops_build_historical_similarity_v0_1.py"),
     ("risk_forecasts", "20261112_roadops_build_risk_forecasts_v0_1.py"),
     ("forecast_validation", "20261118_roadops_validate_risk_forecasts_v0_1.py"),
-    ("reverse_geocode", "20261117_roadops_reverse_geocode_links_v0_1.py"),
     ("allocation_baselines", "20261112_roadops_build_allocation_baselines_v0_1.py"),
     ("travel_time", "20261113_roadops_build_travel_time_matrix_v0_1.py", "--refresh-cache"),
     ("optimized_allocation", "20261113_roadops_optimize_allocation_v0_1.py"),
     ("partial_replanning", "20261113_roadops_replan_scenarios_v0_1.py"),
-    ("historical_similarity", "20261117_roadops_build_historical_similarity_v0_1.py"),
     ("complaint_hotspots", "20261117_roadops_collect_complaint_hotspots_v0_1.py"),
     ("dashboard_snapshot", "20261113_roadops_build_map_snapshot_v0_1.py", "--build-status", "complete"),
 )
@@ -53,7 +53,7 @@ REFERENCE_STAGES = (
 
 def commands(project_root: Path, profile: str) -> list[tuple[str, list[str]]]:
     stages = (
-        OPERATIONAL_STAGES[:-1] + REFERENCE_STAGES + OPERATIONAL_STAGES[-1:]
+        REFERENCE_STAGES + OPERATIONAL_STAGES
         if profile == "full"
         else OPERATIONAL_STAGES
     )

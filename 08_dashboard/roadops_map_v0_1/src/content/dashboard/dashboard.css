@@ -1046,3 +1046,21 @@
   .operation-stage-ai-config .workflow-task-row { grid-template-columns: minmax(0, 1fr); }
   .operation-stage-ai-config .workflow-task-row .workflow-task-title { grid-column: 1; }
 }
+.roadops-page .scoring-policy-panel { margin: 12px 0; padding: 20px; background: var(--surface, var(--background)); border: 1px solid var(--border); border-radius: 14px; color: var(--text); }
+.roadops-page .scoring-policy-panel header, .roadops-page .scoring-policy-panel footer { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+.roadops-page .scoring-policy-panel h2 { font-size: 19px; margin: 4px 0 8px; }
+.roadops-page .scoring-policy-panel p { font-size: 12px; line-height: 1.6; color: var(--secondary); margin: 6px 0; }
+.roadops-page .scoring-policy-panel small, .roadops-page .scoring-policy-badge { font-size: 11px; color: var(--secondary); }
+.roadops-page .scoring-policy-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 16px 0; }
+.roadops-page .scoring-policy-criterion { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; padding: 12px; border: 1px solid var(--border); border-radius: 9px; }
+.roadops-page .scoring-policy-criterion > label:first-child { font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+.roadops-page .scoring-policy-criterion p { grid-column: 1 / -1; }
+.roadops-page .scoring-weight-input { display: flex; align-items: center; gap: 3px; font-size: 11px; }
+.roadops-page .scoring-weight-input input { width: 58px; padding: 5px; border: 1px solid var(--border); border-radius: 5px; background: var(--background); color: var(--text); text-align: right; }
+.roadops-page .scoring-policy-method { padding: 10px 0 16px; }
+.roadops-page .scoring-policy-method label { font-size: 13px; font-weight: 700; margin-right: 12px; }
+.roadops-page .scoring-policy-method select { max-width: 100%; padding: 7px; color: var(--text); background: var(--background); border: 1px solid var(--border); border-radius: 5px; }
+.roadops-page .scoring-applied-message { font-size: 12px; color: var(--text); margin: 8px 0; }
+.roadops-page .priority-score-drivers [data-factor-status="excluded"] { opacity: .65; }
+@media (max-width: 1100px) { .roadops-page .scoring-policy-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .roadops-page .scoring-policy-grid { grid-template-columns: minmax(0, 1fr); } .roadops-page .scoring-policy-panel { padding: 12px; } }

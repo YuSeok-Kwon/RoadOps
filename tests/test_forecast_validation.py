@@ -121,3 +121,24 @@ def test_unmatured_three_and_six_hour_forecasts_remain_pending():
     status = {row["horizon_hours"]: row["validation_status"] for row in report["metrics"]}
     assert status[3] == "pending"
     assert status[6] == "pending"
+
+
+def test_validation_does_not_compare_different_operator_weights():
+    old = {"snapshot_id": "old", "generated_at": "2026-11-18T07:05:00+09:00", "rows": [
+        {**_row(0, "2026-11-18T07:00:00+09:00", "2026-11-18T07:05:00+09:00", 40), "forecast_version": "policy-a"},
+        {**_row(1, "2026-11-18T08:00:00+09:00", "2026-11-18T07:05:00+09:00", 48), "forecast_version": "policy-a"}]}
+    outcome = {"snapshot_id": "new", "generated_at": "2026-11-18T08:10:00+09:00", "rows": [
+        {**_row(0, "2026-11-18T08:00:00+09:00", "2026-11-18T08:10:00+09:00", 80), "forecast_version": "policy-b"}]}
+    _, matched = validate_forecast_snapshots([old, outcome], generated_at=NOW)
+    assert matched == []
+    outcome["rows"][0]["forecast_version"] = "policy-a"
+    _, matched = validate_forecast_snapshots([old, outcome], generated_at=NOW)
+    assert len(matched) == 1
+
+
+def test_link_aggregation_keeps_zero_and_separates_policies():
+    from roadops.forecast_validation import aggregate_link_forecasts
+    base = {"effective_link_id": "road", "horizon_hours": 0, "target_at": "2026-11-18T08:00:00+09:00", "ranking_eligible": True}
+    result = aggregate_link_forecasts([{**base, "forecast_priority_score": 0, "forecast_version": "a"},
+                                      {**base, "forecast_priority_score": 10, "forecast_version": "b"}])
+    assert [(row["forecast_version"], row["priority_score"]) for row in result] == [("a", 0), ("b", 10)]

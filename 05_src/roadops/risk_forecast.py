@@ -6,12 +6,14 @@
 from __future__ import annotations
 
 import hashlib
+import json
 from collections import Counter
 from datetime import datetime, timedelta
 from statistics import median
 from typing import Any, Iterable, Mapping
 
 from roadops.gateway_pressure import gateway_contribution
+from roadops.priority_policy import build_priority_inputs, calculate_priority, policy_id
 from roadops.risk_scoring import score_risk_event
 
 
@@ -46,6 +48,9 @@ RISK_FORECAST_FIELDS = (
     "integration_class",
     "forecast_version",
     "forecast_semantics",
+    "scoring_policy_json",
+    "priority_inputs_json",
+    "priority_result_json",
     "forecast_status",
     "score_available",
     "ranking_eligible",
@@ -290,6 +295,11 @@ def build_risk_forecasts(
     generated_at: datetime,
     horizons: Iterable[int] = DEFAULT_HORIZONS,
     gateway_pressure: Mapping[str, Any] | None = None,
+    scoring_policy: Mapping[str, Any] | None = None,
+    accident_hotspots: Mapping[str, Any] | None = None,
+    historical_similarity: Mapping[str, Any] | None = None,
+    crime_statistics: Mapping[str, Any] | None = None,
+    link_cities: Mapping[str, str] | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """Build one inspectable priority scenario per event and horizon."""
 
@@ -348,6 +358,26 @@ def build_risk_forecasts(
                 limitations.add("gateway_inflow:unavailable_not_scored")
             elif gateway["status"] != "applied":
                 limitations.add(f"gateway_inflow:{gateway['status']}")
+            priority_inputs = build_priority_inputs(scoring_row, scored, gateway,
+                as_of=generated_at, horizon=horizon, accident_hotspots=accident_hotspots,
+                historical_similarity=historical_similarity, crime_statistics=crime_statistics,
+                link_cities=link_cities)
+            priority_result = calculate_priority(priority_inputs, scoring_policy) if scoring_policy else None
+            if priority_result:
+                priority_score = priority_result["score"]
+                lower_bound, upper_bound = priority_result["lower"], priority_result["upper"]
+                risk_drivers = "|".join(f"policy:{row['key']}:{row['contribution']:.6f}"
+                    for row in priority_result["factors"] if row["contribution"] is not None)
+                scored.update(score_available=priority_result["available"], ranking_eligible=priority_result["available"],
+                    evidence_coverage_ratio=priority_result["coverage"],
+                    scoring_status="degraded" if priority_result["available"] else "hold")
+                flags = set(str(scored.get("quality_flags") or "").split("|")) - {""}
+                if priority_result["available"]:
+                    flags.discard("hold:insufficient_evidence_coverage")
+                else:
+                    flags.add("hold:selected_policy_evidence_insufficient")
+                scored["quality_flags"] = "|".join(sorted(flags))
+                limitations.add("operator_policy:provisional_not_calibrated_probability")
             forecast_row = {
                 "forecast_id": _forecast_id(event_id, horizon, target_at),
                 "generated_at": generated_at.isoformat(),
@@ -360,7 +390,10 @@ def build_risk_forecasts(
                 "effective_link_id": scored.get("effective_link_id"),
                 "road_name": scored.get("road_name"),
                 "integration_class": scored.get("integration_class"),
-                "forecast_version": FORECAST_VERSION,
+                "forecast_version": policy_id(scoring_policy) if scoring_policy else FORECAST_VERSION,
+                "scoring_policy_json": json.dumps(scoring_policy, ensure_ascii=False) if scoring_policy else None,
+                "priority_inputs_json": json.dumps(priority_inputs, ensure_ascii=False),
+                "priority_result_json": json.dumps(priority_result, ensure_ascii=False) if priority_result else None,
                 "forecast_semantics": "operational_priority_scenario_not_accident_probability",
                 "forecast_status": scored.get("scoring_status"),
                 "score_available": scored.get("score_available"),
@@ -374,7 +407,7 @@ def build_risk_forecasts(
                     if upper_bound is not None and lower_bound is not None
                     else None
                 ),
-                "risk_level": _risk_level(priority_score) if priority_score is not None else scored.get("risk_level"),
+                "risk_level": _risk_level(priority_score) if priority_score is not None else None,
                 "evidence_coverage_ratio": scored.get("evidence_coverage_ratio"),
                 "risk_delta_from_current": None,
                 "risk_direction": None,
@@ -514,7 +547,7 @@ def build_risk_forecasts(
     )
     report = {
         "schema_version": 1,
-        "forecast_version": FORECAST_VERSION,
+        "forecast_version": policy_id(scoring_policy) if scoring_policy else FORECAST_VERSION,
         "status": status,
         "generated_at": generated_at.isoformat(),
         "horizons": ordered_horizons,

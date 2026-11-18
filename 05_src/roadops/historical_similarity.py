@@ -142,6 +142,7 @@ def build_historical_similarity(
                 "similarity_score": similarity,
                 "evidence_coverage_ratio": coverage,
                 "event_count": len(event_records),
+                "event_snapshot_available": event_snapshot.get("status") == "success",
                 "event_link_ids": sorted(
                     {
                         str(row.get("link_id"))
@@ -185,6 +186,7 @@ def build_historical_similarity(
         "current_features": current_features,
         "snapshot_count": len(successful),
         "candidate_count": len(candidates),
+        "scoring_records": candidates,
         "match_count": len(selected),
         "minimum_spacing_minutes": 30,
         "limitations": [

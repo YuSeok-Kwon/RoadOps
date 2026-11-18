@@ -320,12 +320,15 @@ def build_data_app_snapshot(
         ),
         "risk_links": source(
             "RoadOps explainable risk forecasts",
-            [inputs["risk_forecasts"], inputs["road_links"], inputs["reverse_geocode"]],
+            [inputs["risk_forecasts"], inputs["road_links"], inputs["reverse_geocode"], inputs["accident_hotspots"], inputs["historical_similarity"], inputs["crime_statistics"]],
             ["roadops-map", "risk-detail", "priority-road-score"],
             shared_caveats + [
                 "Each link uses the highest individual event score at the selected horizon. "
                 "score_basis_drivers explains that event; risk_drivers contains drivers across all events. "
-                "Only the leading component contributions are recorded; any remainder is not an additional observation."
+                "Operator-selected weights and missing-evidence rules are recorded in scoring_policy_json. "
+                "priority_candidates retains every event input so a changed weighting can select a new representative. "
+                "City safety is an administrative-city workload proxy, not a road crime probability. "
+                "Legacy rows may retain only leading contributions. Browser settings apply to both manual and AI modes and are stored locally."
             ],
         ),
         "field_tasks": source(

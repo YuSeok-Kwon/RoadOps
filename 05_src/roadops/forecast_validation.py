@@ -50,12 +50,17 @@ def _truthy(value: Any) -> bool:
     return str(value).strip().lower() in {"1", "true", "yes"}
 
 
+def _score_value(row: Mapping[str, Any], forecast_field: str, link_field: str) -> float | None:
+    value = _number(row.get(forecast_field))
+    return value if value is not None else _number(row.get(link_field))
+
+
 def aggregate_link_forecasts(
     rows: Iterable[Mapping[str, Any]],
 ) -> list[dict[str, Any]]:
     """Collapse event-level forecasts to the link grain used by the dashboard."""
 
-    groups: dict[tuple[str, str, int], list[dict[str, Any]]] = defaultdict(list)
+    groups: dict[tuple[str, str, int, str], list[dict[str, Any]]] = defaultdict(list)
     for source in rows:
         row = dict(source)
         link_id = _text(row.get("effective_link_id") or row.get("link_id"))
@@ -63,14 +68,14 @@ def aggregate_link_forecasts(
         horizon = _integer(row.get("horizon_hours"))
         if link_id is None or target_at is None or horizon is None:
             continue
-        groups[(link_id, target_at, horizon)].append(row)
+        groups[(link_id, target_at, horizon, str(row.get("forecast_version") or "legacy"))].append(row)
 
     output: list[dict[str, Any]] = []
-    for (link_id, target_at, horizon), candidates in sorted(groups.items()):
+    for (link_id, target_at, horizon, version), candidates in sorted(groups.items()):
         scored = [
             row
             for row in candidates
-            if _number(row.get("forecast_priority_score") or row.get("priority_score"))
+            if _score_value(row, "forecast_priority_score", "priority_score")
             is not None
             and (
                 _truthy(row.get("ranking_eligible"))
@@ -80,27 +85,24 @@ def aggregate_link_forecasts(
         ]
         representative = max(
             scored or candidates,
-            key=lambda row: _number(
-                row.get("forecast_priority_score") or row.get("priority_score")
-            )
-            or -1.0,
+            key=lambda row: value if (value := _score_value(row, "forecast_priority_score", "priority_score")) is not None else -1.0,
         )
         scores = [
             value
             for row in scored
-            if (value := _number(row.get("forecast_priority_score") or row.get("priority_score")))
+            if (value := _score_value(row, "forecast_priority_score", "priority_score"))
             is not None
         ]
         lower_bounds = [
             value
             for row in scored
-            if (value := _number(row.get("forecast_score_lower_bound") or row.get("score_lower_bound")))
+            if (value := _score_value(row, "forecast_score_lower_bound", "score_lower_bound"))
             is not None
         ]
         upper_bounds = [
             value
             for row in scored
-            if (value := _number(row.get("forecast_score_upper_bound") or row.get("score_upper_bound")))
+            if (value := _score_value(row, "forecast_score_upper_bound", "score_upper_bound"))
             is not None
         ]
         output.append(
@@ -115,6 +117,7 @@ def aggregate_link_forecasts(
                 "score_upper_bound": max(upper_bounds) if upper_bounds else None,
                 "ranking_eligible": bool(scores),
                 "forecast_status": _text(representative.get("forecast_status")),
+                "forecast_version": version,
                 "forecast_semantics": _text(representative.get("forecast_semantics")),
                 "weather_evidence_kind": _text(representative.get("weather_evidence_kind")),
                 "weather_base_at": _text(representative.get("weather_base_at")),
@@ -162,9 +165,9 @@ def validate_forecast_snapshots(
                     {"check": f"future_{field}", "link_id": row.get("link_id")}
                 )
 
-    forecasts: dict[tuple[int, str, str], dict[str, Any]] = {}
-    current_by_target_link: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
-    current_by_snapshot_link: dict[tuple[str, str], dict[str, Any]] = {}
+    forecasts: dict[tuple[int, str, str, str], dict[str, Any]] = {}
+    current_by_target_link: dict[tuple[str, str, str], list[dict[str, Any]]] = defaultdict(list)
+    current_by_snapshot_link: dict[tuple[str, str, str], dict[str, Any]] = {}
     for row in normalized:
         horizon = _integer(row.get("horizon_hours"))
         link_id = _text(row.get("link_id"))
@@ -173,13 +176,14 @@ def validate_forecast_snapshots(
         generated = _datetime(row.get("generated_at") or row.get("snapshot_generated_at"))
         if horizon is None or link_id is None or target_at is None or score is None or generated is None:
             continue
+        version = row.get("forecast_version") or "legacy"
         if horizon == 0:
-            current_by_target_link[(target_at, link_id)].append(row)
+            current_by_target_link[(target_at, link_id, version)].append(row)
             snapshot_id = _text(row.get("snapshot_id"))
             if snapshot_id:
-                current_by_snapshot_link[(snapshot_id, link_id)] = row
+                current_by_snapshot_link[(snapshot_id, link_id, version)] = row
         else:
-            key = (horizon, target_at, link_id)
+            key = (horizon, target_at, link_id, version)
             existing = forecasts.get(key)
             existing_at = _datetime(existing.get("generated_at") or existing.get("snapshot_generated_at")) if existing else None
             if existing_at is None or generated < existing_at:
@@ -189,12 +193,12 @@ def validate_forecast_snapshots(
         rows.sort(key=lambda row: _datetime(row.get("generated_at") or row.get("snapshot_generated_at")) or generated_at)
 
     matched: list[dict[str, Any]] = []
-    for (horizon, target_text, link_id), forecast in sorted(forecasts.items()):
+    for (horizon, target_text, link_id, version), forecast in sorted(forecasts.items()):
         forecast_at = _datetime(forecast.get("generated_at") or forecast.get("snapshot_generated_at"))
         target_at = _datetime(target_text)
         if forecast_at is None or target_at is None:
             continue
-        outcomes = current_by_target_link.get((target_text, link_id), [])
+        outcomes = current_by_target_link.get((target_text, link_id, version), [])
         outcome = next(
             (
                 row
@@ -205,7 +209,7 @@ def validate_forecast_snapshots(
             None,
         )
         baseline = current_by_snapshot_link.get(
-            (_text(forecast.get("snapshot_id")) or "", link_id)
+            (_text(forecast.get("snapshot_id")) or "", link_id, version)
         )
         if outcome is None or baseline is None:
             continue

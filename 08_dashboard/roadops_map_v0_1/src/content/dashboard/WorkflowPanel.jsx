@@ -7,6 +7,7 @@ import {
   countWorkflowChanges,
   createApprovalRecord,
   createWorkflowState,
+  rebaseWorkflowState,
   validateWorkflow,
   workflowFingerprint,
 } from "./workflow-policy.js";
@@ -244,6 +245,8 @@ export function WorkflowPanel({
   routeLinks,
   provenanceRows,
   optimizeOnMount = false,
+  scoringPolicy = null,
+  initialState = null,
   onResultChange,
 }) {
   const [activeTab, setActiveTab] = useState("resources");
@@ -261,7 +264,7 @@ export function WorkflowPanel({
   const loadedStorageKey = useRef(/** @type {string | null} */ (null));
   const optimizedInput = useRef(/** @type {string | null} */ (null));
   const storageKey = metadata.generated_at
-    ? `roadops:web1:${metadata.snapshot_version}:${metadata.generated_at}`
+    ? `roadops:web1:${metadata.snapshot_version}:${metadata.generated_at}:${JSON.stringify(scoringPolicy)}`
     : null;
 
   const record = (action, details) => {
@@ -270,7 +273,7 @@ export function WorkflowPanel({
 
   useEffect(() => {
     if (!state && teams.length && tasks.length) {
-      const initial = createWorkflowState({ teams, tasks, routes, planId: selectedPlan });
+      const initial = rebaseWorkflowState(createWorkflowState({ teams, tasks, routes, planId: selectedPlan, scoringPolicy }), initialState);
       optimizedInput.current = optimizeOnMount ? null : optimizationInputFingerprint(initial);
       setState(initial);
     }

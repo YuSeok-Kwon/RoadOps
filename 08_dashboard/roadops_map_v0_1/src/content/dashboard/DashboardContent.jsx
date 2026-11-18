@@ -15,7 +15,9 @@ import {
   tasksForDepot,
 } from "./operation-flow.js";
 import radarSnapshot from "../assets/kma-radar.json";
-import { prioritySummary, scoreExplanation } from "./score-explanation.js";
+import { prioritySummary, scoreExplanation, priorityResult } from "./score-explanation.js";
+import { ScoringPolicyPanel } from "./ScoringPolicyPanel.jsx";
+import { DEFAULT_POLICY, POLICY_STORAGE_KEY, applyPriorityPolicy, parsePolicy, policyFingerprint } from "./priority-policy.js";
 import "./dashboard.css";
 
 const HORIZONS = [0, 1, 3, 6];
@@ -1200,6 +1202,7 @@ function patrolCrimeCategories(row) {
 function PriorityScoreDetail({ row, riskRows, horizon }) {
   if (!row) return <p className="priority-score-unavailable">선택한 시점의 점수 근거가 없습니다.</p>;
   const explanation = scoreExplanation(row);
+  const result = priorityResult(row);
   const qualityFlags = String(row.quality_flags || "").split("|").map((flag) => flag.trim());
   return <DataComponent variant="plain" id="priority-road-score" queryId="risk_links" kind="custom"
     title={explanation.score == null ? "점수 산정 보류" : `${number(row.priority_score)}점의 산정 근거`}
@@ -1209,7 +1212,17 @@ function PriorityScoreDetail({ row, riskRows, horizon }) {
     <div data-reviewed-rows>
       <p className="priority-score-basis">{horizon === 0 ? "현재" : `${horizon}시간 후`} · {dateTime(row.target_at)}
         {Number(row.event_count) > 1 && ` · 위험정보 ${number(row.event_count, 0)}건 중 가장 높은 개별 점수를 사용합니다.`}</p>
-      {explanation.available ? <>
+      {result ? <>
+        <dl className="priority-score-drivers">
+          {result.factors.map((factor) => <div key={factor.key} data-factor-status={factor.status}>
+            <dt>{factor.label}<span>{factor.status === "excluded" ? "담당자 설정에서 제외했습니다." : factor.description}</span>
+              {factor.weight > 0 && <span>설정 배점 {number(factor.weight)}점 · 항목지수 {factor.value == null ? "미확인" : number(factor.value)} / 100 · 근거 {percentage(factor.coverage)}</span>}</dt>
+            <dd>{factor.status === "excluded" ? "제외" : factor.status === "not_applicable" ? "해당 없음" : factor.contribution == null ? "미반영" : `${number(factor.contribution)}점`}</dd>
+          </div>)}
+        </dl>
+        <p className="priority-score-method">담당자 배점 · {result.method === "complete" ? "전체 근거 필요" : "확인된 근거로 100점 환산"} · 수동·AI 공통. 항목별 반영 점수의 합계입니다.</p>
+        {!result.available && <p className="priority-score-unavailable">선택한 기준을 충족하는 최신 도로 근거가 부족해 산정을 보류했습니다. 누락 항목과 계산 방식을 확인하세요.</p>}
+      </> : explanation.available ? <>
         <dl className="priority-score-drivers">
           {explanation.drivers.map((driver) => <div key={driver.raw}>
             <dt>{driver.label}<span>{driver.description}</span></dt>
@@ -1231,7 +1244,7 @@ function PriorityScoreDetail({ row, riskRows, horizon }) {
       {qualityFlags.includes("assumption:cits_visibility_unit_meters") && <p className="priority-score-caution">가시거리 단위를 미터로 가정한 점수입니다. 센서 원시값과 실제 시야를 확인하세요.</p>}
       {row.evidence_coverage_ratio != null && Number(row.evidence_coverage_ratio) < 1 && <p className="priority-score-caution">근거 반영률 {percentage(row.evidence_coverage_ratio)} · {explanation.score == null
         ? "누락되거나 오래된 자료를 확인해야 합니다."
-        : "누락된 근거를 0점으로 처리하지 않고, 가용한 근거로 환산했습니다."}</p>}
+        : "선택한 계산 방식에 따라 확인된 근거로 산정했습니다. 누락 자료는 확인된 0점과 구분합니다."}</p>}
     </div>
   </DataComponent>;
 }
@@ -1240,6 +1253,7 @@ function DepotEvidence({
   depot,
   tasks,
   riskRows,
+  sourceRiskRows,
   horizon,
   accidents,
   history,
@@ -1293,7 +1307,7 @@ function DepotEvidence({
                 <small>{expanded ? "접기 −" : "점수 근거 +"}</small></span>
             </button>
             {expanded && <div id={detailId}>
-              <PriorityScoreDetail row={risk} riskRows={riskRows} horizon={horizon} />
+              <PriorityScoreDetail row={risk} riskRows={sourceRiskRows || riskRows} horizon={horizon} />
             </div>}
           </div>;
         })}
@@ -1326,7 +1340,7 @@ function DepotEvidence({
         {!accidents.length && <p><span>주변 공개자료 없음</span></p>}
       </div>
       <div>
-        <div className="evidence-section-head"><strong>생활안전 참고</strong><span>도로 위험점수와 분리</span></div>
+        <div className="evidence-section-head"><strong>생활안전 참고</strong><span>주의구간 지도 · 시 단위 통계</span></div>
         <div className="evidence-disclosure" data-expanded={expandedEvidence === "crime" || undefined}>
           <button type="button" aria-expanded={expandedEvidence === "crime"} onClick={() => toggleEvidence("crime")}>
             <span><b>{crimeAvailable ? `${administrativeCity} 주요 범죄 주의구간` : "범죄주의 지도 확인 필요"}</b>
@@ -1345,7 +1359,7 @@ function DepotEvidence({
                 {crimeAvailable && crimeMapTarget ? "지도에서 보기" : "위치 없음"}
               </button>
             </div>
-            <p>노랑에서 빨강으로 진해질수록 주의등급이 높습니다. 도심의 상세 지도를 열며, 실시간 사건이나 발생확률을 나타내지 않습니다.</p>
+            <p>노랑에서 빨강으로 진해질수록 주의등급이 높습니다. 도심의 상세 지도를 열며, 실시간 사건이나 발생확률을 나타내지 않습니다. 생활안전 항목을 선택하면 점수에는 별도 시 단위 강력·절도·폭력 통계를 사용하며, 지도 색상을 수치로 바꾸어 더하지 않습니다.</p>
             {crimeRow && <p>별도 시 단위 통계 · {crimeRow.analysis_year}년 {administrativeCity}: {crimeCategories.map((item) => `${item.crime_category} ${number(item.occurrence_count, 0)}건`).join(" · ")}</p>}
           </div>}
         </div>
@@ -1353,6 +1367,7 @@ function DepotEvidence({
     </section>
     <section className="evidence-section">
       <div className="evidence-section-head"><strong>비슷했던 날의 사건 장소</strong><span>과거 수집 이력</span></div>
+      <p className="priority-score-method">최근 유사 수집도 함께 표시합니다. 점수에는 24시간 이전 기록만 하루 한 번 반영합니다.</p>
       <div className="similar-place-list">
         {history.slice(0, 2).map((row) => {
           const key = `history:${row.observed_at}`;
@@ -1418,7 +1433,7 @@ function ManualRoutePanel({ depot, candidates, selectedTaskIds, onToggle, routes
       <span>추가 가능한 장소</span>
       {candidates.filter((task) => !selected.has(String(task.task_id))).map((task) => <button type="button"
         key={task.task_id} onClick={() => onToggle(task.task_id)}>
-        <span><strong>{locationLabel(task)}</strong><small>{RISK_LABELS[task.risk_level] || "확인"} · {number(task.priority_score)}점</small></span><b>추가</b>
+        <span><strong>{locationLabel(task)}</strong><small>{task.priority_score == null ? "산정 보류 · 추가 근거 확인 필요" : `${RISK_LABELS[task.risk_level] || "확인"} · ${number(task.priority_score)}점`}</small></span><b>추가</b>
       </button>)}
     </div>}
     {reviewing && <div className="manual-omission">
@@ -1903,7 +1918,7 @@ export function DashboardContent() {
   const { queries, snapshot, appTitle, setAppTitle } = useDataApp();
   const rows = (queryId) => queries[queryId]?.rows ?? [];
   const [initialOperation] = useState(readOperationSession);
-  const [phase, setPhase] = useState(initialOperation.phase);
+  const [phase, setPhase] = useState(initialOperation.phase === "ai-result" ? "ai-config" : initialOperation.phase);
   const [selectedDepotId, setSelectedDepotId] = useState(initialOperation.selectedDepotId);
   const [manualTaskIds, setManualTaskIds] = useState(initialOperation.manualTaskIds);
   const [horizonIndex, setHorizonIndex] = useState(initialOperation.horizonIndex);
@@ -1919,6 +1934,14 @@ export function DashboardContent() {
   const [currentTime, setCurrentTime] = useState(() => new Date());
   const [mapLayers, setMapLayers] = useState(initialOperation.mapLayers);
   const [mapFocus, setMapFocus] = useState(null);
+  const [scoringPolicy, setScoringPolicy] = useState(() => {
+    let stored = null;
+    try { stored = parsePolicy(localStorage.getItem(POLICY_STORAGE_KEY)); } catch { /* Browser storage may be disabled. */ }
+    return stored || parsePolicy(rows("risk_links").find((row) => row.scoring_policy_json)?.scoring_policy_json) || DEFAULT_POLICY;
+  });
+  const [scoringOpen, setScoringOpen] = useState(false);
+  const [scoringMessage, setScoringMessage] = useState("");
+  const scoringKey = policyFingerprint(scoringPolicy);
   const [colorMode, setColorMode] = useState(() => {
     if (typeof localStorage === "undefined") return "light";
     return localStorage.getItem("roadops-color-mode") === "dark" ? "dark" : "light";
@@ -1969,10 +1992,12 @@ export function DashboardContent() {
   const weatherRows = rows("weather_forecast");
   const radarRows = Array.isArray(radarSnapshot?.records) ? radarSnapshot.records : [];
   const selectedWeather = weatherRows.find((row) => Number(row.horizon_hours) === horizon) ?? weatherRows[0];
-  const allRiskRows = rows("risk_links");
-  const riskRows = allRiskRows.filter((row) => Number(row.horizon_hours) === horizon && row.has_geometry);
-  const riskByLink = new Map(riskRows.map((row) => [String(row.link_id), row]));
-  const selectedRisk = riskRows.find((row) => String(row.link_id) === String(selectedRiskId)) ?? null;
+  const sourceRiskRows = rows("risk_links");
+  const allRiskRows = useMemo(() => applyPriorityPolicy(sourceRiskRows, scoringPolicy), [sourceRiskRows, scoringPolicy]);
+  const horizonRiskRows = allRiskRows.filter((row) => Number(row.horizon_hours) === horizon);
+  const riskRows = horizonRiskRows.filter((row) => row.has_geometry);
+  const riskByLink = new Map(horizonRiskRows.map((row) => [String(row.link_id), row]));
+  const selectedRisk = horizonRiskRows.find((row) => String(row.link_id) === String(selectedRiskId)) ?? null;
   const basePlanMetrics = rows("plan_metrics");
   const planMetrics = workflowPlan?.planMetrics?.length ? workflowPlan.planMetrics : basePlanMetrics;
   const workflowTasks = new Map((workflowState?.tasks ?? []).map((task) => [String(task.taskId), task]));
@@ -1983,6 +2008,11 @@ export function DashboardContent() {
       ...row,
       priority_score: risk.priority_score,
       risk_level: risk.risk_level,
+      priority_result: risk.priority_result,
+      priority_result_json: risk.priority_result_json,
+      score_basis_drivers: risk.score_basis_drivers,
+      score_basis_event_id: risk.score_basis_event_id,
+      event_count: risk.event_count,
       location_label: risk.location_label || row.location_label,
     } : row;
     const decision = workflowTasks.get(String(row.task_id));
@@ -2009,6 +2039,7 @@ export function DashboardContent() {
     planId: selectedPlan,
     limit: 6,
   });
+  const aiCandidates = candidates.filter((task) => task.priority_score != null && Number.isFinite(Number(task.priority_score)));
   const manualRoutes = buildManualRoutes({
     selectedTaskIds: manualTaskIds,
     tasks: effectiveTaskRows,
@@ -2045,6 +2076,21 @@ export function DashboardContent() {
   const viewQueryIds = [...mapQueryIds, "weather_forecast"];
   const sourceRowsByQuery = Object.fromEntries(viewQueryIds.map((queryId) => [queryId, rows(queryId)]));
 
+  const invalidatePlan = () => {
+    setWorkflowPlan(null);
+    setPhase((current) => current === "ai-result" ? "ai-config" : current === "manual-review" ? "manual" : current);
+  };
+  const applyScoring = (draft) => {
+    const policy = parsePolicy(draft);
+    if (!policy) return;
+    setScoringPolicy(policy);
+    invalidatePlan();
+    setScoringOpen(false);
+    try {
+      localStorage.setItem(POLICY_STORAGE_KEY, JSON.stringify(policy));
+      setScoringMessage("담당자 점수 기준을 저장했습니다. 수동·AI 모드에 동일하게 적용합니다.");
+    } catch { setScoringMessage("현재 화면에 기준을 적용했습니다. 브라우저 저장이 제한되어 새로고침 후에는 유지되지 않습니다."); }
+  };
   const chooseDepot = (teamId) => {
     setSelectedDepotId(teamId);
     setManualTaskIds([]);
@@ -2115,7 +2161,7 @@ export function DashboardContent() {
     description={surfaceView === "weather" ? "현재 강수 관측과 1·3·6시간 후 예상 강수 분포를 구분해 확인합니다."
       : phase === "select" ? "경로는 거점을 선택한 뒤에만 만들어집니다."
         : "배경지도 위에 선택 거점, 점검 후보와 확정된 경로만 표시합니다."}
-    sourceRows={surfaceView === "weather" ? [...weatherRows, ...radarRows] : allRiskRows}
+    sourceRows={surfaceView === "weather" ? [...weatherRows, ...radarRows] : sourceRiskRows}
     displayRows={surfaceView === "weather" ? (selectedWeather ? [selectedWeather] : []) : riskRows}
     sourceRowsByQuery={sourceRowsByQuery}
     scopeFilters={[{ field: "horizon_hours", label: "예측 시점", value: String(horizon) }]}
@@ -2195,12 +2241,17 @@ export function DashboardContent() {
         <span>예측 시점</span>
         <div className="horizon-buttons" role="group" aria-label="예측 시간 선택">
           {HORIZONS.map((hours, index) => <button type="button" key={hours} aria-pressed={horizonIndex === index}
-            onClick={() => setHorizonIndex(index)}>{hours === 0 ? "현재" : `${hours}시간 후`}</button>)}
+            onClick={() => { setHorizonIndex(index); invalidatePlan(); }}>{hours === 0 ? "현재" : `${hours}시간 후`}</button>)}
         </div>
+        <button type="button" className="secondary-action scoring-settings-button" aria-expanded={scoringOpen}
+          onClick={() => setScoringOpen((current) => !current)}>점수 기준·배점 설정</button>
+        <small className="scoring-policy-badge">수동·AI 공통 · {Object.values(scoringPolicy.weights).filter((weight) => weight > 0).length}개 항목 · {scoringPolicy.method === "complete" ? "전체 근거 필요" : "가용 근거 환산"}</small>
         {selectedDepot && <div className="selected-depot-chip"><HomeIcon /><span>{selectedDepot.start_location_name}</span></div>}
       </div>
     </section>
 
+    {scoringOpen && <ScoringPolicyPanel key={scoringKey} policy={scoringPolicy} onApply={applyScoring} onClose={() => setScoringOpen(false)} />}
+    {scoringMessage && <p className="scoring-applied-message" role="status">{scoringMessage}</p>}
     <OperationSteps phase={phase} />
     {confirmedMessage && <div className="operation-confirmed" role="status">✓ {confirmedMessage}</div>}
 
@@ -2209,7 +2260,7 @@ export function DashboardContent() {
       <section className="operation-map-slot">{mapPanel}</section>
       <section className="operation-evidence-slot">
         <DepotEvidence depot={selectedDepot} tasks={candidates} accidents={nearbyAccidents}
-          riskRows={riskRows} horizon={horizon}
+          riskRows={horizonRiskRows} sourceRiskRows={sourceRiskRows} horizon={horizon}
           history={similarHistory} weather={selectedWeather}
           crimeRows={rows("crime_statistics")}
           crimeOverlayRows={rows("crime_caution_overlay")}
@@ -2239,16 +2290,17 @@ export function DashboardContent() {
     {phase === "ai-config" && <section className="operation-stage operation-stage-ai-config">
       <header className="ai-config-head">
         <div><span>AI 자동선택</span><strong>{selectedDepot?.start_location_name} 출동 조건을 확인하세요.</strong>
-          <p>출동 인원·가용 시간·점검 제외 조건을 바꾸면 가능한 계획을 즉시 다시 비교합니다.</p></div>
+          <p>담당자가 정한 점수 기준과 배점을 그대로 사용합니다. 출동 인원·가용 시간·점검 제외 조건을 바꾸면 계획을 다시 비교합니다.</p></div>
         <button type="button" className="secondary-action" onClick={() => setPhase("review")}>이전</button>
       </header>
-      <PlanComparison rows={planMetrics} selectedPlan={selectedPlan} onSelect={setSelectedPlan} />
-      <WorkflowPanel teams={effectiveTeamRows.filter((team) => team.team_id === selectedDepotId)}
-        tasks={candidates} governanceRows={rows("governance_authorities")}
+      {!aiCandidates.length && <p className="priority-score-unavailable">현재 점수 기준으로 산정 가능한 도로가 없습니다. 점수 설정이나 누락 자료를 확인하세요.</p>}
+      {workflowPlan?.optimizationStatus === "ready" && aiCandidates.length > 0 && <PlanComparison rows={planMetrics} selectedPlan={selectedPlan} onSelect={setSelectedPlan} />}
+      {aiCandidates.length > 0 && <WorkflowPanel key={`${selectedDepotId}:${horizon}:${scoringKey}:${metadata.generated_at}`} teams={effectiveTeamRows.filter((team) => team.team_id === selectedDepotId)}
+        tasks={aiCandidates} governanceRows={rows("governance_authorities")}
         routes={rows("plan_routes").filter((route) => route.team_id === selectedDepotId)}
         planMetrics={basePlanMetrics} metadata={metadata}
         routeOptions={rows("travel_route_options")} routeLinks={rows("travel_route_links")}
-        optimizeOnMount
+        optimizeOnMount scoringPolicy={scoringPolicy} initialState={workflowState}
         provenanceRows={{
           teams: rows("teams"),
           field_tasks: rows("field_tasks"),
@@ -2260,7 +2312,7 @@ export function DashboardContent() {
           map_metadata: rows("map_metadata"),
         }}
         selectedPlan={selectedPlan} scenarioId={scenarioId} onStateChange={setWorkflowState}
-        onResultChange={setWorkflowPlan} />
+        onResultChange={setWorkflowPlan} />}
       <div className="ai-generate-bar"><div><span>조건 검토가 끝났나요?</span><strong>AI가 위험도와 이동시간을 비교해 추천 코스를 만듭니다.</strong></div>
         <button type="button" className="primary-action"
           disabled={workflowPlan?.optimizationStatus !== "ready" || !(workflowPlan?.routes?.length)}

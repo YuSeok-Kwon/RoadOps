@@ -345,6 +345,7 @@ def _aggregate_risks(
                 "generated_at": representative.get("generated_at"),
                 "forecast_status": representative.get("forecast_status"),
                 "forecast_semantics": representative.get("forecast_semantics"),
+                "forecast_version": representative.get("forecast_version"),
                 "ranking_eligible": any(
                     _boolean(row.get("ranking_eligible")) for row in candidates
                 ),
@@ -368,6 +369,9 @@ def _aggregate_risks(
                 "risk_drivers": " | ".join(drivers),
                 # The link score is a maximum, not a sum of all event drivers.
                 "score_basis_drivers": representative.get("risk_drivers") or "",
+                "scoring_policy_json": representative.get("scoring_policy_json"),
+                "priority_result_json": representative.get("priority_result_json"),
+                "priority_candidates": [json.loads(row["priority_inputs_json"]) for row in candidates if row.get("priority_inputs_json")],
                 "score_basis_event_id": representative.get("event_id"),
                 "score_basis_event_type": representative.get("event_type"),
                 "quality_flags": " | ".join(flags) or "none",

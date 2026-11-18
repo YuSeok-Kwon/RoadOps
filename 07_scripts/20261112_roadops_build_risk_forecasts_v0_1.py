@@ -69,6 +69,14 @@ def parse_args() -> argparse.Namespace:
             "Defaults to the latest weather generation or evidence-fetch timestamp."
         ),
     )
+    for flag, relative in {
+        "scoring-policy": "config/scoring/operator_priority_v0_2.json",
+        "accident-hotspots": "02_outputs/data/accident_hotspots_v0_1/accident_hotspots.json",
+        "historical-similarity": "02_outputs/data/historical_similarity_v0_1/similar_incidents.json",
+        "crime-statistics": "02_outputs/data/crime_statistics_v0_1/crime_statistics.json",
+        "link-locations": "02_outputs/data/reverse_geocode_v0_1/link_locations.json",
+    }.items():
+        parser.add_argument("--" + flag, type=Path, default=PROJECT_ROOT / relative)
     parser.add_argument("--strict", action="store_true")
     return parser.parse_args()
 
@@ -145,11 +153,20 @@ def main() -> int:
     events = load_records(args.integrated_events)
     weather_rows = load_records(args.weather_timeline)
     generated_at = _generated_at(args.as_of, weather_rows)
+    def read_optional(path):
+        return json.loads(path.read_text(encoding="utf-8")) if path.exists() else None
+    if not args.scoring_policy.exists():
+        raise SystemExit("점수 설정 파일이 없습니다: " + str(args.scoring_policy))
     forecasts, report = build_risk_forecasts(
         events,
         weather_rows,
         generated_at=generated_at,
         horizons=args.horizons,
+        scoring_policy=read_optional(args.scoring_policy),
+        accident_hotspots=read_optional(args.accident_hotspots),
+        historical_similarity=read_optional(args.historical_similarity),
+        crime_statistics=read_optional(args.crime_statistics),
+        link_cities={str(row["link_id"]): row.get("administrative_city") for row in (read_optional(args.link_locations) or {}).get("records", [])},
         gateway_pressure=(
             json.loads(args.gateway_pressure.read_text(encoding="utf-8"))
             if args.gateway_pressure.exists()
@@ -164,6 +181,7 @@ def main() -> int:
         "integrated_events": _relative(args.integrated_events),
         "weather_timeline": _relative(args.weather_timeline),
         "gateway_pressure": _relative(args.gateway_pressure),
+        **{name: _relative(getattr(args, name)) for name in ("scoring_policy", "accident_hotspots", "historical_similarity", "crime_statistics", "link_locations")},
     }
     report["outputs"] = {
         "risk_forecasts": _relative(forecast_path),

@@ -32,10 +32,11 @@ function priorityWeight(task) {
   return PRIORITY_WEIGHTS[task.manualPriorityLevel || task.suggestedPriorityLevel] || 1;
 }
 
-export function createWorkflowState({ teams = [], tasks = [], routes = [], planId = "safety_first" }) {
+export function createWorkflowState({ teams = [], tasks = [], routes = [], planId = "safety_first", scoringPolicy = null }) {
   const assignments = assignmentMap(routes, planId);
   return {
     planId,
+    scoringPolicy,
     resources: teams.map((team) => {
       const personnelCount = numeric(team.personnel_count);
       const available = String(team.vehicle_status || "available") === "available";
@@ -99,6 +100,23 @@ export function createWorkflowState({ teams = [], tasks = [], routes = [], planI
     acknowledgements: Object.fromEntries(ACKNOWLEDGEMENT_KEYS.map((key) => [key, false])),
     approverName: "",
     approvalReason: "",
+  };
+}
+
+export function rebaseWorkflowState(fresh, previous) {
+  if (!previous) return fresh;
+  const resources = new Map(previous.resources.map((row) => [row.teamId, row]));
+  const tasks = new Map(previous.tasks.map((row) => [row.taskId, row]));
+  return { ...fresh,
+    resources: fresh.resources.map((row) => {
+      const prior = resources.get(row.teamId);
+      return prior ? { ...row, available: prior.available, personnelCount: prior.personnelCount, shiftMinutes: prior.shiftMinutes } : row;
+    }),
+    tasks: fresh.tasks.map((row) => {
+      const prior = tasks.get(row.taskId);
+      return prior ? { ...row, assignedTeamId: prior.assignedTeamId, excluded: prior.excluded,
+        fixed: prior.fixed, manualPriorityLevel: prior.manualPriorityLevel, priorityReason: prior.priorityReason } : row;
+    }),
   };
 }
 
@@ -345,6 +363,7 @@ export function workflowFingerprint(state, scenarioId = "none") {
   const payload = {
     planId: state.planId,
     scenarioId,
+    scoringPolicy: state.scoringPolicy ?? null,
     resources: state.resources.map(({ baseline, ...resource }) => resource).sort((a, b) => a.teamId.localeCompare(b.teamId)),
     tasks: state.tasks.map(({ baseline, ...task }) => task).sort((a, b) => a.taskId.localeCompare(b.taskId)),
   };
@@ -375,6 +394,7 @@ export function createApprovalRecord(state, scenarioId, at) {
     approvalReason: state.approvalReason.trim(),
     planId: state.planId,
     scenarioId,
+    scoringPolicy: state.scoringPolicy ?? null,
     workflowFingerprint: workflowFingerprint(state, scenarioId),
     status: "approved_for_demo_dispatch",
   };
