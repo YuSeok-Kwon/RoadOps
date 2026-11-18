@@ -242,6 +242,8 @@ export function WorkflowPanel({
   onStateChange,
   routeOptions,
   routeLinks,
+  provenanceRows,
+  optimizeOnMount = false,
   onResultChange,
 }) {
   const [activeTab, setActiveTab] = useState("resources");
@@ -251,8 +253,10 @@ export function WorkflowPanel({
   const [approvalRecord, setApprovalRecord] = useState(/** @type {any} */ (null));
   const [optimizedRoutes, setOptimizedRoutes] = useState(routes);
   const [optimizedMetrics, setOptimizedMetrics] = useState(planMetrics);
-  const [optimizationStatus, setOptimizationStatus] = useState("ready");
-  const [optimizationMessage, setOptimizationMessage] = useState("검증된 기본 계획을 표시 중입니다.");
+  const [optimizationStatus, setOptimizationStatus] = useState(optimizeOnMount ? "calculating" : "ready");
+  const [optimizationMessage, setOptimizationMessage] = useState(optimizeOnMount
+    ? "선택한 거점과 주변 후보를 기준으로 첫 추천안을 계산하고 있습니다."
+    : "검증된 기본 계획을 표시 중입니다.");
   const [storageReady, setStorageReady] = useState(false);
   const loadedStorageKey = useRef(/** @type {string | null} */ (null));
   const optimizedInput = useRef(/** @type {string | null} */ (null));
@@ -267,10 +271,10 @@ export function WorkflowPanel({
   useEffect(() => {
     if (!state && teams.length && tasks.length) {
       const initial = createWorkflowState({ teams, tasks, routes, planId: selectedPlan });
-      optimizedInput.current = optimizationInputFingerprint(initial);
+      optimizedInput.current = optimizeOnMount ? null : optimizationInputFingerprint(initial);
       setState(initial);
     }
-  }, [state, teams, tasks, routes, selectedPlan]);
+  }, [state, teams, tasks, routes, selectedPlan, optimizeOnMount]);
 
   const inputFingerprint = state ? optimizationInputFingerprint(state) : null;
   useEffect(() => {
@@ -434,19 +438,19 @@ export function WorkflowPanel({
   if (!state) return <div className="workflow-loading">운영 입력을 준비하고 있습니다.</div>;
 
   const sourceRowsByQuery = {
-    teams,
-    field_tasks: tasks,
-    governance_authorities: governanceRows,
-    plan_routes: routes,
-    plan_metrics: planMetrics,
-    travel_route_options: routeOptions,
-    travel_route_links: routeLinks,
-    map_metadata: [metadata],
+    teams: provenanceRows?.teams ?? teams,
+    field_tasks: provenanceRows?.field_tasks ?? tasks,
+    governance_authorities: provenanceRows?.governance_authorities ?? governanceRows,
+    plan_routes: provenanceRows?.plan_routes ?? routes,
+    plan_metrics: provenanceRows?.plan_metrics ?? planMetrics,
+    travel_route_options: provenanceRows?.travel_route_options ?? routeOptions,
+    travel_route_links: provenanceRows?.travel_route_links ?? routeLinks,
+    map_metadata: provenanceRows?.map_metadata ?? [metadata],
   };
   return <DataComponent variant="plain" id="operations-workflow" queryId="teams"
     queryIds={Object.keys(sourceRowsByQuery)} kind="custom" title="출동계획 확정"
     description="AI가 만든 배분안을 실제 현장 지시 전에 사람이 확인하는 단계입니다. 출동 가능팀 확인 → 도로별 담당팀 확인 → 안전조건 점검 → 책임자 확정"
-    sourceRows={teams} displayRows={teams} sourceRowsByQuery={sourceRowsByQuery}
+    sourceRows={sourceRowsByQuery.teams} displayRows={teams} sourceRowsByQuery={sourceRowsByQuery}
     className="workflow-panel-card">
     <div className="workflow-summary-bar">
       <span data-state={approvalCurrent ? "approved" : validation.errors.length ? "blocked" : "draft"}>

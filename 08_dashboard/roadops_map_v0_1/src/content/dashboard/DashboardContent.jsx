@@ -7,6 +7,13 @@ import {
   useDashboardTabs,
 } from "../../data-app-public.jsx";
 import { WorkflowPanel } from "./WorkflowPanel.jsx";
+import {
+  buildManualRoutes,
+  historicalPlaces,
+  nearbyRows,
+  routeSummary,
+  tasksForDepot,
+} from "./operation-flow.js";
 import "./dashboard.css";
 
 const HORIZONS = [0, 1, 3, 6];
@@ -73,6 +80,37 @@ const EVENT_LABELS = {
   road_work: "도로 작업",
   traffic_accident: "교통사고",
 };
+const OPERATION_SESSION_KEY = "roadops-operation-session-v1";
+const OPERATION_PHASES = new Set(["select", "review", "manual", "manual-review", "ai-config", "ai-result"]);
+
+function readOperationSession() {
+  const fallback = {
+    phase: "select",
+    selectedDepotId: null,
+    manualTaskIds: [],
+    horizonIndex: 0,
+    selectedPlan: "safety_first",
+    scenarioId: "none",
+    selectedRiskId: null,
+    selectedRouteKey: null,
+    mapExpanded: false,
+    mapLayers: { accidentHotspots: true, complaintHotspots: false, crimeCaution: false },
+  };
+  if (typeof sessionStorage === "undefined") return fallback;
+  try {
+    const stored = JSON.parse(sessionStorage.getItem(OPERATION_SESSION_KEY) || "null");
+    if (!stored || typeof stored !== "object") return fallback;
+    return {
+      ...fallback,
+      ...stored,
+      phase: OPERATION_PHASES.has(stored.phase) ? stored.phase : fallback.phase,
+      manualTaskIds: Array.isArray(stored.manualTaskIds) ? stored.manualTaskIds.map(String) : [],
+      mapLayers: { ...fallback.mapLayers, ...(stored.mapLayers || {}) },
+    };
+  } catch {
+    return fallback;
+  }
+}
 const PRIORITY_LABELS = {
   first: "먼저",
   caution: "주의",
@@ -488,6 +526,9 @@ function RoadMap({
   onCloseRoute,
   scenarioId,
   horizon,
+  mode = "select",
+  selectedDepotId = null,
+  manualTaskIds = [],
 }) {
   const overlayRows = [...riskRows, ...routeRows, ...replanRows, ...impactRows];
   const { width, height, project, projectMercator, mapToMercator } = useProjection(backgroundRows, overlayRows);
@@ -497,6 +538,18 @@ function RoadMap({
   const taskByLink = new Map(taskRows.map((row) => [String(row.link_id), row]));
   const sequenceByTask = new Map(routeRows.map((row) => [String(row.task_id), Number(row.sequence)]));
   const teamByTask = new Map(routeRows.map((row) => [String(row.task_id), row.team_id]));
+  const manualSequenceByTask = new Map(manualTaskIds.map((taskId, index) => [String(taskId), index + 1]));
+  const selectedDepot = teamRows.find((row) => row.team_id === selectedDepotId) ?? null;
+
+  useEffect(() => {
+    if (!selectedDepot) {
+      setMapView({ zoom: 1, centerX: width / 2, centerY: height / 2 });
+      return;
+    }
+    const [centerX, centerY] = project(selectedDepot.start_longitude, selectedDepot.start_latitude);
+    const zoom = mode === "manual" || mode === "ai-result" ? 2.5 : 1.8;
+    setMapView({ zoom, centerX, centerY });
+  }, [selectedDepot?.team_id, selectedDepot?.start_longitude, selectedDepot?.start_latitude, mode]);
 
   const viewWidth = width / mapView.zoom;
   const viewHeight = height / mapView.zoom;
@@ -691,30 +744,32 @@ function RoadMap({
       <g className="task-points" data-reviewed-rows="field_tasks">
         {taskRows.map((row) => {
           const [x, y] = project(row.longitude, row.latitude);
-          const sequence = sequenceByTask.get(String(row.task_id));
+          const sequence = mode === "manual"
+            ? manualSequenceByTask.get(String(row.task_id))
+            : sequenceByTask.get(String(row.task_id));
           const teamId = teamByTask.get(String(row.task_id));
           const excluded = Boolean(row.excluded);
           const priorityLevel = effectivePriorityLevel(row);
           const selected = selectedRisk?.link_id === row.link_id;
           const select = () => onSelectTask(row.link_id);
           const assigned = Boolean(sequence);
-          const assignmentState = excluded ? "제외" : assigned ? `${sequence}번째 점검` : "현재 계획에서 미배정";
-          return <g key={row.task_id} className={`${selected ? "task-point selected" : "task-point"}${!assigned && !excluded ? " unassigned" : ""}`}
+          const assignmentState = excluded ? "제외" : assigned ? `${sequence}번째 점검` : "점검 후보";
+          return <g key={row.task_id} className={`${selected ? "task-point selected" : "task-point"}${!assigned && !excluded ? " candidate" : ""}`}
             transform={`translate(${x} ${y})`} role="button" tabIndex={0}
             aria-label={`${locationLabel(row)}, ${assignmentState}`}
             onClick={select} onKeyDown={(event) => {
               if (event.key === "Enter" || event.key === " ") select();
             }} style={{ "--task-color": TEAM_COLORS[teamId] || "#475569" }}>
             <g transform={`scale(${markerScale})`}>
-              <circle r={row.mandatory ? 9 : 8} data-unassigned={!assigned && !excluded || undefined}
+              <circle r={row.mandatory ? 9 : 8} data-candidate={!assigned && !excluded || undefined}
                 data-excluded={excluded || undefined} data-mandatory={row.mandatory || undefined}>
                 <title>{excluded
                   ? `${locationLabel(row)} · ${row.road_name} · 현재 점검 제외 조건이 적용된 후보`
                   : assigned
                   ? `${locationLabel(row)} · ${row.road_name} · ${sequence}번째 점검`
-                  : `${locationLabel(row)} · ${row.road_name} · 현재 근무시간과 경로 제약 안에서 미배정된 점검 후보`}</title>
+                  : `${locationLabel(row)} · ${row.road_name} · 경로에 추가할 수 있는 점검 후보`}</title>
               </circle>
-              <text className={assigned ? undefined : excluded ? "excluded-label" : "unassigned-label"} y="3.5">{sequence || (excluded ? "제" : "미")}</text>
+              <text className={assigned ? undefined : excluded ? "excluded-label" : "candidate-label"} y="3.5">{sequence || (excluded ? "제" : "+")}</text>
               <g className="priority-marker" data-priority={priorityLevel}
                 data-manual={row.manual_priority_level ? "true" : undefined}
                 transform="translate(13 -15)"
@@ -733,9 +788,11 @@ function RoadMap({
       <g className="team-points" data-reviewed-rows="teams">
         {teamRows.map((row) => {
           const [x, y] = project(row.start_longitude, row.start_latitude);
-          return <g key={row.team_id} transform={`translate(${x} ${y})`}>
+          const isSelected = row.team_id === selectedDepotId;
+          return <g key={row.team_id} className={isSelected ? "team-point selected" : "team-point"}
+            transform={`translate(${x} ${y})`}>
             <g transform={`scale(${markerScale})`}>
-              <circle r="12" data-available={row.available === false ? "false" : "true"}
+              <circle r={isSelected ? "14" : "12"} data-available={row.available === false ? "false" : "true"}
                 style={{ fill: TEAM_COLORS[row.team_id] || "#475569" }}>
                 <title>{`${row.team_name} · ${row.start_location_name || "출발 거점"} · ${row.available === false ? "비가용" : "가용"}`}</title>
               </circle>
@@ -899,6 +956,173 @@ function CrimeContext({ rows, administrativeCity }) {
   </DataComponent>;
 }
 
+const OPERATION_STEP = {
+  select: 1,
+  review: 2,
+  manual: 3,
+  "manual-review": 4,
+  "ai-config": 3,
+  "ai-result": 4,
+};
+
+function OperationSteps({ phase }) {
+  const activeStep = OPERATION_STEP[phase] || 1;
+  return <nav className="operation-steps" aria-label="순찰계획 진행 단계">
+    {["거점 선택", "상황 검토", "경로 설정", "최종 확인"].map((label, index) => <span
+      key={label} data-active={activeStep === index + 1 || undefined}
+      data-complete={activeStep > index + 1 || undefined}>
+      <b>{index + 1}</b>{label}
+    </span>)}
+  </nav>;
+}
+
+function DepotSelector({ teams, selectedDepotId, onSelect }) {
+  return <DataComponent variant="plain" id="depot-selector" queryId="teams" kind="custom"
+    title="어디에서 출발하나요?" description="실제 공개자료 기반 도로관리 거점을 먼저 선택합니다."
+    sourceRows={teams} displayRows={teams} className="depot-selector-card">
+    <div className="depot-list">
+      {teams.map((team) => <button type="button" key={team.team_id}
+        data-selected={team.team_id === selectedDepotId || undefined}
+        onClick={() => onSelect(team.team_id)}>
+        <span className="depot-home" style={{ "--team-color": TEAM_COLORS[team.team_id] }}><HomeIcon /></span>
+        <span><strong>{team.start_location_name || team.team_name}</strong><small>{team.start_address || team.team_name}</small></span>
+        <b>{team.available === false ? "출동 불가" : "선택"}</b>
+      </button>)}
+    </div>
+  </DataComponent>;
+}
+
+function DepotEvidence({ depot, tasks, accidents, history, weather, crimeAvailable, onSelectTask }) {
+  if (!depot) return <div className="operation-empty-state">
+    <HomeIcon />
+    <strong>왼쪽에서 출발 거점을 선택하세요.</strong>
+    <span>선택한 거점 주변의 기상·도로 위험·사고다발·과거 유사상황을 한곳에서 확인할 수 있습니다.</span>
+  </div>;
+  return <DataComponent variant="plain" id="depot-evidence" queryId="field_tasks"
+    queryIds={["field_tasks", "risk_links", "weather_forecast", "accident_hotspots", "historical_similarity", "crime_caution_overlay"]}
+    kind="custom" title={`${depot.start_location_name} 주변 상황`}
+    description="출동 전 담당자가 확인할 근거를 장소 중심으로 정리했습니다."
+    sourceRows={tasks} displayRows={tasks} className="depot-evidence-card">
+    <div className="evidence-weather">
+      <span>선택 시점 기상</span><strong>{weather ? `${weatherTemperature(weather)} · ${weather.sky_summary}` : "확인 불가"}</strong>
+      <small>{weather ? `${weather.precipitation_summary} · 최대 바람 ${number(weather.maximum_wind_speed_mps)}m/s` : "예보 자료 없음"}</small>
+    </div>
+    <section className="evidence-section">
+      <div className="evidence-section-head"><strong>우선 검토 도로</strong><span>{tasks.length}곳</span></div>
+      <div className="evidence-road-list">
+        {tasks.slice(0, 4).map((task) => <button type="button" key={task.task_id}
+          onClick={() => onSelectTask(task.link_id)}>
+          <span><strong>{locationLabel(task)}</strong><small>{priorityReasons(task)[0] || "현장 상태 확인 필요"}</small></span>
+          <b data-priority={effectivePriorityLevel(task)}>{number(task.priority_score)}점</b>
+        </button>)}
+      </div>
+    </section>
+    <section className="evidence-section evidence-compact-grid">
+      <div>
+        <div className="evidence-section-head"><strong>주변 사고다발지역</strong><span>공단 공개자료</span></div>
+        {accidents.slice(0, 2).map((row) => <p key={row.hotspot_id}>
+          <b>{row.location_name}</b><span>사고 {number(row.accident_count, 0)}건 · 약 {number(row.distance_km)}km</span>
+        </p>)}
+        {!accidents.length && <p><span>주변 공개자료 없음</span></p>}
+      </div>
+      <div>
+        <div className="evidence-section-head"><strong>범죄주의 참고</strong><span>위험점수와 분리</span></div>
+        <p><b>{crimeAvailable ? "경찰청 밀도 계층 연결됨" : "자료 확인 필요"}</b>
+          <span>{crimeAvailable ? "정확한 동별 건수가 아닌 비식별 지도 계층입니다." : "승인된 계층이 없습니다."}</span></p>
+      </div>
+    </section>
+    <section className="evidence-section">
+      <div className="evidence-section-head"><strong>비슷했던 날의 사건 장소</strong><span>과거 수집 이력</span></div>
+      <div className="similar-place-list">
+        {history.slice(0, 2).map((row) => <div key={row.observed_at}>
+          <span><b>{number(row.similarity_score, 0)}% 유사</b>{dateTime(row.observed_at)}</span>
+          <strong>{row.matched_places.length
+            ? row.matched_places.slice(0, 2).map(locationLabel).join(" · ")
+            : "현재 분석도로 밖의 사건 위치"}</strong>
+          <small>당시 도로 위험정보 {number(row.event_count, 0)}건</small>
+        </div>)}
+      </div>
+    </section>
+  </DataComponent>;
+}
+
+function RouteChoice({ depot, onManual, onAi }) {
+  if (!depot) return null;
+  return <div className="route-choice-bar">
+    <div><span>다음 단계</span><strong>담당자가 직접 경로를 정하거나 AI 추천안을 만들 수 있습니다.</strong></div>
+    <button type="button" className="secondary-action" onClick={onManual}>지도에서 직접 선택</button>
+    <button type="button" className="primary-action" onClick={onAi}>AI 자동선택</button>
+  </div>;
+}
+
+function ManualRoutePanel({ depot, candidates, selectedTaskIds, onToggle, routes, onReview, onBack, reviewing, onConfirm }) {
+  const summary = routeSummary(routes);
+  const selected = new Set(selectedTaskIds.map(String));
+  return <DataComponent variant="plain" id="manual-route-builder" queryId="field_tasks" kind="custom"
+    title={reviewing ? "최종 순찰계획 검토" : "지도에서 순찰 순서 지정"}
+    description={reviewing ? "소요시간과 누락된 후보를 확인한 뒤 계획을 확정합니다." : "지도 또는 목록을 누른 순서대로 순찰 코스가 만들어집니다."}
+    sourceRows={candidates} displayRows={candidates} className="manual-route-panel">
+    <div className="manual-summary">
+      <span><b>{selectedTaskIds.length}</b>개 장소</span>
+      <span><b>{number(summary.travelMinutes)}</b>분 이동</span>
+      <span><b>{number(summary.serviceMinutes, 0)}</b>분 점검</span>
+    </div>
+    <ol className="manual-stop-list">
+      {selectedTaskIds.map((taskId, index) => {
+        const task = candidates.find((row) => String(row.task_id) === String(taskId));
+        if (!task) return null;
+        return <li key={taskId}><b>{index + 1}</b><span><strong>{locationLabel(task)}</strong><small>{priorityReasons(task)[0]}</small></span>
+          {!reviewing && <button type="button" onClick={() => onToggle(task.task_id)}>삭제</button>}</li>;
+      })}
+    </ol>
+    {!reviewing && <div className="manual-candidate-list">
+      <span>추가 가능한 장소</span>
+      {candidates.filter((task) => !selected.has(String(task.task_id))).map((task) => <button type="button"
+        key={task.task_id} onClick={() => onToggle(task.task_id)}>
+        <span><strong>{locationLabel(task)}</strong><small>{RISK_LABELS[task.risk_level] || "확인"} · {number(task.priority_score)}점</small></span><b>추가</b>
+      </button>)}
+    </div>}
+    {reviewing && <div className="manual-omission">
+      <strong>이번 계획에서 빠진 추천 장소 {Math.max(0, candidates.length - selectedTaskIds.length)}곳</strong>
+      <span>빠진 장소는 다음 순찰계획 후보로 유지됩니다.</span>
+    </div>}
+    <div className="operation-actions">
+      <button type="button" className="secondary-action" onClick={onBack}>{reviewing ? "경로 수정" : "이전"}</button>
+      {reviewing
+        ? <button type="button" className="primary-action" disabled={!routes.length} onClick={onConfirm}>계획 확정</button>
+        : <button type="button" className="primary-action" disabled={!routes.length} onClick={onReview}>최종 검토</button>}
+    </div>
+  </DataComponent>;
+}
+
+function AiResultPanel({ depot, routes, tasks, selectedRouteKey, onSelectRoute, onBack, onConfirm }) {
+  const summary = routeSummary(routes);
+  return <DataComponent variant="plain" id="ai-route-result" queryId="plan_routes" kind="custom"
+    title="AI 추천 순찰코스" description={`${depot?.start_location_name || "선택 거점"} 출발 기준으로 위험도와 이동시간을 함께 비교했습니다.`}
+    sourceRows={routes} displayRows={routes} className="ai-result-panel">
+    <div className="ai-result-summary">
+      <span><b>{routes.length}</b>곳 점검</span><span><b>{number(summary.travelMinutes)}</b>분 이동</span>
+      <span><b>{number(summary.travelMinutes + summary.serviceMinutes)}</b>분 예상</span>
+    </div>
+    <ol className="ai-stop-list">
+      {[...routes].sort((left, right) => Number(left.sequence) - Number(right.sequence)).map((route, index) => {
+        const task = tasks.find((row) => row.task_id === route.task_id);
+        const selected = routeKey(route) === selectedRouteKey;
+        return <li key={routeKey(route)} data-selected={selected || undefined}>
+          <button type="button" onClick={() => onSelectRoute(route)}>
+            <b>{index + 1}</b><span><strong>{locationLabel(task || route)}</strong><small>{number(route.travel_minutes)}분 이동 · {number(route.service_minutes, 0)}분 점검</small></span>
+          </button>
+          {selected && <p><strong>선정 이유</strong>{priorityReasons(task || route).slice(0, 2).join(" · ")}</p>}
+        </li>;
+      })}
+    </ol>
+    <div className="operation-actions">
+      <button type="button" className="secondary-action" onClick={onBack}>조건 수정</button>
+      <button type="button" className="primary-action" disabled={!routes.length} onClick={onConfirm}>계획 확정</button>
+    </div>
+  </DataComponent>;
+}
+
 function TaskQueue({ rows, selectedLinkId, onSelect }) {
   const sorted = [...rows].filter((row) => !row.excluded)
     .sort((left, right) => priorityOrderValue(right) - priorityOrderValue(left));
@@ -973,7 +1197,7 @@ function ReplanSummary({ rows, scenarioId }) {
   </DataComponent>;
 }
 
-export function DashboardContent() {
+function LegacyDashboardContent() {
   useDashboardTabs([{ id: "dashboard", label: "현장 운영 지도" }]);
   const { queries, snapshot, appTitle, setAppTitle } = useDataApp();
   const [horizonIndex, setHorizonIndex] = useState(0);
@@ -1331,6 +1555,327 @@ export function DashboardContent() {
 
     <footer className="roadops-disclaimer">
       운영 우선순위 시나리오이며 사고확률이 아닙니다. 모든 배분·재계획 결과는 현장 지시 전 책임자의 확인과 확정이 필요합니다.
+    </footer>
+  </article>;
+}
+
+export function DashboardContent() {
+  useDashboardTabs([{ id: "dashboard", label: "현장 운영 지도" }]);
+  const { queries, snapshot, appTitle, setAppTitle } = useDataApp();
+  const rows = (queryId) => queries[queryId]?.rows ?? [];
+  const [initialOperation] = useState(readOperationSession);
+  const [phase, setPhase] = useState(initialOperation.phase);
+  const [selectedDepotId, setSelectedDepotId] = useState(initialOperation.selectedDepotId);
+  const [manualTaskIds, setManualTaskIds] = useState(initialOperation.manualTaskIds);
+  const [horizonIndex, setHorizonIndex] = useState(initialOperation.horizonIndex);
+  const [selectedPlan, setSelectedPlan] = useState(initialOperation.selectedPlan);
+  const [scenarioId, setScenarioId] = useState(initialOperation.scenarioId);
+  const [selectedRiskId, setSelectedRiskId] = useState(initialOperation.selectedRiskId);
+  const [selectedRouteKey, setSelectedRouteKey] = useState(initialOperation.selectedRouteKey);
+  const [workflowState, setWorkflowState] = useState(null);
+  const [workflowPlan, setWorkflowPlan] = useState(null);
+  const [mapExpanded, setMapExpanded] = useState(initialOperation.mapExpanded);
+  const [confirmedMessage, setConfirmedMessage] = useState("");
+  const [currentTime, setCurrentTime] = useState(() => new Date());
+  const [mapLayers, setMapLayers] = useState(initialOperation.mapLayers);
+  const [colorMode, setColorMode] = useState(() => {
+    if (typeof localStorage === "undefined") return "light";
+    return localStorage.getItem("roadops-color-mode") === "dark" ? "dark" : "light";
+  });
+  const horizon = HORIZONS[horizonIndex] ?? 0;
+
+  useEffect(() => {
+    if (appTitle !== snapshot.title) setAppTitle(snapshot.title);
+  }, [appTitle, setAppTitle, snapshot.title]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.dataset.roadopsColorMode = colorMode;
+    localStorage.setItem("roadops-color-mode", colorMode);
+    return () => { delete root.dataset.roadopsColorMode; };
+  }, [colorMode]);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    if (typeof sessionStorage === "undefined") return;
+    sessionStorage.setItem(OPERATION_SESSION_KEY, JSON.stringify({
+      phase,
+      selectedDepotId,
+      manualTaskIds,
+      horizonIndex,
+      selectedPlan,
+      scenarioId,
+      selectedRiskId,
+      selectedRouteKey,
+      mapExpanded,
+      mapLayers,
+    }));
+  }, [phase, selectedDepotId, manualTaskIds, horizonIndex, selectedPlan, scenarioId,
+    selectedRiskId, selectedRouteKey, mapExpanded, mapLayers]);
+
+  useEffect(() => {
+    setSelectedRiskId(null);
+    setSelectedRouteKey(null);
+  }, [horizon, selectedPlan, scenarioId]);
+
+  const metadata = rows("map_metadata")[0] ?? {};
+  const weatherRows = rows("weather_forecast");
+  const selectedWeather = weatherRows.find((row) => Number(row.horizon_hours) === horizon) ?? weatherRows[0];
+  const allRiskRows = rows("risk_links");
+  const riskRows = allRiskRows.filter((row) => Number(row.horizon_hours) === horizon && row.has_geometry);
+  const riskByLink = new Map(riskRows.map((row) => [String(row.link_id), row]));
+  const selectedRisk = riskRows.find((row) => String(row.link_id) === String(selectedRiskId)) ?? null;
+  const basePlanMetrics = rows("plan_metrics");
+  const planMetrics = workflowPlan?.planMetrics?.length ? workflowPlan.planMetrics : basePlanMetrics;
+  const workflowTasks = new Map((workflowState?.tasks ?? []).map((task) => [String(task.taskId), task]));
+  const workflowResources = new Map((workflowState?.resources ?? []).map((resource) => [String(resource.teamId), resource]));
+  const effectiveTaskRows = rows("field_tasks").map((row) => {
+    const risk = riskByLink.get(String(row.link_id));
+    const synchronized = risk ? {
+      ...row,
+      priority_score: risk.priority_score,
+      risk_level: risk.risk_level,
+      location_label: risk.location_label || row.location_label,
+    } : row;
+    const decision = workflowTasks.get(String(row.task_id));
+    return decision ? {
+      ...synchronized,
+      excluded: decision.excluded,
+      assigned_team_id: decision.assignedTeamId,
+      manual_priority_level: decision.manualPriorityLevel,
+      manual_priority_reason: decision.priorityReason,
+      effective_priority_level: decision.manualPriorityLevel || decision.suggestedPriorityLevel,
+    } : synchronized;
+  });
+  const effectiveTeamRows = rows("teams").map((row) => ({
+    ...row,
+    available: workflowResources.get(String(row.team_id))?.available ?? true,
+  }));
+  const selectedDepot = effectiveTeamRows.find((row) => row.team_id === selectedDepotId) ?? null;
+  const allRouteRows = workflowPlan?.routes?.length ? workflowPlan.routes : rows("plan_routes");
+  const candidates = tasksForDepot({
+    tasks: effectiveTaskRows,
+    routes: allRouteRows,
+    depotId: selectedDepotId,
+    depot: selectedDepot,
+    planId: selectedPlan,
+    limit: 6,
+  });
+  const manualRoutes = buildManualRoutes({
+    selectedTaskIds: manualTaskIds,
+    tasks: effectiveTaskRows,
+    routes: allRouteRows,
+    depotId: selectedDepotId,
+    planId: selectedPlan,
+    routeOptions: rows("travel_route_options"),
+    routeLinks: rows("travel_route_links"),
+  });
+  const plannedRoutes = effectiveTaskRows.flatMap((task) => {
+    const decision = workflowTasks.get(String(task.task_id));
+    if (decision?.excluded) return [];
+    const assignedTeamId = decision?.assignedTeamId
+      ?? allRouteRows.find((row) => row.alternative_id === selectedPlan && row.task_id === task.task_id)?.team_id;
+    const route = allRouteRows.find((row) => row.alternative_id === selectedPlan
+      && row.task_id === task.task_id && row.team_id === assignedTeamId)
+      ?? allRouteRows.find((row) => row.task_id === task.task_id && row.team_id === assignedTeamId);
+    return route ? [{ ...route, alternative_id: selectedPlan }] : [];
+  });
+  const aiRoutes = plannedRoutes.filter((row) => row.team_id === selectedDepotId)
+    .sort((left, right) => Number(left.sequence) - Number(right.sequence));
+  const visibleRoutes = phase === "manual" || phase === "manual-review"
+    ? manualRoutes
+    : phase === "ai-result" ? aiRoutes : [];
+  const visibleTasks = selectedDepot ? candidates : [];
+  const selectedRoute = visibleRoutes.find((row) => routeKey(row) === selectedRouteKey) ?? null;
+  const nearbyAccidents = nearbyRows(selectedDepot, rows("accident_hotspots"), 3);
+  const similarHistory = historicalPlaces(rows("historical_similarity"), effectiveTaskRows, 3);
+  const replanRows = phase === "ai-result"
+    ? rows("replan_routes").filter((row) => row.scenario_id === scenarioId && row.team_id === selectedDepotId)
+    : [];
+  const impactRows = phase === "ai-result" ? rows("scenario_impacts").filter((row) => row.scenario_id === scenarioId) : [];
+  const mapQueryIds = ["risk_links", "road_background", "accident_hotspots", "complaint_hotspots", "crime_caution_overlay", "field_tasks", "teams", "plan_routes", "travel_route_options", "travel_route_links", "replan_routes", "scenario_impacts"];
+  const sourceRowsByQuery = Object.fromEntries(mapQueryIds.map((queryId) => [queryId, rows(queryId)]));
+
+  const chooseDepot = (teamId) => {
+    setSelectedDepotId(teamId);
+    setManualTaskIds([]);
+    setSelectedRiskId(null);
+    setSelectedRouteKey(null);
+    setWorkflowPlan(null);
+    setWorkflowState(null);
+    setConfirmedMessage("");
+    setPhase("review");
+  };
+
+  const toggleManualTask = (taskId) => {
+    setManualTaskIds((current) => current.includes(taskId)
+      ? current.filter((id) => id !== taskId)
+      : [...current, taskId]);
+    const task = effectiveTaskRows.find((row) => row.task_id === taskId);
+    if (task) setSelectedRiskId(task.link_id);
+  };
+
+  const selectTask = (linkId) => {
+    const task = visibleTasks.find((row) => String(row.link_id) === String(linkId));
+    if (phase === "manual" && task) toggleManualTask(task.task_id);
+    setSelectedRiskId(linkId);
+  };
+
+  const selectRoute = (row) => {
+    setSelectedRouteKey(routeKey(row));
+    setSelectedRiskId(row.link_id);
+  };
+
+  const resetOperation = (message = "") => {
+    setConfirmedMessage(message);
+    setPhase("select");
+    setSelectedDepotId(null);
+    setManualTaskIds([]);
+    setSelectedRiskId(null);
+    setSelectedRouteKey(null);
+    setWorkflowState(null);
+    setWorkflowPlan(null);
+    setMapExpanded(false);
+  };
+
+  const mapPanel = <DataComponent variant="plain" id="roadops-operation-map" queryId="risk_links"
+    queryIds={mapQueryIds} kind="custom" title={phase === "manual" || phase === "manual-review"
+      ? "순찰 지점을 순서대로 선택하세요"
+      : phase === "ai-result" ? "AI 추천 경로" : "선택 거점과 주변 점검 후보"}
+    description={phase === "select" ? "경로는 거점을 선택한 뒤에만 만들어집니다."
+      : "배경지도 위에 선택 거점, 점검 후보와 확정된 경로만 표시합니다."}
+    sourceRows={allRiskRows} displayRows={riskRows} sourceRowsByQuery={sourceRowsByQuery}
+    scopeFilters={[{ field: "horizon_hours", label: "예측 시점", value: String(horizon) }]}
+    className={`operation-map-card${mapExpanded ? " expanded" : ""}`}>
+    <div className="operation-map-toolbar">
+      <div className="operation-layer-buttons" role="group" aria-label="지도 참고 계층">
+        <label title="한국도로교통공단 사고다발지역"><input type="checkbox" checked={mapLayers.accidentHotspots}
+          onChange={(event) => setMapLayers((current) => ({ ...current, accidentHotspots: event.target.checked }))} />
+          <LayerIcon type="accident" />사고다발</label>
+        <label title="경찰청 범죄주의 밀도 계층"><input type="checkbox" checked={mapLayers.crimeCaution}
+          onChange={(event) => setMapLayers((current) => ({ ...current, crimeCaution: event.target.checked }))} />
+          <LayerIcon type="crime" />범죄주의</label>
+        {rows("complaint_hotspots").length > 0 && <label title="비식별 도로민원 다발지역"><input type="checkbox" checked={mapLayers.complaintHotspots}
+          onChange={(event) => setMapLayers((current) => ({ ...current, complaintHotspots: event.target.checked }))} />
+          <LayerIcon type="complaint" />민원</label>}
+      </div>
+      <button type="button" className="map-size-button" onClick={() => setMapExpanded((value) => !value)}>
+        {mapExpanded ? "기본 크기" : "지도 크게"}
+      </button>
+    </div>
+    <RoadMap backgroundRows={rows("road_background")} riskRows={riskRows}
+      taskRows={visibleTasks} teamRows={effectiveTeamRows} routeRows={visibleRoutes}
+      replanRows={replanRows} impactRows={impactRows} selectedRisk={selectedRisk}
+      accidentRows={rows("accident_hotspots")} showAccidentHotspots={mapLayers.accidentHotspots}
+      complaintRows={rows("complaint_hotspots")} showComplaintHotspots={mapLayers.complaintHotspots}
+      crimeCautionRows={rows("crime_caution_overlay")} showCrimeCaution={mapLayers.crimeCaution}
+      emergencyFacilityRows={[]} trafficAccidentOverlayRows={[]}
+      showPoliceFacilities={false} showFireFacilities={false} showTrafficAccidents={false}
+      selectedRoute={selectedRoute} onSelectRisk={(row) => setSelectedRiskId(row.link_id)}
+      onSelectTask={selectTask} onSelectRoute={selectRoute} onCloseRoute={() => setSelectedRouteKey(null)}
+      scenarioId={phase === "ai-result" ? scenarioId : "none"} horizon={horizon}
+      mode={phase === "manual" || phase === "manual-review" ? "manual" : phase}
+      selectedDepotId={selectedDepotId} manualTaskIds={manualTaskIds} />
+  </DataComponent>;
+
+  return <article className="roadops-page roadops-operation-page" data-dashboard-layout="viewport" data-color-mode={colorMode}>
+    <section className="roadops-toolbar operation-toolbar" aria-label="운영 상황 제어">
+      <div className="toolbar-primary">
+        <div className="toolbar-title"><div><span className="eyebrow">ROADOPS / JEJU</span><strong>도로 현장 운영 상황판</strong></div></div>
+        <div className="toolbar-live-state"><span className="live-pill"><i />자동 갱신</span><small>{Number(metadata.automatic_refresh_interval_minutes) || 10}분 주기</small></div>
+        <div className="data-status-group"><span>데이터 기준</span><strong>{dateTime(metadata.latest_risk_target_at)}</strong></div>
+        <div className="command-fact command-fact-weather"><span>선택 시점 날씨</span><strong>{selectedWeather ? `${weatherTemperature(selectedWeather)} · ${selectedWeather.sky_summary}` : "확인 불가"}</strong></div>
+        <div className="command-fact command-fact-time"><span>현재 시각</span><strong>{currentTime.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })}</strong></div>
+        <div className="theme-control"><span>화면</span><div className="theme-buttons" role="group" aria-label="화면 테마 선택">
+          <button type="button" aria-pressed={colorMode === "dark"} onClick={() => setColorMode("dark")}>다크</button>
+          <button type="button" aria-pressed={colorMode === "light"} onClick={() => setColorMode("light")}>화이트</button>
+        </div></div>
+      </div>
+      <div className="operation-horizon-row">
+        <span>예측 시점</span>
+        <div className="horizon-buttons" role="group" aria-label="예측 시간 선택">
+          {HORIZONS.map((hours, index) => <button type="button" key={hours} aria-pressed={horizonIndex === index}
+            onClick={() => setHorizonIndex(index)}>{hours === 0 ? "현재" : `${hours}시간 후`}</button>)}
+        </div>
+        {selectedDepot && <div className="selected-depot-chip"><HomeIcon /><span>{selectedDepot.start_location_name}</span></div>}
+      </div>
+    </section>
+
+    <OperationSteps phase={phase} />
+    {confirmedMessage && <div className="operation-confirmed" role="status">✓ {confirmedMessage}</div>}
+
+    {(phase === "select" || phase === "review") && <section className="operation-stage operation-stage-initial">
+      <DepotSelector teams={effectiveTeamRows} selectedDepotId={selectedDepotId} onSelect={chooseDepot} />
+      <section className="operation-map-slot">{mapPanel}</section>
+      <section className="operation-evidence-slot">
+        <DepotEvidence depot={selectedDepot} tasks={candidates} accidents={nearbyAccidents}
+          history={similarHistory} weather={selectedWeather}
+          crimeAvailable={rows("crime_caution_overlay").length > 0}
+          onSelectTask={(linkId) => setSelectedRiskId(linkId)} />
+      </section>
+      <RouteChoice depot={selectedDepot}
+        onManual={() => { setPhase("manual"); setMapExpanded(true); setManualTaskIds([]); }}
+        onAi={() => { setPhase("ai-config"); setMapExpanded(false); }} />
+    </section>}
+
+    {(phase === "manual" || phase === "manual-review") && <section className="operation-stage operation-stage-plan">
+      <section className="operation-map-slot">{mapPanel}</section>
+      <section className="operation-plan-slot">
+        <ManualRoutePanel depot={selectedDepot} candidates={candidates} selectedTaskIds={manualTaskIds}
+          onToggle={toggleManualTask} routes={manualRoutes} reviewing={phase === "manual-review"}
+          onBack={() => setPhase(phase === "manual-review" ? "manual" : "review")}
+          onReview={() => setPhase("manual-review")}
+          onConfirm={() => resetOperation(`${selectedDepot?.start_location_name} 수동 순찰계획을 확정했습니다.`)} />
+      </section>
+    </section>}
+
+    {phase === "ai-config" && <section className="operation-stage operation-stage-ai-config">
+      <header className="ai-config-head">
+        <div><span>AI 자동선택</span><strong>{selectedDepot?.start_location_name} 출동 조건을 확인하세요.</strong>
+          <p>출동 인원·가용 시간·점검 제외 조건을 바꾸면 가능한 계획을 즉시 다시 비교합니다.</p></div>
+        <button type="button" className="secondary-action" onClick={() => setPhase("review")}>이전</button>
+      </header>
+      <PlanComparison rows={planMetrics} selectedPlan={selectedPlan} onSelect={setSelectedPlan} />
+      <WorkflowPanel teams={effectiveTeamRows.filter((team) => team.team_id === selectedDepotId)}
+        tasks={candidates} governanceRows={rows("governance_authorities")}
+        routes={rows("plan_routes").filter((route) => route.team_id === selectedDepotId)}
+        planMetrics={basePlanMetrics} metadata={metadata}
+        routeOptions={rows("travel_route_options")} routeLinks={rows("travel_route_links")}
+        optimizeOnMount
+        provenanceRows={{
+          teams: rows("teams"),
+          field_tasks: rows("field_tasks"),
+          governance_authorities: rows("governance_authorities"),
+          plan_routes: rows("plan_routes"),
+          plan_metrics: rows("plan_metrics"),
+          travel_route_options: rows("travel_route_options"),
+          travel_route_links: rows("travel_route_links"),
+          map_metadata: rows("map_metadata"),
+        }}
+        selectedPlan={selectedPlan} scenarioId={scenarioId} onStateChange={setWorkflowState}
+        onResultChange={setWorkflowPlan} />
+      <div className="ai-generate-bar"><div><span>조건 검토가 끝났나요?</span><strong>AI가 위험도와 이동시간을 비교해 추천 코스를 만듭니다.</strong></div>
+        <button type="button" className="primary-action"
+          disabled={workflowPlan?.optimizationStatus !== "ready" || !(workflowPlan?.routes?.length)}
+          onClick={() => { setPhase("ai-result"); setMapExpanded(true); }}>추천 경로 만들기</button></div>
+    </section>}
+
+    {phase === "ai-result" && <section className="operation-stage operation-stage-plan">
+      <section className="operation-map-slot">{mapPanel}</section>
+      <section className="operation-plan-slot">
+        <AiResultPanel depot={selectedDepot} routes={aiRoutes} tasks={effectiveTaskRows}
+          selectedRouteKey={selectedRouteKey} onSelectRoute={selectRoute}
+          onBack={() => setPhase("ai-config")}
+          onConfirm={() => resetOperation(`${selectedDepot?.start_location_name} AI 순찰계획을 확정했습니다.`)} />
+      </section>
+    </section>}
+
+    <footer className="roadops-disclaimer">
+      운영 우선순위 시나리오이며 사고확률이 아닙니다. 모든 경로는 현장 지시 전 담당자의 확인과 확정이 필요합니다.
     </footer>
   </article>;
 }
