@@ -316,6 +316,33 @@
 .map-focus-panel[data-risk="high"] small,
 .map-focus-panel[data-risk="critical"] small { color: var(--negative); font-weight: 700; }
 
+.map-evidence-focus-label {
+  position: absolute;
+  z-index: 3;
+  top: 14px;
+  left: 14px;
+  display: flex;
+  max-width: 230px;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  flex-direction: column;
+  border: 1px solid color-mix(in srgb, #1468b3 34%, var(--border));
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  box-shadow: 0 10px 28px color-mix(in srgb, black 10%, transparent);
+  backdrop-filter: blur(10px);
+}
+.map-evidence-focus-label span { color: #1468b3; font-size: 7px; font-weight: 800; }
+.map-evidence-focus-label strong { overflow: hidden; margin-top: 2px; font-size: 11px; line-height: 15px; text-overflow: ellipsis; white-space: nowrap; }
+.evidence-map-focus .focus-ring { fill: color-mix(in srgb, #1468b3 15%, transparent); stroke: #1468b3; stroke-width: 3; vector-effect: non-scaling-stroke; }
+.evidence-map-focus .focus-dot { fill: #1468b3; stroke: white; stroke-width: 2; vector-effect: non-scaling-stroke; }
+.evidence-map-focus.accident .focus-ring { stroke: #d9820c; }
+.evidence-map-focus.accident .focus-dot { fill: #d9820c; }
+.evidence-map-focus.crime .focus-ring { stroke: #7c3aed; }
+.evidence-map-focus.crime .focus-dot { fill: #7c3aed; }
+.evidence-map-focus.history .focus-ring { stroke: #0f8a78; }
+.evidence-map-focus.history .focus-dot { fill: #0f8a78; }
+
 .map-route-detail { position: absolute; z-index: 5; top: 14px; right: 14px; width: 276px; max-height: calc(100% - 82px); box-sizing: border-box; overflow-y: auto; padding: 12px; border: 1px solid color-mix(in srgb, var(--chart-1) 38%, var(--border-strong)); border-radius: 6px; color: var(--text); background: color-mix(in srgb, var(--background) 94%, transparent); box-shadow: 0 16px 34px color-mix(in srgb, black 18%, transparent); backdrop-filter: blur(14px); }
 .route-detail-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
 .route-detail-head > div { display: flex; min-width: 0; flex-direction: column; }
@@ -769,7 +796,7 @@
 .weather-radar-status p { margin: 6px 0 0; color: var(--secondary); font-size: 8px; line-height: 14px; }
 .weather-map-badge { position: absolute; top: 10px; left: 10px; padding: 5px 8px; border: 1px solid color-mix(in srgb, #1468b3 28%, var(--border)); border-radius: 999px; color: #125992; background: color-mix(in srgb, var(--surface) 90%, transparent); font-size: 8px; font-weight: 800; }
 .weather-map-attribution { position: absolute; right: 6px; bottom: 5px; padding: 2px 4px; color: #53616b; background: color-mix(in srgb, white 82%, transparent); font-size: 6px; }
-.weather-timeline { display: flex; min-width: 0; padding: 9px; flex-direction: column; border: 1px solid var(--border); border-radius: 7px; background: var(--surface); }
+.weather-timeline { display: flex; min-width: 0; overflow: hidden; box-sizing: border-box; padding: 9px; flex-direction: column; border: 1px solid var(--border); border-radius: 7px; background: var(--surface); }
 .weather-timeline header { display: flex; flex-direction: column; }
 .weather-timeline header span { font-size: 11px; font-weight: 750; }
 .weather-timeline header small { margin-top: 2px; color: var(--secondary); font-size: 7px; }
@@ -779,11 +806,11 @@
 .weather-timeline-list button > span { color: inherit; font-size: 8px; font-weight: 800; }
 .weather-timeline-list button > strong { font-family: Poppins, var(--font-sans); font-size: 11px; text-align: right; }
 .weather-timeline-list button > small { grid-column: 1 / -1; overflow: hidden; color: var(--secondary); font-size: 7px; text-overflow: ellipsis; white-space: nowrap; }
-.weather-data-quality { display: grid; margin: auto 0 0; padding-top: 6px; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
-.weather-data-quality div { padding: 5px 6px; border: 1px solid var(--border); border-radius: 5px; background: var(--background); }
-.weather-data-quality dt { color: var(--secondary); font-size: 7px; }
-.weather-data-quality dd { margin: 2px 0 0; color: var(--text); font-size: 10px; font-weight: 750; }
-.weather-timeline > p { margin: 5px 0 0; color: var(--secondary); font-size: 7px; line-height: 11px; }
+.weather-data-quality { display: flex; align-items: center; gap: 10px; margin: auto 0 0; padding-top: 5px; border-top: 1px solid var(--border); }
+.weather-data-quality div { display: flex; min-width: 0; align-items: center; gap: 3px; padding: 0; border: 0; background: transparent; }
+.weather-data-quality dt { color: var(--secondary); font-size: 6px; }
+.weather-data-quality dd { margin: 0; color: var(--text); font-size: 7px; font-weight: 750; }
+.weather-timeline > p { margin: 3px 0 0; color: var(--secondary); font-size: 6px; line-height: 8px; }
 .operation-stage-initial .operation-map-card.weather-active { height: 100%; max-height: 100%; overflow: hidden; }
 .operation-stage-initial .operation-map-card.weather-active .operation-weather-view { min-height: 0; overflow: hidden; }
 .operation-stage-plan .operation-map-card.weather-active .operation-weather-view { min-height: 490px; }
@@ -851,6 +878,13 @@
 .evidence-disclosure > button b { overflow: hidden; font-size: 9px; line-height: 14px; text-overflow: ellipsis; white-space: nowrap; }
 .evidence-disclosure > button small { color: var(--secondary); font-size: 8px; line-height: 13px; }
 .evidence-disclosure > button i { color: var(--secondary); font-size: 8px; font-style: normal; white-space: nowrap; }
+.evidence-detail-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 8px; padding: 7px 8px; border-radius: 4px; background: var(--muted); }
+.evidence-detail-row > span { display: flex; min-width: 0; flex: 1; flex-direction: column; }
+.evidence-detail-row b { overflow: hidden; font-size: 8px; line-height: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.evidence-detail-row small { overflow: hidden; color: var(--secondary); font-size: 7px; line-height: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.evidence-map-button { flex: 0 0 auto; min-height: 24px; padding: 0 8px; border: 1px solid #1468b3; border-radius: 999px; color: #1468b3; background: var(--surface); font: inherit; font-size: 7px; font-weight: 750; cursor: pointer; }
+.evidence-map-button:hover { background: color-mix(in srgb, #1468b3 8%, var(--surface)); }
+.evidence-map-button:disabled { cursor: not-allowed; opacity: .4; }
 .evidence-disclosure dl,
 .similar-place-list dl { display: grid; margin: 0 0 8px; padding: 8px; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px 12px; border-radius: 4px; background: var(--muted); }
 .evidence-disclosure dl div,

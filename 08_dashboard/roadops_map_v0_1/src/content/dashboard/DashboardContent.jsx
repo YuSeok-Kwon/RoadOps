@@ -258,6 +258,14 @@ function geometry(value) {
   }
 }
 
+function evidenceMapTarget(kind, key, label, row) {
+  const longitude = Number(row?.longitude ?? row?.start_longitude);
+  const latitude = Number(row?.latitude ?? row?.start_latitude);
+  return Number.isFinite(longitude) && Number.isFinite(latitude)
+    ? { kind, key, label, longitude, latitude }
+    : null;
+}
+
 function number(value, digits = 1) {
   if (value == null || Number.isNaN(Number(value))) return "—";
   return new Intl.NumberFormat("ko-KR", { maximumFractionDigits: digits }).format(Number(value));
@@ -687,6 +695,7 @@ function RoadMap({
   mode = "select",
   selectedDepotId = null,
   manualTaskIds = [],
+  focusTarget = null,
 }) {
   const overlayRows = [...riskRows, ...routeRows, ...replanRows, ...impactRows];
   const { width, height, project, projectMercator, mapToMercator } = useProjection(backgroundRows, overlayRows);
@@ -698,8 +707,15 @@ function RoadMap({
   const teamByTask = new Map(routeRows.map((row) => [String(row.task_id), row.team_id]));
   const manualSequenceByTask = new Map(manualTaskIds.map((taskId, index) => [String(taskId), index + 1]));
   const selectedDepot = teamRows.find((row) => row.team_id === selectedDepotId) ?? null;
+  const focusLongitude = Number(focusTarget?.longitude);
+  const focusLatitude = Number(focusTarget?.latitude);
 
   useEffect(() => {
+    if (Number.isFinite(focusLongitude) && Number.isFinite(focusLatitude)) {
+      const [centerX, centerY] = project(focusLongitude, focusLatitude);
+      setMapView({ zoom: 3.4, centerX, centerY });
+      return;
+    }
     if (!selectedDepot) {
       setMapView({ zoom: 1, centerX: width / 2, centerY: height / 2 });
       return;
@@ -707,7 +723,12 @@ function RoadMap({
     const [centerX, centerY] = project(selectedDepot.start_longitude, selectedDepot.start_latitude);
     const zoom = mode === "manual" || mode === "ai-result" ? 2.5 : 1.8;
     setMapView({ zoom, centerX, centerY });
-  }, [selectedDepot?.team_id, selectedDepot?.start_longitude, selectedDepot?.start_latitude, mode]);
+  }, [focusTarget?.key, focusLongitude, focusLatitude,
+    selectedDepot?.team_id, selectedDepot?.start_longitude, selectedDepot?.start_latitude, mode]);
+
+  const focusPoint = Number.isFinite(focusLongitude) && Number.isFinite(focusLatitude)
+    ? project(focusLongitude, focusLatitude)
+    : null;
 
   const viewWidth = width / mapView.zoom;
   const viewHeight = height / mapView.zoom;
@@ -751,7 +772,11 @@ function RoadMap({
   };
 
   return <div className="roadops-map-wrap" data-route-open={selectedRoute ? "true" : undefined}>
-    {selectedRisk && <div className="map-focus-panel" data-risk={selectedRisk.risk_level}>
+    {focusTarget && <div className="map-evidence-focus-label" data-kind={focusTarget.kind}>
+      <span>지도에서 확인 중</span>
+      <strong>{focusTarget.label}</strong>
+    </div>}
+    {!focusTarget && selectedRisk && <div className="map-focus-panel" data-risk={selectedRisk.risk_level}>
       <span>{horizon === 0 ? "현재 선택 구간" : `${horizon}시간 후 선택 구간`}</span>
       <strong>{locationLabel(taskByLink.get(String(selectedRisk.link_id)) || selectedRisk)}</strong>
       <div>
@@ -942,6 +967,13 @@ function RoadMap({
           </g>;
         })}
       </g>
+
+      {focusPoint && <g className={`evidence-map-focus ${focusTarget.kind}`}
+        transform={`translate(${focusPoint[0]} ${focusPoint[1]}) scale(${markerScale})`}>
+        <circle className="focus-ring" r="13" />
+        <circle className="focus-dot" r="4" />
+        <title>{focusTarget.label}</title>
+      </g>}
 
       <g className="team-points" data-reviewed-rows="teams">
         {teamRows.map((row) => {
@@ -1174,7 +1206,7 @@ function DepotEvidence({
   crimeRows,
   crimeOverlayRows,
   onSelectTask,
-  onShowCrime,
+  onShowOnMap,
 }) {
   const [expandedEvidence, setExpandedEvidence] = useState(null);
   useEffect(() => setExpandedEvidence(null), [depot?.team_id, weather?.horizon_hours]);
@@ -1187,6 +1219,12 @@ function DepotEvidence({
   const crimeRow = crimeRows.find((row) => row.administrative_city === administrativeCity);
   const crimeCategories = patrolCrimeCategories(crimeRow);
   const crimeAvailable = crimeOverlayRows.length > 0;
+  const crimeMapTarget = evidenceMapTarget(
+    "crime",
+    `crime:${depot.team_id}`,
+    `${administrativeCity} 범죄주의 밀도`,
+    depot,
+  );
   const toggleEvidence = (key) => setExpandedEvidence((current) => current === key ? null : key);
   return <DataComponent variant="plain" id="depot-evidence" queryId="field_tasks"
     queryIds={["field_tasks", "risk_links", "weather_forecast", "accident_hotspots", "historical_similarity", "crime_statistics", "crime_caution_overlay"]}
@@ -1213,17 +1251,22 @@ function DepotEvidence({
         {accidents.slice(0, 2).map((row) => {
           const key = `accident:${row.hotspot_id}`;
           const expanded = expandedEvidence === key;
+          const mapTarget = evidenceMapTarget("accident", key, row.location_name, row);
           return <div className="evidence-disclosure" key={row.hotspot_id} data-expanded={expanded || undefined}>
             <button type="button" aria-expanded={expanded} onClick={() => toggleEvidence(key)}>
               <span><b>{row.location_name}</b><small>교통사고 {number(row.accident_count, 0)}건 · 약 {number(row.distance_km)}km</small></span>
               <i>{expanded ? "접기" : "자세히"}</i>
             </button>
-            {expanded && <dl>
-              <div><dt>기준 연도</dt><dd>{row.analysis_year}년</dd></div>
-              <div><dt>사상자</dt><dd>{number(row.casualty_count, 0)}명</dd></div>
-              <div><dt>사망</dt><dd>{number(row.fatality_count, 0)}명</dd></div>
-              <div><dt>중상</dt><dd>{number(row.serious_injury_count, 0)}명</dd></div>
-            </dl>}
+            {expanded && <div className="evidence-detail-row">
+              <span>
+                <b>{row.analysis_year}년 · 사상자 {number(row.casualty_count, 0)}명</b>
+                <small>사망 {number(row.fatality_count, 0)}명 · 중상 {number(row.serious_injury_count, 0)}명</small>
+              </span>
+              <button type="button" className="evidence-map-button" disabled={!mapTarget}
+                onClick={() => onShowOnMap?.(mapTarget)}>
+                {mapTarget ? "지도에서 보기" : "위치 없음"}
+              </button>
+            </div>}
           </div>;
         })}
         {!accidents.length && <p><span>주변 공개자료 없음</span></p>}
@@ -1231,25 +1274,24 @@ function DepotEvidence({
       <div>
         <div className="evidence-section-head"><strong>생활안전 참고</strong><span>도로 위험점수와 분리</span></div>
         <div className="evidence-disclosure" data-expanded={expandedEvidence === "crime" || undefined}>
-          <button type="button" aria-expanded={expandedEvidence === "crime"} onClick={() => {
-            const opening = expandedEvidence !== "crime";
-            toggleEvidence("crime");
-            if (opening && crimeAvailable) onShowCrime?.();
-          }}>
+          <button type="button" aria-expanded={expandedEvidence === "crime"} onClick={() => toggleEvidence("crime")}>
             <span><b>{crimeAvailable ? `${administrativeCity} 범죄주의 밀도 지도` : "범죄주의 지도 확인 필요"}</b>
               <small>{crimeCategories.length ? crimeCategories.map((item) => item.crime_category).join(" · ") : "생활안전 공간자료"}</small></span>
             <i>{expandedEvidence === "crime" ? "접기" : "자세히"}</i>
           </button>
           {expandedEvidence === "crime" && <div className="crime-evidence-detail">
-            <dl>
-              <div><dt>선택 거점 위치</dt><dd>{depot.start_location_address || depot.start_location_name}</dd></div>
-              <div><dt>지도 표시 범위</dt><dd>경찰청 범죄주의구간 밀도 계층 · 제주 전역</dd></div>
-              <div><dt>통계 범위</dt><dd>{crimeRow ? `${crimeRow.analysis_year}년 ${crimeRow.administrative_city} 비식별 집계` : "행정시 집계 확인 필요"}</dd></div>
-            </dl>
-            {crimeCategories.length > 0 && <ul>{crimeCategories.map((item) => <li key={item.crime_category}>
-              <span>{item.crime_category}</span><b>{number(item.occurrence_count, 0)}건</b>
-            </li>)}</ul>}
-            <p>사기·사이버 등 도로 순찰과 직접 관련이 낮은 항목은 숨겼습니다. 원자료가 동별 정확한 건수를 제공하지 않아 특정 동의 범죄 건수로 해석할 수 없습니다.</p>
+            <div className="evidence-detail-row">
+              <span>
+                <b>{crimeRow ? `${crimeRow.analysis_year}년 ${administrativeCity} 비식별 통계` : "범죄주의 밀도 계층"}</b>
+                <small>{crimeCategories.length ? crimeCategories.map((item) => item.crime_category).join(" · ") : "교통·절도·폭행 참고"}</small>
+              </span>
+              <button type="button" className="evidence-map-button"
+                disabled={!crimeAvailable || !crimeMapTarget}
+                onClick={() => onShowOnMap?.(crimeMapTarget)}>
+                {crimeAvailable && crimeMapTarget ? "지도에서 보기" : "위치 없음"}
+              </button>
+            </div>
+            <p>경찰청 범죄주의 밀도 계층을 선택 거점 주변에서 확인합니다. 정확한 동별 건수는 아닙니다.</p>
           </div>}
         </div>
       </div>
@@ -1260,19 +1302,27 @@ function DepotEvidence({
         {history.slice(0, 2).map((row) => {
           const key = `history:${row.observed_at}`;
           const expanded = expandedEvidence === key;
-          const places = row.matched_places.slice(0, 3).map(locationLabel);
+          const matchedPlaces = Array.isArray(row.matched_places) ? row.matched_places : [];
+          const firstPlace = matchedPlaces.find((place) => Number.isFinite(Number(place.longitude))
+            && Number.isFinite(Number(place.latitude)));
+          const places = matchedPlaces.slice(0, 3).map(locationLabel);
+          const mapTarget = evidenceMapTarget("history", key, places[0] || "과거 사건 위치", firstPlace);
           return <div key={row.observed_at} data-expanded={expanded || undefined}>
             <button type="button" aria-expanded={expanded} onClick={() => toggleEvidence(key)}>
               <span><b>{number(row.similarity_score, 0)}% 유사</b>{dateTime(row.observed_at)}</span>
               <strong>{places.length ? places.join(" · ") : "제공 좌표 확인 필요"}</strong>
               <small>제주 C-ITS 도로 돌발정보 {number(row.event_count, 0)}건</small>
             </button>
-            {expanded && <dl>
-              <div><dt>위험정보</dt><dd>제주 C-ITS 도로 돌발정보</dd></div>
-              <div><dt>발생 위치</dt><dd>{places.length ? places.join(" · ") : "제공 좌표 확인 필요"}</dd></div>
-              <div><dt>제공 코드</dt><dd>{Array.isArray(row.event_codes) && row.event_codes.length ? row.event_codes.join(" · ") : "확인 불가"}</dd></div>
-              <div><dt>당시 건수</dt><dd>{number(row.event_count, 0)}건</dd></div>
-            </dl>}
+            {expanded && <div className="evidence-detail-row">
+              <span>
+                <b>당시 도로 돌발정보 {number(row.event_count, 0)}건</b>
+                <small>{places.length ? places.join(" · ") : "위치 확인 필요"}</small>
+              </span>
+              <button type="button" className="evidence-map-button" disabled={!mapTarget}
+                onClick={() => onShowOnMap?.(mapTarget)}>
+                {mapTarget ? "지도에서 보기" : "위치 없음"}
+              </button>
+            </div>}
           </div>;
         })}
       </div>
@@ -1813,6 +1863,7 @@ export function DashboardContent() {
   const [confirmedMessage, setConfirmedMessage] = useState("");
   const [currentTime, setCurrentTime] = useState(() => new Date());
   const [mapLayers, setMapLayers] = useState(initialOperation.mapLayers);
+  const [mapFocus, setMapFocus] = useState(null);
   const [colorMode, setColorMode] = useState(() => {
     if (typeof localStorage === "undefined") return "light";
     return localStorage.getItem("roadops-color-mode") === "dark" ? "dark" : "light";
@@ -1856,6 +1907,7 @@ export function DashboardContent() {
   useEffect(() => {
     setSelectedRiskId(null);
     setSelectedRouteKey(null);
+    setMapFocus(null);
   }, [horizon, selectedPlan, scenarioId]);
 
   const metadata = rows("map_metadata")[0] ?? {};
@@ -1943,6 +1995,7 @@ export function DashboardContent() {
     setManualTaskIds([]);
     setSelectedRiskId(null);
     setSelectedRouteKey(null);
+    setMapFocus(null);
     setWorkflowPlan(null);
     setWorkflowState(null);
     setConfirmedMessage("");
@@ -1950,6 +2003,7 @@ export function DashboardContent() {
   };
 
   const toggleManualTask = (taskId) => {
+    setMapFocus(null);
     setManualTaskIds((current) => current.includes(taskId)
       ? current.filter((id) => id !== taskId)
       : [...current, taskId]);
@@ -1958,12 +2012,14 @@ export function DashboardContent() {
   };
 
   const selectTask = (linkId) => {
+    setMapFocus(null);
     const task = visibleTasks.find((row) => String(row.link_id) === String(linkId));
     if (phase === "manual" && task) toggleManualTask(task.task_id);
     setSelectedRiskId(linkId);
   };
 
   const selectRoute = (row) => {
+    setMapFocus(null);
     setSelectedRouteKey(routeKey(row));
     setSelectedRiskId(row.link_id);
   };
@@ -1978,6 +2034,21 @@ export function DashboardContent() {
     setWorkflowState(null);
     setWorkflowPlan(null);
     setMapExpanded(false);
+    setMapFocus(null);
+  };
+
+  const showEvidenceOnMap = (target) => {
+    if (!target) return;
+    setMapFocus(target);
+    setSelectedRiskId(null);
+    setSelectedRouteKey(null);
+    setSurfaceView("map");
+    setMapExpanded(false);
+    setMapLayers((current) => ({
+      ...current,
+      accidentHotspots: target.kind === "accident" ? true : current.accidentHotspots,
+      crimeCaution: target.kind === "crime" ? true : current.crimeCaution,
+    }));
   };
 
   const mapPanel = <DataComponent variant="plain" id="roadops-operation-map"
@@ -1997,7 +2068,10 @@ export function DashboardContent() {
     <div className="operation-map-toolbar">
       <div className="operation-view-switch" role="group" aria-label="상황판 보기 선택">
         <button type="button" aria-pressed={surfaceView === "map"} onClick={() => setSurfaceView("map")}>지도뷰</button>
-        <button type="button" aria-pressed={surfaceView === "weather"} onClick={() => setSurfaceView("weather")}>날씨뷰</button>
+        <button type="button" aria-pressed={surfaceView === "weather"} onClick={() => {
+          setMapFocus(null);
+          setSurfaceView("weather");
+        }}>날씨뷰</button>
       </div>
       <div className="operation-map-tools">
         {surfaceView === "map" && <div className="operation-layer-buttons" role="group" aria-label="지도 참고 계층">
@@ -2028,7 +2102,7 @@ export function DashboardContent() {
       onSelectTask={selectTask} onSelectRoute={selectRoute} onCloseRoute={() => setSelectedRouteKey(null)}
       scenarioId={phase === "ai-result" ? scenarioId : "none"} horizon={horizon}
       mode={phase === "manual" || phase === "manual-review" ? "manual" : phase}
-      selectedDepotId={selectedDepotId} manualTaskIds={manualTaskIds} />
+      selectedDepotId={selectedDepotId} manualTaskIds={manualTaskIds} focusTarget={mapFocus} />
       : <WeatherMapView backgroundRows={rows("road_background")} weatherRows={weatherRows} radarRows={radarRows}
         selectedWeather={selectedWeather} horizon={horizon}
         onSelectHorizon={(hours) => setHorizonIndex(Math.max(0, HORIZONS.indexOf(hours)))} />}
@@ -2068,8 +2142,12 @@ export function DashboardContent() {
           history={similarHistory} weather={selectedWeather}
           crimeRows={rows("crime_statistics")}
           crimeOverlayRows={rows("crime_caution_overlay")}
-          onShowCrime={() => setMapLayers((current) => ({ ...current, crimeCaution: true }))}
-          onSelectTask={(linkId) => setSelectedRiskId(linkId)} />
+          onShowOnMap={showEvidenceOnMap}
+          onSelectTask={(linkId) => {
+            setMapFocus(null);
+            setSelectedRiskId(linkId);
+            setSurfaceView("map");
+          }} />
       </section>
       <RouteChoice depot={selectedDepot}
         onManual={() => { setPhase("manual"); setSurfaceView("map"); setMapExpanded(true); setManualTaskIds([]); }}
