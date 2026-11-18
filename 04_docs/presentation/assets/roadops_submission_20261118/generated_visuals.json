@@ -21,6 +21,12 @@
       "file": "13_jeju_road_closure_v1.png",
       "current_layout": "Full-bleed rainy road closure scene; native editable white typography on the quiet left area, barrier visible on the right.",
       "prompt": "Use case: photorealistic-natural. Asset type: original 16:9 full-bleed transition image for a RoadOps project submission presentation. A rain-soaked road inspired by Jeju Island, dark volcanic basalt walls and muted greenery, low mist, wet charcoal asphalt and natural reflected overcast light. On the RIGHTMOST 40 percent of the image, a short row of realistic orange reflective traffic cones with a simple portable striped road-closure barrier clearly closes a side road. This is a modest controlled access closure, no wreckage, no deep flood, no victims, no vehicles, no people. Cinematic but restrained editorial composition. Keep the LEFT 55 percent naturally very dark and uncluttered with blurred wet roadside and shadow for large white editable text to be overlaid later; do not place the cones or important details behind that text region. Steel-blue/charcoal palette, muted green vegetation, small orange barrier accents for narrative tension. Photorealistic textures, soft rain, no glossy CGI, no HDR, no oversized dramatic hazard signage, no lettering, logos, numbers, watermark or graphic overlay. Single continuous image, not collage. Fictional what-if scenario, not a photo of a real closure."
+    },
+    {
+      "slide": 3,
+      "file": "15_roadops_planning_illustration_v1.png",
+      "current_layout": "Conceptual rainy-day road-planning illustration on the right, editable scenario resource quantities on the left. Not an actual geographic or dispatch map.",
+      "prompt": "Use case: productivity-visual. Asset type: a single editorial illustration for slide 3 of a professional Korean RoadOps road-management planning presentation. Landscape 4:3 illustration on pure white #FFFFFF background. A clean, refined flat line-art aerial illustration inspired by the elongated oval outline of Jeju Island, with a sparse simplified road network, one highlighted blue route and three small green waypoint dots, plus one modest unbranded road-maintenance pickup truck as an understated secondary element near a route. Abstract conceptual geography only; do not imply exact road alignments or actual dispatch data. Use crisp medium-weight strokes in brand blue #1468B3, occasional muted lime green #8CC63F, and very light ice-blue fills. A tiny soft pale-blue rain cloud over part of the island can connect to the rainy-day planning scenario. Stylish grown-up editorial information design, no cartoon faces, no people, no childish clipart, no 3D, no photorealism, no gradients, no shadows. Composition is spacious and balanced with the island and route the focal point, smoothly integrated into white slide background, generous white outer margin. Do not include lettering, labels, legends, numbers, logos, watermark, arrows, UI cards or frames. This is decorative conceptual art; all numeric resource quantities and textual explanation will remain separate native slide text."
     }
   ],
   "superseded": [
@@ -39,6 +45,30 @@
       "reference_image": "10_jeju_road_original_detail_v1.png",
       "reference_role": "Approved atmosphere and palette only; composition recreated around a fictional road-maintenance inspector.",
       "status": "superseded_by_control_room_image"
+    }
+  ],
+  "decorative_backgrounds": [
+    {
+      "file": "14_roadops_route_background_v1.png",
+      "slides": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        13,
+        14,
+        15,
+        16
+      ],
+      "role": "Reusable white background with blue route lines and green waypoint accents. Decorative only; no geographic data.",
+      "prompt": "Use case: productivity-visual. Asset type: reusable background artwork for an existing professional 16:9 Korean RoadOps presentation, not an entire composed slide. Create a refined minimal road-route brand motif on a perfectly pure white #FFFFFF 2048x1152 canvas. The central 88 percent of the slide must remain completely blank pure white for editable slide content. Decorative artwork is confined to a narrow strip at the extreme LEFT edge and a small shallow area at the TOP RIGHT corner. At left, one precise thin blue route line (#1468B3), entering from off-canvas at mid-height, bends once, runs vertically close to the edge, with two restrained small waypoint dots, one lime green #8CC63F. Keep all left motif within the first 3 percent of canvas width. At top right, a small elegant set of sparse very pale ice-blue road contours curves off the top and right edges, with one short stronger blue segment and one tiny green endpoint. Keep this top-right motif entirely within the rightmost 12 percent of width and uppermost 7 percent of height, so it cannot touch a slide title starting below 8 percent height. Flat precise editorial line art, crisp geometric curves, quiet blue and green punctuation, restrained professional Korean civic-tech identity. No gradients, shadows, grids, cards, boxes, pills, text, letters, numbers, icons, logos, watermarks, maps or photorealism. Do not add anything along the bottom. The vast majority of the image stays pure white. This is purely decorative route-inspired background art, not geographic data."
     }
   ]
 }
