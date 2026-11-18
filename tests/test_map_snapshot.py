@@ -196,6 +196,22 @@ def test_build_map_snapshot_aggregates_risk_and_marks_unavailable_gateway():
         replanning=replanning,
         resources=resources,
         allocation=allocation,
+        emergency_facility_rows=[
+            {
+                "facility_id": "safemap:police:1",
+                "facility_kind": "police",
+                "facility_name": "제주동부경찰서",
+                "longitude": 126.53,
+                "latitude": 33.5,
+            }
+        ],
+        traffic_accident_overlay_rows=[
+            {
+                "layer_id": "safemap_traffic_accident_hotspots",
+                "bbox": [126.08, 33.1, 126.98, 33.62],
+                "data_url": "data:image/png;base64,example",
+            }
+        ],
         link_rows=[
             _link(
                 "4050000001",
@@ -233,6 +249,12 @@ def test_build_map_snapshot_aggregates_risk_and_marks_unavailable_gateway():
         "operator_configuration_required"
     )
     assert quality["counts"]["authority_record_count"] == 1
+    assert quality["counts"]["emergency_facility_count"] == 1
+    assert quality["counts"]["traffic_accident_overlay_count"] == 1
+    assert queries["emergency_facilities"][0]["facility_kind"] == "police"
+    assert queries["traffic_accident_overlay"][0]["layer_id"] == (
+        "safemap_traffic_accident_hotspots"
+    )
     current_weather = queries["weather_forecast"][0]
     assert current_weather["temperature_min_c"] == 12.0
     assert current_weather["temperature_max_c"] == 15.0

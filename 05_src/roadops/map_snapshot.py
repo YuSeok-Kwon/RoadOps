@@ -521,6 +521,8 @@ def build_map_snapshot(
     crime_statistic_rows: Iterable[Mapping[str, Any]] = (),
     complaint_hotspot_rows: Iterable[Mapping[str, Any]] = (),
     crime_caution_overlay_rows: Iterable[Mapping[str, Any]] = (),
+    emergency_facility_rows: Iterable[Mapping[str, Any]] = (),
+    traffic_accident_overlay_rows: Iterable[Mapping[str, Any]] = (),
     reverse_geocode_rows: Iterable[Mapping[str, Any]] = (),
     gateway_quality: Mapping[str, Any] | None = None,
     link_rows: Iterable[Mapping[str, Any]],
@@ -535,6 +537,10 @@ def build_map_snapshot(
     crime_statistics = [dict(row) for row in crime_statistic_rows]
     complaint_hotspots = [dict(row) for row in complaint_hotspot_rows]
     crime_caution_overlay = [dict(row) for row in crime_caution_overlay_rows]
+    emergency_facilities = [dict(row) for row in emergency_facility_rows]
+    traffic_accident_overlay = [
+        dict(row) for row in traffic_accident_overlay_rows
+    ]
     location_by_link = {
         str(row.get("link_id")): dict(row)
         for row in reverse_geocode_rows
@@ -788,6 +794,8 @@ def build_map_snapshot(
             "crime_statistic_city_count": len(crime_statistics),
             "complaint_hotspot_count": len(complaint_hotspots),
             "crime_caution_overlay_count": len(crime_caution_overlay),
+            "emergency_facility_count": len(emergency_facilities),
+            "traffic_accident_overlay_count": len(traffic_accident_overlay),
             "reverse_geocoded_link_count": len(location_by_link),
         },
         "missing_required_link_ids": missing_required,
@@ -816,6 +824,8 @@ def build_map_snapshot(
         "crime_statistics": crime_statistics,
         "complaint_hotspots": complaint_hotspots,
         "crime_caution_overlay": crime_caution_overlay,
+        "emergency_facilities": emergency_facilities,
+        "traffic_accident_overlay": traffic_accident_overlay,
         "road_background": background_rows,
         "risk_links": risk_links,
         "field_tasks": field_tasks,

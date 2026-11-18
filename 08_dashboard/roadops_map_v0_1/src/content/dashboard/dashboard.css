@@ -159,7 +159,9 @@
 .map-reading-guide i[data-guide="accident"] { width: 16px; height: 12px; border: 2px solid #e5484d; border-radius: 99px; background: color-mix(in srgb, #e5484d 20%, transparent); }
 .map-reading-guide i[data-guide="complaint"] { width: 12px; height: 12px; border: 2px solid #7c3aed; border-radius: 99px; background: color-mix(in srgb, #7c3aed 20%, transparent); }
 .map-reading-guide i[data-guide="crime"] { width: 17px; height: 12px; border: 1px solid #7c3aed; border-radius: 2px; background: linear-gradient(90deg, transparent, color-mix(in srgb, #7c3aed 60%, transparent)); }
-.map-layer-controls { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; color: var(--secondary); font-size: 10px; }
+.map-reading-guide i[data-guide="facility"] { width: 17px; height: 12px; border: 2px solid #1468b3; border-radius: 99px; background: color-mix(in srgb, #1468b3 24%, transparent); }
+.map-reading-guide i[data-guide="traffic-overlay"] { width: 17px; height: 12px; border: 1px solid #d14343; border-radius: 2px; background: linear-gradient(90deg, transparent, color-mix(in srgb, #d14343 58%, transparent)); }
+.map-layer-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-bottom: 8px; color: var(--secondary); font-size: 10px; }
 .map-layer-controls > span { color: var(--text); font-weight: 750; }
 .map-layer-controls label { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
 .map-layer-controls input { width: 14px; height: 14px; accent-color: #e5484d; }
@@ -182,6 +184,7 @@
 .roadops-map { display: block; width: 100%; height: 100%; overscroll-behavior: contain; }
 .basemap-tiles image { opacity: .88; image-rendering: auto; }
 .crime-caution-overlay { opacity: .48; pointer-events: none; }
+.traffic-accident-overlay { opacity: .4; pointer-events: none; }
 .roadops-page[data-color-mode="dark"] .basemap-tiles image { opacity: .68; filter: brightness(.48) saturate(.58) contrast(1.18); }
 .map-zoom-controls { position: absolute; z-index: 4; top: 116px; left: 14px; display: grid; grid-template-columns: 28px 44px 28px 42px; align-items: center; overflow: hidden; border: 1px solid color-mix(in srgb, var(--border-strong) 80%, transparent); border-radius: 5px; background: color-mix(in srgb, var(--background) 94%, transparent); box-shadow: 0 8px 20px color-mix(in srgb, black 10%, transparent); backdrop-filter: blur(12px); }
 .map-zoom-controls button,
@@ -198,6 +201,12 @@
 .complaint-hotspots circle { fill: color-mix(in srgb, #7c3aed 20%, transparent); stroke: #7c3aed; stroke-width: 2; opacity: .85; vector-effect: non-scaling-stroke; }
 .complaint-hotspots circle:hover { fill: color-mix(in srgb, #7c3aed 36%, transparent); opacity: 1; }
 .complaint-hotspots text { fill: var(--text); font-family: Poppins, var(--font-sans); font-size: 7px; font-weight: 750; text-anchor: middle; pointer-events: none; }
+.emergency-facility circle { stroke: white; stroke-width: 1.5; opacity: .92; vector-effect: non-scaling-stroke; }
+.emergency-facility.police circle { fill: #1468b3; }
+.emergency-facility.fire circle { fill: #d14343; }
+.emergency-facility:hover circle { stroke-width: 2.5; opacity: 1; filter: drop-shadow(0 0 3px color-mix(in srgb, black 35%, transparent)); }
+.emergency-facility text { fill: white; font-family: Pretendard, var(--font-sans); font-size: 6px; font-weight: 800; text-anchor: middle; pointer-events: none; }
+.emergency-facility.fire text { font-family: Poppins, var(--font-sans); font-size: 4.5px; }
 .plan-routes .route-line { fill: none; stroke: var(--team-color); stroke-width: 3.5; stroke-linecap: round; stroke-dasharray: 8 7; opacity: .92; pointer-events: none; vector-effect: non-scaling-stroke; }
 .plan-routes .route-hit-target { fill: none; stroke: transparent; stroke-width: 18; cursor: pointer; pointer-events: stroke; vector-effect: non-scaling-stroke; }
 .plan-routes .route-segment:hover .route-line,
@@ -308,6 +317,11 @@
 .legend-group .legend-accident { width: 15px; height: 11px; box-sizing: border-box; border: 2px solid #e5484d; background: color-mix(in srgb, #e5484d 20%, transparent); }
 .legend-group .legend-complaint { width: 12px; height: 12px; box-sizing: border-box; border: 2px solid #7c3aed; border-radius: 50%; background: color-mix(in srgb, #7c3aed 20%, transparent); }
 .legend-group .legend-crime { width: 15px; height: 11px; box-sizing: border-box; border: 1px solid #7c3aed; background: linear-gradient(90deg, transparent, color-mix(in srgb, #7c3aed 62%, transparent)); }
+.legend-group .legend-traffic-overlay { width: 15px; height: 11px; box-sizing: border-box; border: 1px solid #d14343; border-radius: 2px; background: linear-gradient(90deg, transparent, color-mix(in srgb, #d14343 58%, transparent)); }
+.legend-group .legend-police,
+.legend-group .legend-fire { display: grid; width: 16px; height: 16px; box-sizing: border-box; place-items: center; border: 1px solid white; border-radius: 99px; color: white; font-size: 6px; font-style: normal; font-weight: 800; line-height: 1; }
+.legend-group .legend-police { background: #1468b3; }
+.legend-group .legend-fire { background: #d14343; font-family: Poppins, var(--font-sans); font-size: 5px; }
 .legend-start svg { width: 11px; height: 11px; fill: currentColor; }
 .legend-group .legend-before { border-top-color: var(--secondary); border-top-style: dashed; }
 .legend-group .legend-after { border-top-color: #008f7a; }

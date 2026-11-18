@@ -319,7 +319,15 @@ function WeatherForecastStrip({ rows, horizon, onSelect }) {
   </DataComponent>;
 }
 
-function MapLegend({ showScenario, showAccidentHotspots, showComplaintHotspots, showCrimeCaution }) {
+function MapLegend({
+  showScenario,
+  showAccidentHotspots,
+  showTrafficAccidents,
+  showComplaintHotspots,
+  showCrimeCaution,
+  showPoliceFacilities,
+  showFireFacilities,
+}) {
   return <div className="roadops-map-legend" aria-label="지도 범례">
     <div className="legend-group">
       <span className="legend-title">점검 우선순위</span>
@@ -331,6 +339,10 @@ function MapLegend({ showScenario, showAccidentHotspots, showComplaintHotspots, 
       <span className="legend-title">과거 사고</span>
       <span><i className="legend-accident" />공단 선정 사고다발지역</span>
     </div>}
+    {showTrafficAccidents && <div className="legend-group">
+      <span className="legend-title">사고 교차검증</span>
+      <span><i className="legend-traffic-overlay" />생활안전지도 연간 계층</span>
+    </div>}
     {showComplaintHotspots && <div className="legend-group">
       <span className="legend-title">도로 민원</span>
       <span><i className="legend-complaint" />3건 이상 비식별 집계 구역</span>
@@ -338,6 +350,11 @@ function MapLegend({ showScenario, showAccidentHotspots, showComplaintHotspots, 
     {showCrimeCaution && <div className="legend-group">
       <span className="legend-title">범죄 주의</span>
       <span><i className="legend-crime" />경찰청 연간 밀도분석</span>
+    </div>}
+    {(showPoliceFacilities || showFireFacilities) && <div className="legend-group">
+      <span className="legend-title">긴급 대응기관</span>
+      {showPoliceFacilities && <span><i className="legend-police">경</i>경찰관서</span>}
+      {showFireFacilities && <span><i className="legend-fire">119</i>소방서·안전센터</span>}
     </div>}
     <div className="legend-group">
       <span className="legend-title">순찰 코스</span>
@@ -401,9 +418,14 @@ function RoadMap({
   accidentRows,
   complaintRows,
   crimeCautionRows,
+  emergencyFacilityRows,
+  trafficAccidentOverlayRows,
   showAccidentHotspots,
   showComplaintHotspots,
   showCrimeCaution,
+  showPoliceFacilities,
+  showFireFacilities,
+  showTrafficAccidents,
   selectedRisk,
   selectedRoute,
   onSelectRisk,
@@ -492,6 +514,17 @@ function RoadMap({
         centerX={mapView.centerX} centerY={mapView.centerY}
         projectMercator={projectMercator} mapToMercator={mapToMercator} />
 
+      {showTrafficAccidents && trafficAccidentOverlayRows.map((row) => {
+        const [minLongitude, minLatitude, maxLongitude, maxLatitude] = row.bbox || [];
+        const [left, top] = project(minLongitude, maxLatitude);
+        const [right, bottom] = project(maxLongitude, minLatitude);
+        return <image key={row.layer_id} className="traffic-accident-overlay"
+          href={row.data_url} x={left} y={top} width={right - left} height={bottom - top}
+          preserveAspectRatio="none">
+          <title>생활안전지도·한국도로교통공단 2025년 교통사고다발구역</title>
+        </image>;
+      })}
+
       {showCrimeCaution && crimeCautionRows.map((row) => {
         const [minLongitude, minLatitude, maxLongitude, maxLatitude] = row.bbox || [];
         const [left, top] = project(minLongitude, maxLatitude);
@@ -533,6 +566,23 @@ function RoadMap({
           </g>;
         })}
       </g>}
+
+      <g className="emergency-facilities" data-reviewed-rows="emergency_facilities">
+        {emergencyFacilityRows.filter((row) => (
+          row.facility_kind === "police" ? showPoliceFacilities : showFireFacilities
+        )).map((row) => {
+          const [x, y] = project(row.longitude, row.latitude);
+          const markerText = row.facility_kind === "police" ? "경" : "119";
+          const contact = row.phone_number ? ` · ${row.phone_number}` : "";
+          return <g key={row.facility_id} className={`emergency-facility ${row.facility_kind}`}
+            transform={`translate(${x} ${y}) scale(${markerScale})`}>
+            <circle r="8">
+              <title>{`${row.facility_name} · ${row.facility_type} · ${row.road_address}${contact}`}</title>
+            </circle>
+            <text y="2.5">{markerText}</text>
+          </g>;
+        })}
+      </g>
 
       {scenarioActive && <g className="scenario-impact" data-reviewed-rows="scenario_impacts">
         {impactRows.map((row) => <path key={`${row.scenario_id}-${row.link_id}`}
@@ -647,7 +697,9 @@ function RoadMap({
     <a className="map-attribution" href="https://www.openstreetmap.org/copyright"
       target="_blank" rel="noopener">© OpenStreetMap contributors</a>
     <MapLegend showScenario={scenarioActive} showAccidentHotspots={showAccidentHotspots}
-      showComplaintHotspots={showComplaintHotspots} showCrimeCaution={showCrimeCaution} />
+      showTrafficAccidents={showTrafficAccidents}
+      showComplaintHotspots={showComplaintHotspots} showCrimeCaution={showCrimeCaution}
+      showPoliceFacilities={showPoliceFacilities} showFireFacilities={showFireFacilities} />
   </div>;
 }
 
@@ -878,7 +930,14 @@ export function DashboardContent() {
   const [workflowState, setWorkflowState] = useState(/** @type {any} */ (null));
   const [inspectorTab, setInspectorTab] = useState("priorities");
   const [mapGuideOpen, setMapGuideOpen] = useState(false);
-  const [mapLayers, setMapLayers] = useState({ accidentHotspots: true, complaintHotspots: true, crimeCaution: false });
+  const [mapLayers, setMapLayers] = useState({
+    accidentHotspots: true,
+    complaintHotspots: true,
+    crimeCaution: false,
+    policeFacilities: false,
+    fireFacilities: false,
+    trafficAccidents: false,
+  });
   const [colorMode, setColorMode] = useState(() => {
     if (typeof localStorage === "undefined") return "dark";
     return localStorage.getItem("roadops-color-mode") === "light" ? "light" : "dark";
@@ -948,7 +1007,7 @@ export function DashboardContent() {
   const impactRows = rows("scenario_impacts").filter((row) => row.scenario_id === scenarioId);
   const highRiskCount = riskRows.filter((row) => ["high", "critical"].includes(row.risk_level)).length;
   const scenarioChoices = ["none", ...rows("scenario_summary").map((row) => row.scenario_id)];
-  const mapQueryIds = ["risk_links", "road_background", "accident_hotspots", "complaint_hotspots", "crime_caution_overlay", "field_tasks", "governance_authorities", "teams", "plan_routes", "replan_routes", "scenario_impacts"];
+  const mapQueryIds = ["risk_links", "road_background", "accident_hotspots", "complaint_hotspots", "crime_caution_overlay", "emergency_facilities", "traffic_accident_overlay", "field_tasks", "governance_authorities", "teams", "plan_routes", "replan_routes", "scenario_impacts"];
   const sourceRowsByQuery = Object.fromEntries(mapQueryIds.map((queryId) => [queryId, rows(queryId)]));
 
   const selectTask = (linkId) => {
@@ -1071,6 +1130,24 @@ export function DashboardContent() {
                 onChange={(event) => setMapLayers((current) => ({ ...current, crimeCaution: event.target.checked }))} />
               범죄 주의구간 <b>{rows("crime_caution_overlay").length ? "연결" : "승인 대기"}</b>
             </label>
+            <label title="경찰 인계 판단을 돕기 위해 제주 경찰관서 위치를 표시합니다.">
+              <input type="checkbox" checked={mapLayers.policeFacilities}
+                disabled={!rows("emergency_facilities").some((row) => row.facility_kind === "police")}
+                onChange={(event) => setMapLayers((current) => ({ ...current, policeFacilities: event.target.checked }))} />
+              경찰관서 <b>{rows("emergency_facilities").filter((row) => row.facility_kind === "police").length || "자료 대기"}</b>
+            </label>
+            <label title="소방 인계 판단을 돕기 위해 제주 소방서·119안전센터 위치를 표시합니다.">
+              <input type="checkbox" checked={mapLayers.fireFacilities}
+                disabled={!rows("emergency_facilities").some((row) => row.facility_kind === "fire")}
+                onChange={(event) => setMapLayers((current) => ({ ...current, fireFacilities: event.target.checked }))} />
+              소방시설 <b>{rows("emergency_facilities").filter((row) => row.facility_kind === "fire").length || "자료 대기"}</b>
+            </label>
+            <label title="TAAS 사고다발지역과 별도로 생활안전지도 연간 사고 계층을 비교 표시합니다.">
+              <input type="checkbox" checked={mapLayers.trafficAccidents}
+                disabled={!rows("traffic_accident_overlay").length}
+                onChange={(event) => setMapLayers((current) => ({ ...current, trafficAccidents: event.target.checked }))} />
+              사고 교차검증 <b>{rows("traffic_accident_overlay").length ? "연결" : "자료 대기"}</b>
+            </label>
           </div>
           <button type="button" className="map-guide-toggle" aria-expanded={mapGuideOpen}
             onClick={() => setMapGuideOpen((open) => !open)}>
@@ -1086,6 +1163,8 @@ export function DashboardContent() {
             <span><i data-guide="accident" /><b>빗금 영역</b> 한국도로교통공단이 선정한 2025년 사고다발지역</span>
             <span><i data-guide="complaint" /><b>보라색 원</b> 신고자 정보를 제거하고 3건 이상만 묶은 약 500m 도로민원 집계</span>
             <span><i data-guide="crime" /><b>반투명 밀도</b> 생활안전지도·경찰청의 2025년 범죄주의구간(위험점수와 분리)</span>
+            <span><i data-guide="facility" /><b>경·119 원</b> 경찰·소방 인계를 위한 공식 시설 위치(위험점수와 분리)</span>
+            <span><i data-guide="traffic-overlay" /><b>붉은 반투명 계층</b> 생활안전지도 사고다발구역 교차검증 계층</span>
           </div>}
           <RoadMap backgroundRows={rows("road_background")} riskRows={riskRows}
             taskRows={effectiveTaskRows} teamRows={effectiveTeamRows} routeRows={routeRows}
@@ -1094,7 +1173,12 @@ export function DashboardContent() {
             complaintRows={rows("complaint_hotspots")}
             showComplaintHotspots={mapLayers.complaintHotspots && rows("complaint_hotspots").length > 0}
             crimeCautionRows={rows("crime_caution_overlay")}
+            emergencyFacilityRows={rows("emergency_facilities")}
+            trafficAccidentOverlayRows={rows("traffic_accident_overlay")}
             showCrimeCaution={mapLayers.crimeCaution && rows("crime_caution_overlay").length > 0}
+            showPoliceFacilities={mapLayers.policeFacilities}
+            showFireFacilities={mapLayers.fireFacilities}
+            showTrafficAccidents={mapLayers.trafficAccidents && rows("traffic_accident_overlay").length > 0}
             selectedRoute={selectedRoute} onSelectRisk={selectRisk} onSelectTask={selectTask}
             onSelectRoute={selectRoute} onCloseRoute={() => setSelectedRouteKey(null)}
             scenarioId={scenarioId} />

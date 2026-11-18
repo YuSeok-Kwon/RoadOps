@@ -450,6 +450,67 @@
         "license": "Korea Open Government License Type 4",
         "risk_score_input": false
       }
+    },
+    {
+      "id": "safemap_police_facilities",
+      "name": "Safety Map police facilities",
+      "name_ko": "생활안전지도 치안시설",
+      "documentation_url": "https://www.safemap.go.kr/opna/data/dataViewRenew.do?objtId=142",
+      "endpoint_url": "https://www.safemap.go.kr/openapi2/IF_0036",
+      "kind": "json_api",
+      "authentication": {
+        "environment_variable": "SAFEMAP_API_KEY",
+        "query_parameter": "serviceKey"
+      },
+      "join_key": "Jeju province code and facility coordinates",
+      "coordinate_system": "EPSG:3857 source converted to EPSG:4326",
+      "expected_fields": ["fclty_nm", "fclty_ty", "rn_adres", "telno", "x", "y"],
+      "quality_contract": {
+        "refresh_cycle": "provider managed",
+        "operational_role": "police handoff reference",
+        "risk_score_input": false
+      }
+    },
+    {
+      "id": "safemap_fire_facilities",
+      "name": "Safety Map fire facilities",
+      "name_ko": "생활안전지도 소방시설",
+      "documentation_url": "https://www.safemap.go.kr/opna/data/dataViewRenew.do?objtId=144",
+      "endpoint_url": "https://www.safemap.go.kr/openapi2/IF_0038",
+      "kind": "json_api",
+      "authentication": {
+        "environment_variable": "SAFEMAP_API_KEY",
+        "query_parameter": "serviceKey"
+      },
+      "join_key": "Jeju province code and facility coordinates",
+      "coordinate_system": "EPSG:3857 source converted to EPSG:4326",
+      "expected_fields": ["fclty_nm", "fclty_ty", "rn_adres", "telno", "x", "y"],
+      "quality_contract": {
+        "refresh_cycle": "provider managed",
+        "operational_role": "fire handoff reference",
+        "risk_score_input": false
+      }
+    },
+    {
+      "id": "safemap_traffic_accident_wms",
+      "name": "Safety Map traffic-accident hotspots",
+      "name_ko": "생활안전지도 교통사고다발구역",
+      "documentation_url": "https://www.safemap.go.kr/opna/data/dataViewRenew.do?objtId=213",
+      "endpoint_url": "https://www.safemap.go.kr/openapi2/IF_0093_WMS",
+      "kind": "wms_image_api",
+      "authentication": {
+        "environment_variable": "SAFEMAP_API_KEY",
+        "query_parameter": "serviceKey"
+      },
+      "join_key": "Jeju WGS84 bounding box",
+      "coordinate_system": "EPSG:4326",
+      "expected_fields": ["transparent PNG WMS image"],
+      "quality_contract": {
+        "analysis_year": 2025,
+        "refresh_cycle": "annual",
+        "license": "Korea Open Government License Type 4",
+        "risk_score_input": false
+      }
     }
   ]
 }

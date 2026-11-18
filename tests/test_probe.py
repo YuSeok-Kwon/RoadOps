@@ -80,7 +80,7 @@ def test_project_registry_has_unique_expected_sources():
     source_ids = [spec.source_id for spec in specs]
     by_id = {spec.source_id: spec for spec in specs}
 
-    assert len(source_ids) == 23
+    assert len(source_ids) == 25
     assert len(source_ids) == len(set(source_ids))
     assert "jeju_cits_road_event" in source_ids
     assert "molit_standard_node_link" in source_ids
@@ -95,9 +95,11 @@ def test_project_registry_has_unique_expected_sources():
     assert "koroad_local_government_accident_hotspots" in source_ids
     assert "police_crime_statistics_by_region" in source_ids
     assert "jeju_road_complaint_administrative_export" in source_ids
-    assert "jeju_ai_road_control_platform" in source_ids
     assert "sgis_wgs84_reverse_geocode" in source_ids
     assert "safemap_crime_caution_wms" in source_ids
+    assert "safemap_police_facilities" in source_ids
+    assert "safemap_fire_facilities" in source_ids
+    assert "safemap_traffic_accident_wms" in source_ids
     assert "jeju_its_hourly_traffic" in source_ids
     assert "jeju_its_daily_traffic" in source_ids
     assert by_id["komsa_ferry_schedule"].endpoint_url.endswith(

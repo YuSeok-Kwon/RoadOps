@@ -104,6 +104,18 @@ def parse_args() -> argparse.Namespace:
         default=PROJECT_ROOT / "02_outputs/data/safemap_crime_v0_1/crime_caution_overlay.json",
     )
     parser.add_argument(
+        "--emergency-facilities",
+        type=Path,
+        default=PROJECT_ROOT
+        / "02_outputs/data/safemap_response_layers_v0_1/emergency_facilities.json",
+    )
+    parser.add_argument(
+        "--traffic-accident-overlay",
+        type=Path,
+        default=PROJECT_ROOT
+        / "02_outputs/data/safemap_response_layers_v0_1/traffic_accident_overlay.json",
+    )
+    parser.add_argument(
         "--reverse-geocode",
         type=Path,
         default=PROJECT_ROOT
@@ -263,6 +275,26 @@ def build_data_app_snapshot(
                 "Korea Open Government License Type 4 applies: attribution, no commercial use, and no modification.",
             ],
         ),
+        "emergency_facilities": source(
+            "Safety Map police and fire response facilities",
+            [inputs["emergency_facilities"]],
+            ["roadops-map"],
+            [
+                "The facilities support operator handoff decisions and do not change the RoadOps risk score.",
+                "Locations are converted from the provider's EPSG:3857 coordinates to WGS84.",
+                "The operator must still confirm availability and the correct emergency contact before dispatch.",
+            ],
+        ),
+        "traffic_accident_overlay": source(
+            "Safety Map 2025 traffic-accident hotspot WMS",
+            [inputs["traffic_accident_overlay"]],
+            ["roadops-map"],
+            [
+                "The annual image is a visual cross-check layer and is not added to the RoadOps risk score.",
+                "It may overlap the KoROAD hotspot geometry already shown on the map.",
+                "Korea Open Government License Type 4 applies: attribution, no commercial use, and no modification.",
+            ],
+        ),
         "road_background": source(
             "MOLIT Jeju standard road-link geometry",
             [inputs["road_links"]],
@@ -370,6 +402,8 @@ def main() -> int:
         "crime_statistics": args.crime_statistics,
         "complaint_hotspots": args.complaint_hotspots,
         "crime_caution_overlay": args.crime_caution_overlay,
+        "emergency_facilities": args.emergency_facilities,
+        "traffic_accident_overlay": args.traffic_accident_overlay,
         "reverse_geocode": args.reverse_geocode,
         "gateway_audit": args.gateway_audit,
     }
@@ -390,6 +424,8 @@ def main() -> int:
         crime_statistic_rows=read_json(args.crime_statistics).get("records", []),
         complaint_hotspot_rows=read_json(args.complaint_hotspots).get("records", []),
         crime_caution_overlay_rows=read_json(args.crime_caution_overlay).get("records", []),
+        emergency_facility_rows=read_json(args.emergency_facilities).get("records", []),
+        traffic_accident_overlay_rows=read_json(args.traffic_accident_overlay).get("records", []),
         reverse_geocode_rows=read_json(args.reverse_geocode).get("records", []),
         gateway_quality=read_json(args.gateway_audit),
         link_rows=read_csv(args.road_links),
