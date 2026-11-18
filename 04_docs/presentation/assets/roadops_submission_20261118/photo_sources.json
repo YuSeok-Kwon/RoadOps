@@ -1,9 +1,10 @@
 {
   "accessed_date": "2026-11-18",
+  "status": "superseded_by_generated_visuals_not_used_in_current_deck",
   "usage_context": "Historical Jeju road conditions introducing a separate RoadOps operating simulation. Neither photo documents RoadOps use.",
   "photos": [
     {
-      "slide": 1,
+      "previous_slide": 1,
       "file": "06_jeju_rain_road_20250718.jpg",
       "caption": "2025.07.18 제주시 용강동 제주마 방목지 인근 도로의 호우",
       "credit": "뉴시스 우장호 기자",
@@ -12,7 +13,7 @@
       "presentation": "Full image, original aspect ratio and watermark preserved. Source URL appears on slide and in speaker notes."
     },
     {
-      "slide": 2,
+      "previous_slide": 2,
       "file": "08_jeju_flood_road_20250422.jpg",
       "caption": "2025.04.22 서귀포시 성산읍 도로 침수와 배수 지원 현장",
       "credit": "제주소방안전본부 제공 / 뉴시스 보도",

@@ -18,7 +18,7 @@ function number(s,n,dark=false){txt(s,String(n).padStart(2,'0')+' / 17',1105,674
 function src(s,v,dark=false){txt(s,v,66,668,1015,34,14,dark?'#BFBFBF':C.gray);}
 function note(s,v,...refs){s.speakerNotes.text=v+'\n\n근거 자료\n'+refs.join('\n');}
 function pic(s,path,x,y,w,h,crop){s.images.add({path,alt:path.split('/').pop(),fit:'contain',position:{left:x,top:y,width:w,height:h},...(crop?{crop}:{})});}
-function photo(s,path,alt,x,y,w,h){s.images.add({path,alt,fit:'contain',position:{left:x,top:y,width:w,height:h}});}
+function scene(s,path,alt){s.images.add({path,alt,fit:'cover',position:{left:0,top:0,width:1280,height:720}});}
 function block(s,label,body,x,y,w=400){txt(s,label,x,y,w,50,30,C.blue,true);txt(s,body,x,y+62,w,128,25);}
 function tab(s,values,x,y,w,h,widths,z=23){
  const t=s.tables.add({rows:values.length,columns:values[0].length,left:x,top:y,width:w,height:h,values,columnWidths:widths});
@@ -39,28 +39,27 @@ export async function writeRoadOpsStory({presentation:p,input}){
  switch(n){
  case 1:
   s=page(p,n,'','',true);
-  txt(s,'RoadOps',64,58,1120,129,98,C.white,true,'Poppins');
-  txt(s,'제주 도로관리\n담당자의\n현장계획 Agent',66,237,422,188,40,C.white,true);
-  photo(s,a+'/06_jeju_rain_road_20250718.jpg','2025년 7월 18일 제주시 용강동 제주마 방목지 인근 도로의 호우. 뉴시스 우장호 기자 촬영.',520,161,720,435);
-  txt(s,'어디를 먼저 확인하고,\n누구를 보낼 것인가',68,488,425,98,31,C.green,true);
-  txt(s,'2025.07.18 제주시 용강동 도로 · 사진: 뉴시스 우장호 기자\n원문: newsis.com/view/NISX20250718_0003257794',521,610,694,45,15,'#CECECE');
-  src(s,'제주 AI·빅데이터 Agent Challenge 제출 기획서 · 2026.11.18',true);
+  scene(s,a+'/09_jeju_road_original_cover_v1.png','제주의 현무암 돌담과 빗속 도로에서 착안한 AI 생성 상황 재현 이미지. 실제 장소·사건을 촬영한 사진이 아니다.');
+  txt(s,'RoadOps',70,139,700,141,102,C.white,true,'Poppins');
+  txt(s,'제주 도로관리 담당자의\n현장계획 Agent',76,310,635,117,38,C.white,true);
+  txt(s,'어디를 먼저 확인하고,\n누구를 보낼 것인가',78,511,600,100,31,C.green,true);
+  src(s,'제출 기획서 · 2026.11.18 · AI 생성 상황 재현 이미지',true);
   number(s,n,true);
-  note(s,'RoadOps는 도로관리 담당자의 현장 작업계획과 변경 검토를 보조한다. 자동 출동을 수행하지 않는다. 실제 호우 사진은 문제의 배경이며 RoadOps 현장 운영 사례가 아니다. 사진 원본 비율과 워터마크를 보존했다. 3장부터 저장 입력·가정 자원·What-if 시뮬레이션으로 전환한다.','https://www.newsis.com/view/NISX20250718_0003257794','https://img1.newsis.com/2025/07/18/NISI20250718_0020894669_web.jpg?rnd=20250718135606','PROJECT_BRIEF.md');break;
+  note(s,'RoadOps는 도로관리 담당자의 작업계획과 변경 검토를 보조한다. 배경은 image_gen으로 새로 생성한 상황 재현 이미지이며 실제 제주 장소·재난·RoadOps 현장 운영 사례를 촬영한 자료가 아니다. 뉴스 사진을 입력이나 편집 대상으로 사용하지 않았다. 프롬프트와 제작 방식은 생성 기록에 보존한다. 3장부터 저장 입력·가정 자원·What-if 시뮬레이션으로 이어진다.','04_docs/presentation/assets/roadops_submission_20261118/generated_visuals.json','PROJECT_BRIEF.md');break;
  case 2:
-  s=page(p,n,'');
-  txt(s,'비가 쏟아지면,\n어느 도로부터\n확인해야 할까요?',64,133,370,230,47,C.black,true);
-  photo(s,a+'/08_jeju_flood_road_20250422.jpg','2025년 4월 22일 서귀포시 성산읍의 침수 도로와 배수 지원 현장. 제주소방안전본부 제공, 뉴시스 보도.',450,80,766,575);
-  txt(s,'점검할 곳은 여러 곳.\n움직일 수 있는 자원은\n한정돼 있습니다.',67,467,354,140,28,C.blue,true);
-  src(s,'2025.04.22 서귀포시 성산읍 · 제주소방안전본부 제공 / 뉴시스 보도 · 실제 사례 사진, 시연과 별개\n원문: newsis.com/view/NISI20250422_0001824158');
-  number(s,n);
-  note(s,'제주소방안전본부 제공 사진에 서귀포시 성산읍 도로 침수와 배수 지원 현장이 담겨 있다. 실제 피해 현장을 문제 배경으로만 사용하며 이후 시연과 같은 사건으로 연결하지 않는다. 원본 비율과 워터마크를 보존했다. 출처 URL을 화면과 발표자 노트에 표시한다.','https://www.newsis.com/view/NISI20250422_0001824158','https://img1.newsis.com/2025/04/22/NISI20250422_0001824158_web.jpg?rnd=20250422121050');break;
+  s=page(p,n,'','',true);
+  scene(s,a+'/10_jeju_road_original_detail_v1.png','제주 도로에서 착안한 비와 얕은 물고임의 AI 생성 상황 재현 이미지. 실제 현장 기록이 아니다.');
+  txt(s,'비가 쏟아지면,\n어느 도로부터\n확인해야 할까요?',74,128,640,245,54,C.white,true);
+  txt(s,'점검할 곳은 여러 곳.\n움직일 수 있는 자원은\n한정돼 있습니다.',78,485,555,131,29,C.green,true);
+  src(s,'AI 생성 · 상황 재현 이미지 · 실제 장소나 재난 현장을 촬영한 자료가 아닙니다.',true);
+  number(s,n,true);
+  note(s,'젖은 노면과 물고임으로 도로 점검 필요성을 표현한 원본 생성 이미지다. 뉴스 사진을 변형하거나 실재 사건을 재현하지 않았다. 실제 사고·침수의 근거 자료로 해석하지 않는다. 표지와 동일한 색감, 왼쪽 텍스트 여백, 자연스러운 노면 질감을 사용한다.','04_docs/presentation/assets/roadops_submission_20261118/generated_visuals.json');break;
  case 3:
   s=page(p,n,'오늘의 점검 계획은 담당자가 정해야 합니다','이제 도로관리 담당자의 판단 과정을 따라가는 운영 시뮬레이션을 시작합니다.');
   txt(s,'폭우가 예보된 날, 업무를 인계받았습니다.\n위험정보를 오늘 수행할 점검 계획으로 바꿔야 합니다.',74,242,1120,118,38,C.black,true);
   [['3','개 현장반',76],['3','대 차량',450],['2','시간',824]].forEach(([v,l,x])=>{txt(s,v,x,397,210,118,91,C.blue,true,'Poppins');txt(s,l,x,510,310,45,30,C.black,true);});
   txt(s,'어느 팀이, 어느 도로부터, 가용시간 안에 확인할 수 있을까요?',76,599,1120,51,30,C.black,true);
-  src(s,'시연 자원 3반·3대·2시간은 가정입니다. 앞의 실제 피해 사진과 별개의 시나리오이며 실제 제주 편제를 뜻하지 않습니다.');
+  src(s,'시연 자원 3반·3대·2시간은 가정입니다. 실제 제주 편제나 특정 재난의 대응 기록을 재현한 것이 아닙니다.');
   note(s,'호우 예보와 경로 통제라는 가정 아래 점검 계획을 만드는 시연이다. 기존 제주 사업에도 탐지·관제·현장조치 연계가 포함된다. 그 기능의 부재를 주장하지 않으며 RoadOps는 정보와 행정·자원 제약을 통합한 작업안을 제안한다.','PROJECT_BRIEF.md','https://www.muhanit.kr/sub/sub03_01.php?boardid=notice&idx=132&mode=view','04_docs/research/20261117_jeju_road_administration_field_response_v0_1.md');break;
  case 4:
   s=page(p,n,'담당자는 출발 거점과 주변 상황부터 확인합니다','용담 거점을 선택한 담당자는 기상·도로 위험·사고다발·유사 과거 상황을 함께 검토합니다.');
