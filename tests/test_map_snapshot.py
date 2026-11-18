@@ -173,6 +173,9 @@ def test_build_map_snapshot_aggregates_risk_and_marks_unavailable_gateway():
                 "row_status": "usable",
                 "forecast_status": "matched",
                 "forecast_temperature_c": "12",
+                "observation_status": "matched",
+                "observed_rainfall_1h_raw": "0.5",
+                "forecast_rainfall_raw": "1mm 미만",
                 "forecast_precipitation_type": "0",
                 "forecast_sky_code": "3",
                 "forecast_humidity_percent": "80",
@@ -185,10 +188,26 @@ def test_build_map_snapshot_aggregates_risk_and_marks_unavailable_gateway():
                 "row_status": "usable",
                 "forecast_status": "matched",
                 "forecast_temperature_c": "15",
+                "observation_status": "matched",
+                "observed_rainfall_1h_raw": "2.0",
+                "forecast_rainfall_raw": "1mm 미만",
                 "forecast_precipitation_type": "1",
                 "forecast_sky_code": "4",
                 "forecast_humidity_percent": "90",
                 "forecast_wind_speed_mps": "4.2",
+                "forecast_source_id": "kma_ultra_short_forecast",
+            },
+            {
+                "horizon_hours": "1",
+                "target_at": "2026-11-13T02:00:00+09:00",
+                "row_status": "usable",
+                "forecast_status": "matched",
+                "forecast_temperature_c": "14",
+                "forecast_rainfall_raw": "1mm 미만",
+                "forecast_precipitation_type": "1",
+                "forecast_sky_code": "4",
+                "forecast_humidity_percent": "90",
+                "forecast_wind_speed_mps": "5.0",
                 "forecast_source_id": "kma_ultra_short_forecast",
             },
         ],
@@ -259,7 +278,16 @@ def test_build_map_snapshot_aggregates_risk_and_marks_unavailable_gateway():
     assert current_weather["temperature_min_c"] == 12.0
     assert current_weather["temperature_max_c"] == 15.0
     assert current_weather["precipitation_summary"] == "비"
+    assert current_weather["rainfall_min_mm"] == 0.5
+    assert current_weather["rainfall_max_mm"] == 2.0
+    assert current_weather["rainfall_amount_label"] == "0.5–2mm"
+    assert current_weather["rainfall_basis"] == "observation_1h"
     assert current_weather["maximum_wind_speed_mps"] == 4.2
+    future_weather = queries["weather_forecast"][1]
+    assert future_weather["rainfall_min_mm"] == 0.0
+    assert future_weather["rainfall_max_mm"] == 1.0
+    assert future_weather["rainfall_amount_label"] == "1mm 미만"
+    assert future_weather["rainfall_basis"] == "forecast_1h"
 
 
 def test_build_map_snapshot_reports_missing_required_geometry():

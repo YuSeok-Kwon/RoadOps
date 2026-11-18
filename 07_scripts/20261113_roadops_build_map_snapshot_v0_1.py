@@ -230,6 +230,7 @@ def build_data_app_snapshot(
             [
                 "Temperature and humidity are shown as ranges across the reviewed Jeju forecast grids.",
                 "Maximum wind speed is the largest value among usable grid forecasts, not a single-site observation.",
+                "Rainfall is the one-hour amount range across reviewed grids; current uses observations when available and future horizons use forecasts.",
             ],
         ),
         "forecast_validation": source(

@@ -8,6 +8,7 @@ from __future__ import annotations
 from collections import Counter, defaultdict
 from datetime import datetime
 import json
+import re
 from typing import Any, Iterable, Mapping
 
 from roadops.spatial import parse_link_geometry_wkt
@@ -40,6 +41,86 @@ def _number(value: Any) -> float | None:
 
 def _boolean(value: Any) -> bool:
     return str(value).strip().lower() in {"1", "true", "yes", "y"}
+
+
+def _rainfall_interval(value: Any) -> tuple[float, float | None, str] | None:
+    """Parse a KMA one-hour rainfall value without hiding bounded categories."""
+
+    text = str(value or "").strip().lower().replace(" ", "")
+    if not text:
+        return None
+    if text in {"0", "0.0", "강수없음", "없음", "norain"}:
+        return 0.0, 0.0, "exact"
+
+    numbers = [float(match) for match in re.findall(r"\d+(?:\.\d+)?", text)]
+    if not numbers:
+        return None
+    if "미만" in text or text.startswith("<"):
+        return 0.0, numbers[0], "less_than"
+    if "이상" in text or text.startswith(">="):
+        return numbers[0], None, "at_least"
+    if len(numbers) >= 2 and any(separator in text for separator in ("~", "-", "–")):
+        return min(numbers[0], numbers[1]), max(numbers[0], numbers[1]), "range"
+    return numbers[0], numbers[0], "exact"
+
+
+def _format_millimeters(value: float) -> str:
+    return str(int(value)) if value.is_integer() else f"{value:g}"
+
+
+def _rainfall_summary(
+    rows: list[Mapping[str, Any]], horizon: int
+) -> dict[str, Any]:
+    observed_values = [
+        row.get("observed_rainfall_1h_raw")
+        for row in rows
+        if str(row.get("observation_status")) == "matched"
+        and row.get("observed_rainfall_1h_raw") not in (None, "")
+    ]
+    if horizon == 0 and observed_values:
+        raw_values = observed_values
+        basis = "observation_1h"
+    else:
+        raw_values = [row.get("forecast_rainfall_raw") for row in rows]
+        basis = "forecast_1h"
+
+    intervals = [
+        interval
+        for interval in (_rainfall_interval(value) for value in raw_values)
+        if interval is not None
+    ]
+    if not intervals:
+        return {
+            "rainfall_min_mm": None,
+            "rainfall_max_mm": None,
+            "rainfall_amount_label": "자료 없음",
+            "rainfall_basis": basis,
+        }
+
+    minimum = min(interval[0] for interval in intervals)
+    maximum = max(
+        interval[1] if interval[1] is not None else interval[0]
+        for interval in intervals
+    )
+    kinds = {interval[2] for interval in intervals}
+    if kinds == {"less_than"} and minimum == 0:
+        label = f"{_format_millimeters(maximum)}mm 미만"
+    elif kinds == {"at_least"} and minimum == maximum:
+        label = f"{_format_millimeters(minimum)}mm 이상"
+    elif minimum == maximum:
+        label = f"{_format_millimeters(minimum)}mm"
+    else:
+        suffix = " 이상" if "at_least" in kinds else ""
+        label = (
+            f"{_format_millimeters(minimum)}–{_format_millimeters(maximum)}mm"
+            f"{suffix}"
+        )
+    return {
+        "rainfall_min_mm": round(minimum, 3),
+        "rainfall_max_mm": round(maximum, 3),
+        "rainfall_amount_label": label,
+        "rainfall_basis": basis,
+    }
 
 
 def _weather_forecast_rows(
@@ -103,6 +184,7 @@ def _weather_forecast_rows(
             if active_precipitation
             else "강수 없음"
         )
+        rainfall = _rainfall_summary(usable, horizon)
         sky_codes = Counter(
             str(row.get("forecast_sky_code") or "").strip()
             for row in usable
@@ -144,6 +226,7 @@ def _weather_forecast_rows(
                 "humidity_max_percent": round(max(humidities), 1) if humidities else None,
                 "maximum_wind_speed_mps": round(max(wind_speeds), 1) if wind_speeds else None,
                 "precipitation_summary": precipitation if usable else "예보 확인 불가",
+                **rainfall,
                 "sky_summary": (
                     sky_labels.get(sky_codes.most_common(1)[0][0], "하늘 상태 확인 필요")
                     if sky_codes

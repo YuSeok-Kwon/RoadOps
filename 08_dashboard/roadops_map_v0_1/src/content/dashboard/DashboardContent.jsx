@@ -370,6 +370,11 @@ function weatherTemperature(row) {
   return `${number(minimum)}–${number(maximum)}°C`;
 }
 
+function weatherRainfall(row) {
+  const label = String(row?.rainfall_amount_label ?? "").trim();
+  return label || "자료 없음";
+}
+
 function validationSummary(row) {
   if (!row) return { label: "검증 정보 없음", tone: "pending", detail: "아직 예측 검증 결과가 없습니다." };
   if (row.validation_status === "descriptive_only") {
@@ -409,7 +414,10 @@ function WeatherForecastStrip({ rows, validationRows, horizon, onSelect }) {
           <span>{Number(row.horizon_hours) === 0 ? "현재" : `${row.horizon_hours}시간 후`}</span>
           <strong>{weatherTemperature(row)}</strong>
           <small>{row.sky_summary} · {row.precipitation_summary}</small>
-          <em>최대 바람 {row.maximum_wind_speed_mps == null ? "확인 불가" : `${number(row.maximum_wind_speed_mps)}m/s`}</em>
+          <em>
+            <b>{Number(row.horizon_hours) === 0 ? "최근 1시간" : "예상 1시간"} {weatherRainfall(row)}</b>
+            <i>최대 바람 {row.maximum_wind_speed_mps == null ? "확인 불가" : `${number(row.maximum_wind_speed_mps)}m/s`}</i>
+          </em>
         </button>)}
       </div>
     </div>
@@ -1005,7 +1013,7 @@ function DepotEvidence({ depot, tasks, accidents, history, weather, crimeAvailab
     sourceRows={tasks} displayRows={tasks} className="depot-evidence-card">
     <div className="evidence-weather">
       <span>선택 시점 기상</span><strong>{weather ? `${weatherTemperature(weather)} · ${weather.sky_summary}` : "확인 불가"}</strong>
-      <small>{weather ? `${weather.precipitation_summary} · 최대 바람 ${number(weather.maximum_wind_speed_mps)}m/s` : "예보 자료 없음"}</small>
+      <small>{weather ? `${weather.precipitation_summary} · 1시간 강수 ${weatherRainfall(weather)} · 최대 바람 ${number(weather.maximum_wind_speed_mps)}m/s` : "예보 자료 없음"}</small>
     </div>
     <section className="evidence-section">
       <div className="evidence-section-head"><strong>우선 검토 도로</strong><span>{tasks.length}곳</span></div>
@@ -1351,7 +1359,7 @@ function LegacyDashboardContent() {
         </div>
         <div className="command-fact command-fact-weather">
           <span>현재 날씨</span>
-          <strong>{currentWeather ? `${weatherTemperature(currentWeather)} · ${currentWeather.sky_summary}` : "확인 불가"}</strong>
+          <strong>{currentWeather ? `${weatherTemperature(currentWeather)} · ${currentWeather.sky_summary} · 강수 ${weatherRainfall(currentWeather)}` : "확인 불가"}</strong>
         </div>
         <div className="command-fact command-fact-time">
           <span>현재 시각</span>
@@ -1788,7 +1796,7 @@ export function DashboardContent() {
         <div className="toolbar-title"><div><span className="eyebrow">ROADOPS / JEJU</span><strong>도로 현장 운영 상황판</strong></div></div>
         <div className="toolbar-live-state"><span className="live-pill"><i />자동 갱신</span><small>{Number(metadata.automatic_refresh_interval_minutes) || 10}분 주기</small></div>
         <div className="data-status-group"><span>데이터 기준</span><strong>{dateTime(metadata.latest_risk_target_at)}</strong></div>
-        <div className="command-fact command-fact-weather"><span>선택 시점 날씨</span><strong>{selectedWeather ? `${weatherTemperature(selectedWeather)} · ${selectedWeather.sky_summary}` : "확인 불가"}</strong></div>
+        <div className="command-fact command-fact-weather"><span>선택 시점 날씨</span><strong>{selectedWeather ? `${weatherTemperature(selectedWeather)} · ${selectedWeather.sky_summary} · 강수 ${weatherRainfall(selectedWeather)}` : "확인 불가"}</strong></div>
         <div className="command-fact command-fact-time"><span>현재 시각</span><strong>{currentTime.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })}</strong></div>
         <div className="theme-control"><span>화면</span><div className="theme-buttons" role="group" aria-label="화면 테마 선택">
           <button type="button" aria-pressed={colorMode === "dark"} onClick={() => setColorMode("dark")}>다크</button>
