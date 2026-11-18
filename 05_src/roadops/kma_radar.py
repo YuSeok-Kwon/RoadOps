@@ -48,7 +48,7 @@ def _common_params(auth_key: str, base_time: datetime) -> dict[str, Any]:
         "map": "HR",
         "grid": 2,
         "legend": 1,
-        "size": 600,
+        "size": 800,
         "itv": 5,
         "zoom_level": 0,
         "zoom_x": "0000000",

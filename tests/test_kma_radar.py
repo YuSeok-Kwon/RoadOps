@@ -43,6 +43,7 @@ def test_fetch_radar_frames_collects_hsr_and_qpf_without_exposing_key():
     assert "secret-auth-key" not in str(payload)
     assert len(seen) == 4
     assert seen[0].url.params["cmp"] == "HSR"
+    assert all(request.url.params["size"] == "800" for request in seen)
     assert [request.url.params.get("ef") for request in seen[1:]] == ["60", "180", "360"]
 
 
