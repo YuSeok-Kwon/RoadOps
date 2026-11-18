@@ -227,7 +227,12 @@
 
 .roadops-map { display: block; width: 100%; height: 100%; overscroll-behavior: contain; }
 .basemap-tiles image { opacity: .88; image-rendering: auto; }
-.crime-caution-overlay { opacity: .48; pointer-events: none; }
+.crime-caution-overlay { opacity: 1; pointer-events: none; }
+.roadops-map-wrap[data-crime-visible] .basemap-tiles { opacity: .45; }
+.crime-map-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+.crime-map-controls button { padding: 5px 8px; border: 1px solid var(--border); border-radius: 4px; color: var(--text); background: var(--surface); font: inherit; font-size: 10px; cursor: pointer; }
+.crime-map-controls button[aria-pressed="true"] { border-color: var(--chart-1); color: var(--chart-1); background: var(--muted); }
+.crime-map-controls span { color: var(--secondary); font-size: 9px; }
 .traffic-accident-overlay { opacity: .4; pointer-events: none; }
 .roadops-page[data-color-mode="dark"] .basemap-tiles image { opacity: .68; filter: brightness(.48) saturate(.58) contrast(1.18); }
 .map-zoom-controls { position: absolute; z-index: 4; top: 14px; right: 14px; display: grid; grid-template-columns: 28px 44px 28px 42px; align-items: center; overflow: hidden; border: 1px solid color-mix(in srgb, var(--border-strong) 80%, transparent); border-radius: 5px; background: color-mix(in srgb, var(--background) 94%, transparent); box-shadow: 0 8px 20px color-mix(in srgb, black 10%, transparent); backdrop-filter: blur(12px); }
@@ -387,7 +392,7 @@
 .legend-group .legend-excluded { border-color: var(--negative); border-style: dashed; color: var(--negative); }
 .legend-group .legend-accident { width: 15px; height: 11px; box-sizing: border-box; border: 2px solid #e5484d; background: color-mix(in srgb, #e5484d 20%, transparent); }
 .legend-group .legend-complaint { width: 12px; height: 12px; box-sizing: border-box; border: 2px solid #7c3aed; border-radius: 50%; background: color-mix(in srgb, #7c3aed 20%, transparent); }
-.legend-group .legend-crime { width: 15px; height: 11px; box-sizing: border-box; border: 1px solid #7c3aed; background: linear-gradient(90deg, transparent, color-mix(in srgb, #7c3aed 62%, transparent)); }
+.legend-group .legend-crime { width: 42px; height: 9px; border-radius: 2px; background: linear-gradient(90deg, #ffff00, #ff9900, #ff0000); }
 .legend-group .legend-traffic-overlay { width: 15px; height: 11px; box-sizing: border-box; border: 1px solid #d14343; border-radius: 2px; background: linear-gradient(90deg, transparent, color-mix(in srgb, #d14343 58%, transparent)); }
 .legend-group .legend-service { display: grid; width: 16px; height: 16px; box-sizing: border-box; place-items: center; border: 1px solid white; border-radius: 99px; color: white; background: #1468b3; }
 .legend-group .legend-service.fire { background: #d14343; }

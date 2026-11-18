@@ -10,6 +10,12 @@ import urllib.request
 
 SAFEMAP_CRIME_WMS_URL = "https://www.safemap.go.kr/openapi2/IF_0087_WMS"
 JEJU_BBOX = (126.08, 33.10, 126.98, 33.62)
+CRIME_MAP_REGIONS = (
+    {"region_id": "jeju_city", "administrative_city": "제주시", "region_label": "제주시 도심",
+     "bbox": (126.43, 33.46, 126.61, 33.54), "focus_bbox": (126.48, 33.48, 126.56, 33.52)},
+    {"region_id": "seogwipo_city", "administrative_city": "서귀포시", "region_label": "서귀포시 도심",
+     "bbox": (126.49, 33.22, 126.63, 33.29), "focus_bbox": (126.53, 33.235, 126.59, 33.265)},
+)
 
 
 def validate_wms_response(body: bytes, content_type: str) -> dict[str, Any]:

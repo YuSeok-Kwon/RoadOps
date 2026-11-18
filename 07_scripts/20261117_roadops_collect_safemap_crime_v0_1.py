@@ -15,7 +15,7 @@ from zoneinfo import ZoneInfo
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT / "05_src"))
 
-from roadops.safemap_crime import fetch_crime_caution_wms  # noqa: E402
+from roadops.safemap_crime import CRIME_MAP_REGIONS, fetch_crime_caution_wms  # noqa: E402
 
 
 def parse_args() -> argparse.Namespace:
@@ -69,6 +69,19 @@ def main() -> int:
         try:
             overlay, quality = fetch_crime_caution_wms(service_key, timeout_seconds=args.timeout)
             records = [overlay]
+            for region in CRIME_MAP_REGIONS:
+                try:
+                    detail, _ = fetch_crime_caution_wms(
+                        service_key, bbox=region["bbox"], width=1600, height=900,
+                        timeout_seconds=args.timeout,
+                    )
+                    detail.update(region)
+                    detail["layer_id"] = f"safemap_crime_caution_{region['region_id']}"
+                    records.append(detail)
+                except Exception as exc:
+                    quality.setdefault("detail_failures", []).append(
+                        {"region_id": region["region_id"], "error_type": type(exc).__name__}
+                    )
             quality["generated_at"] = generated_at
         except Exception as exc:  # external API boundary
             records = []

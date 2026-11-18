@@ -258,6 +258,19 @@ function evidenceMapTarget(kind, key, label, row) {
     : null;
 }
 
+function crimeMapTargetForCity(rows, city) {
+  const row = rows.find((item) => item.administrative_city === city)
+    || rows.find((item) => !item.region_id);
+  if (!row?.bbox || row.bbox.length !== 4) return null;
+  const bounds = row.focus_bbox || row.bbox;
+  const [west, south, east, north] = bounds;
+  return {
+    kind: "crime", key: row.layer_id, layerId: row.layer_id, bbox: bounds,
+    label: `${row.region_label || "제주 전역"} 주요 범죄 주의구간`,
+    longitude: (west + east) / 2, latitude: (south + north) / 2,
+  };
+}
+
 function number(value, digits = 1) {
   if (value == null || Number.isNaN(Number(value))) return "—";
   return new Intl.NumberFormat("ko-KR", { maximumFractionDigits: digits }).format(Number(value));
@@ -586,7 +599,7 @@ function MapLegend({
       <span title="신고자 정보를 제거한 3건 이상 민원 집계"><i className="legend-complaint" />민원 집계</span>
     </div>}
     {showCrimeCaution && <div className="legend-group">
-      <span title="경찰청 연간 범죄주의구간 밀도분석"><i className="legend-crime" />범죄주의</span>
+      <span title="경찰청 주요 범죄 밀도분석 · 10등급"><i className="legend-crime" />범죄주의 낮음 → 높음</span>
     </div>}
     {(showPoliceFacilities || showFireFacilities) && <div className="legend-group">
       {showPoliceFacilities && <span title="경찰관서"><i className="legend-service police"><LayerIcon type="police" /></i>경찰</span>}
@@ -687,11 +700,19 @@ function RoadMap({
   const selectedDepot = teamRows.find((row) => row.team_id === selectedDepotId) ?? null;
   const focusLongitude = Number(focusTarget?.longitude);
   const focusLatitude = Number(focusTarget?.latitude);
+  const crimeOverlay = crimeCautionRows.find((row) => row.layer_id === focusTarget?.layerId)
+    || crimeCautionRows.find((row) => !row.region_id);
+  const maximumZoom = showCrimeCaution ? 20 : 5;
 
   useEffect(() => {
     if (Number.isFinite(focusLongitude) && Number.isFinite(focusLatitude)) {
       const [centerX, centerY] = project(focusLongitude, focusLatitude);
-      setMapView({ zoom: 3.4, centerX, centerY });
+      const bounds = focusTarget?.bbox;
+      const topLeft = bounds ? project(bounds[0], bounds[3]) : null;
+      const bottomRight = bounds ? project(bounds[2], bounds[1]) : null;
+      const zoom = bounds ? Math.max(1, Math.min(20,
+        width / (bottomRight[0] - topLeft[0]), height / (bottomRight[1] - topLeft[1]))) : 3.4;
+      setMapView({ zoom, centerX, centerY });
       return;
     }
     if (!selectedDepot) {
@@ -714,7 +735,7 @@ function RoadMap({
   const viewBox = `${mapView.centerX - viewWidth / 2} ${mapView.centerY - viewHeight / 2} ${viewWidth} ${viewHeight}`;
   const changeZoom = (factor) => {
     setMapView((current) => {
-      const zoom = Math.min(5, Math.max(1, current.zoom * factor));
+      const zoom = Math.min(maximumZoom, Math.max(1, current.zoom * factor));
       const nextWidth = width / zoom;
       const nextHeight = height / zoom;
       return {
@@ -732,7 +753,7 @@ function RoadMap({
     const pointerY = Math.min(1, Math.max(0, (event.clientY - bounds.top) / bounds.height));
     const zoomFactor = event.deltaY < 0 ? 1.14 : 1 / 1.14;
     setMapView((current) => {
-      const zoom = Math.min(5, Math.max(1, current.zoom * zoomFactor));
+      const zoom = Math.min(maximumZoom, Math.max(1, current.zoom * zoomFactor));
       const currentWidth = width / current.zoom;
       const currentHeight = height / current.zoom;
       const worldX = current.centerX - currentWidth / 2 + pointerX * currentWidth;
@@ -749,7 +770,8 @@ function RoadMap({
     });
   };
 
-  return <div className="roadops-map-wrap" data-route-open={selectedRoute ? "true" : undefined}>
+  return <div className="roadops-map-wrap" data-route-open={selectedRoute ? "true" : undefined}
+    data-crime-visible={showCrimeCaution || undefined}>
     {focusTarget && <div className="map-evidence-focus-label" data-kind={focusTarget.kind}>
       <span>지도에서 확인 중</span>
       <strong>{focusTarget.label}</strong>
@@ -767,7 +789,7 @@ function RoadMap({
         disabled={mapView.zoom <= 1}>−</button>
       <span aria-live="polite">{Math.round(mapView.zoom * 100)}%</span>
       <button type="button" onClick={() => changeZoom(1.35)} aria-label="지도 확대"
-        disabled={mapView.zoom >= 5}>+</button>
+        disabled={mapView.zoom >= maximumZoom}>+</button>
       <button type="button" className="map-zoom-reset" onClick={resetZoom} disabled={mapView.zoom === 1}>전체</button>
     </div>
     <svg className="roadops-map" viewBox={viewBox} role="img" onWheel={handleWheel}
@@ -794,14 +816,14 @@ function RoadMap({
         </image>;
       })}
 
-      {showCrimeCaution && crimeCautionRows.map((row) => {
+      {showCrimeCaution && (crimeOverlay ? [crimeOverlay] : []).map((row) => {
         const [minLongitude, minLatitude, maxLongitude, maxLatitude] = row.bbox || [];
         const [left, top] = project(minLongitude, maxLatitude);
         const [right, bottom] = project(maxLongitude, minLatitude);
         return <image key={row.layer_id} className="crime-caution-overlay"
           href={row.data_url} x={left} y={top} width={right - left} height={bottom - top}
           preserveAspectRatio="none">
-          <title>생활안전지도·경찰청 2025년 범죄주의구간 밀도분석</title>
+          <title>{`${row.source_label} · ${row.region_label || "제주 전역"}`}</title>
         </image>;
       })}
 
@@ -946,7 +968,7 @@ function RoadMap({
         })}
       </g>
 
-      {focusPoint && <g className={`evidence-map-focus ${focusTarget.kind}`}
+      {focusPoint && focusTarget.kind !== "crime" && <g className={`evidence-map-focus ${focusTarget.kind}`}
         transform={`translate(${focusPoint[0]} ${focusPoint[1]}) scale(${markerScale})`}>
         <circle className="focus-ring" r="13" />
         <circle className="focus-dot" r="4" />
@@ -1242,12 +1264,7 @@ function DepotEvidence({
   const crimeRow = crimeRows.find((row) => row.administrative_city === administrativeCity);
   const crimeCategories = patrolCrimeCategories(crimeRow);
   const crimeAvailable = crimeOverlayRows.length > 0;
-  const crimeMapTarget = evidenceMapTarget(
-    "crime",
-    `crime:${depot.team_id}`,
-    `${administrativeCity} 범죄주의 밀도`,
-    depot,
-  );
+  const crimeMapTarget = crimeMapTargetForCity(crimeOverlayRows, administrativeCity);
   const toggleEvidence = (key) => setExpandedEvidence((current) => current === key ? null : key);
   return <DataComponent variant="plain" id="depot-evidence" queryId="field_tasks"
     queryIds={["field_tasks", "risk_links", "weather_forecast", "accident_hotspots", "historical_similarity", "crime_statistics", "crime_caution_overlay"]}
@@ -1312,15 +1329,15 @@ function DepotEvidence({
         <div className="evidence-section-head"><strong>생활안전 참고</strong><span>도로 위험점수와 분리</span></div>
         <div className="evidence-disclosure" data-expanded={expandedEvidence === "crime" || undefined}>
           <button type="button" aria-expanded={expandedEvidence === "crime"} onClick={() => toggleEvidence("crime")}>
-            <span><b>{crimeAvailable ? `${administrativeCity} 범죄주의 밀도 지도` : "범죄주의 지도 확인 필요"}</b>
-              <small>{crimeCategories.length ? crimeCategories.map((item) => item.crime_category).join(" · ") : "생활안전 공간자료"}</small></span>
+            <span><b>{crimeAvailable ? `${administrativeCity} 주요 범죄 주의구간` : "범죄주의 지도 확인 필요"}</b>
+              <small>살인·강도·성폭력·절도·폭력 밀도분석</small></span>
             <i>{expandedEvidence === "crime" ? "접기" : "자세히"}</i>
           </button>
           {expandedEvidence === "crime" && <div className="crime-evidence-detail">
             <div className="evidence-detail-row">
               <span>
-                <b>{crimeRow ? `${crimeRow.analysis_year}년 ${administrativeCity} 비식별 통계` : "범죄주의 밀도 계층"}</b>
-                <small>{crimeCategories.length ? crimeCategories.map((item) => item.crime_category).join(" · ") : "교통·절도·폭행 참고"}</small>
+                <b>생활안전지도·경찰청</b>
+                <small>도로 구간별 주의등급 · 과거 범죄 분포</small>
               </span>
               <button type="button" className="evidence-map-button"
                 disabled={!crimeAvailable || !crimeMapTarget}
@@ -1328,7 +1345,8 @@ function DepotEvidence({
                 {crimeAvailable && crimeMapTarget ? "지도에서 보기" : "위치 없음"}
               </button>
             </div>
-            <p>경찰청 범죄주의 밀도 계층을 선택 거점 주변에서 확인합니다. 정확한 동별 건수는 아닙니다.</p>
+            <p>노랑에서 빨강으로 진해질수록 주의등급이 높습니다. 도심의 상세 지도를 열며, 실시간 사건이나 발생확률을 나타내지 않습니다.</p>
+            {crimeRow && <p>별도 시 단위 통계 · {crimeRow.analysis_year}년 {administrativeCity}: {crimeCategories.map((item) => `${item.crime_category} ${number(item.occurrence_count, 0)}건`).join(" · ")}</p>}
           </div>}
         </div>
       </div>
@@ -2116,7 +2134,14 @@ export function DashboardContent() {
             onChange={(event) => setMapLayers((current) => ({ ...current, accidentHotspots: event.target.checked }))} />
             <LayerIcon type="accident" />교통사고 다발</label>
           <label title="경찰청 범죄주의 밀도 계층"><input type="checkbox" checked={mapLayers.crimeCaution}
-            onChange={(event) => setMapLayers((current) => ({ ...current, crimeCaution: event.target.checked }))} />
+            disabled={!rows("crime_caution_overlay").length}
+            onChange={(event) => {
+              if (event.target.checked) showEvidenceOnMap(crimeMapTargetForCity(rows("crime_caution_overlay"), depotAdministrativeCity(selectedDepot)));
+              else {
+                setMapLayers((current) => ({ ...current, crimeCaution: false }));
+                if (mapFocus?.kind === "crime") setMapFocus(null);
+              }
+            }} />
             <LayerIcon type="crime" />범죄주의</label>
           {rows("complaint_hotspots").length > 0 && <label title="비식별 도로민원 다발지역"><input type="checkbox" checked={mapLayers.complaintHotspots}
             onChange={(event) => setMapLayers((current) => ({ ...current, complaintHotspots: event.target.checked }))} />
@@ -2127,6 +2152,14 @@ export function DashboardContent() {
         </button>
       </div>
     </div>
+    {surfaceView === "map" && mapLayers.crimeCaution && <div className="crime-map-controls" aria-label="범죄주의 지도 범위">
+      {rows("crime_caution_overlay").map((row) => <button type="button" key={row.layer_id}
+        aria-pressed={mapFocus?.layerId === row.layer_id}
+        onClick={() => showEvidenceOnMap(crimeMapTargetForCity(rows("crime_caution_overlay"), row.administrative_city))}>
+        {row.region_label || "제주 전역"}
+      </button>)}
+      <span>과거 주요 범죄 분포 · 붉을수록 주의</span>
+    </div>}
     {surfaceView === "map" ? <RoadMap backgroundRows={rows("road_background")} riskRows={riskRows}
       taskRows={visibleTasks} teamRows={effectiveTeamRows} routeRows={visibleRoutes}
       replanRows={replanRows} impactRows={impactRows} selectedRisk={selectedRisk}
