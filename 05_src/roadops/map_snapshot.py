@@ -337,6 +337,58 @@ def _plan_metrics(optimized: Mapping[str, Any]) -> list[dict[str, Any]]:
     return rows
 
 
+def _travel_route_options(
+    travel_time: Mapping[str, Any],
+) -> list[dict[str, Any]]:
+    """Serialize every reviewed origin-destination option for browser replanning."""
+
+    fields = (
+        "route_id",
+        "origin_id",
+        "origin_type",
+        "destination_task_id",
+        "destination_link_id",
+        "status",
+        "source_mode",
+        "route_semantics",
+        "travel_time_minutes",
+        "distance_km",
+        "route_link_ids",
+        "route_link_count",
+        "live_speed_link_count",
+        "live_speed_coverage",
+    )
+    return [
+        {field: route.get(field) for field in fields}
+        for route in travel_time.get("routes", [])
+        if route.get("origin_id") and route.get("destination_task_id")
+    ]
+
+
+def _travel_route_link_ids(travel_time: Mapping[str, Any]) -> set[str]:
+    return {
+        str(link_id)
+        for route in travel_time.get("routes", [])
+        for link_id in route.get("route_link_ids", [])
+        if link_id
+    }
+
+
+def _available_minutes_for_team(
+    team: Mapping[str, Any], planning: Mapping[str, Any]
+) -> float | None:
+    try:
+        shift_start = datetime.fromisoformat(str(team["shift_start_at"]))
+        shift_end = datetime.fromisoformat(str(team["shift_end_at"]))
+        planning_start = datetime.fromisoformat(str(planning["planning_start_at"]))
+    except (KeyError, TypeError, ValueError):
+        return None
+    return round(
+        max(0.0, (shift_end - max(planning_start, shift_start)).total_seconds() / 60),
+        3,
+    )
+
+
 def _replan_rows(
     optimized: Mapping[str, Any],
     replanning: Mapping[str, Any],
@@ -551,8 +603,10 @@ def build_map_snapshot(
         for row in risk_rows
         if row.get("effective_link_id")
     }
+    travel_time = travel_time or {}
     required_link_ids.update(_route_link_ids(optimized))
     required_link_ids.update(_replan_link_ids(replanning))
+    required_link_ids.update(_travel_route_link_ids(travel_time))
 
     link_geometries: dict[str, list[list[list[float]]]] = {}
     background_groups: dict[str, list[list[list[float]]]] = defaultdict(list)
@@ -584,6 +638,14 @@ def build_map_snapshot(
     weather_forecast = _weather_forecast_rows(weather_rows)
     plan_routes = _plan_routes(optimized, link_geometries)
     plan_metrics = _plan_metrics(optimized)
+    travel_route_options = _travel_route_options(travel_time)
+    travel_route_links = [
+        {
+            "link_id": link_id,
+            "geometry_json": _json(link_geometries.get(link_id, [])),
+        }
+        for link_id in sorted(_travel_route_link_ids(travel_time))
+    ]
     replan_routes, scenario_summary, scenario_impacts = _replan_rows(
         optimized, replanning, link_geometries
     )
@@ -651,6 +713,7 @@ def build_map_snapshot(
             ),
             "shift_start_at": team.get("shift_start_at"),
             "shift_end_at": team.get("shift_end_at"),
+            "available_minutes": _available_minutes_for_team(team, planning),
             "skills": team.get("skills", []),
             "equipment": team.get("equipment", []),
             "max_tasks_per_team": planning.get("max_tasks_per_team"),
@@ -677,7 +740,6 @@ def build_map_snapshot(
         if latest_target and generated_dt.tzinfo and latest_target.tzinfo
         else None
     )
-    travel_time = travel_time or {}
     gateway_quality = dict(gateway_quality or {})
     travel_semantics = str(
         travel_time.get("route_semantics")
@@ -733,6 +795,7 @@ def build_map_snapshot(
             ),
             "automatic_refresh_interval_minutes": 10,
             "automatic_refresh_mechanism": "macos_launchd_operational_pipeline",
+            "planning_start_at": planning.get("planning_start_at"),
             "risk_semantics": "operational_priority_scenario_not_accident_probability",
             "travel_semantics": travel_semantics,
             "live_eta_available": live_eta,
@@ -783,6 +846,8 @@ def build_map_snapshot(
             "background_link_count": background_link_count,
             "risk_link_rows": len(risk_links),
             "plan_route_rows": len(plan_routes),
+            "travel_route_option_rows": len(travel_route_options),
+            "travel_route_link_rows": len(travel_route_links),
             "replan_route_rows": len(replan_routes),
             "scenario_count": len(scenario_summary),
             "team_count": len(teams),
@@ -833,6 +898,8 @@ def build_map_snapshot(
         "teams": teams,
         "plan_routes": plan_routes,
         "plan_metrics": plan_metrics,
+        "travel_route_options": travel_route_options,
+        "travel_route_links": travel_route_links,
         "replan_routes": replan_routes,
         "scenario_summary": scenario_summary,
         "scenario_impacts": scenario_impacts,

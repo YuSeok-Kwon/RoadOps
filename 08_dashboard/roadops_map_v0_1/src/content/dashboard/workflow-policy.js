@@ -7,6 +7,7 @@ function numeric(value, fallback = 0) {
 }
 
 function shiftMinutes(team) {
+  if (Number.isFinite(Number(team.available_minutes))) return Number(team.available_minutes);
   const start = new Date(team.shift_start_at).getTime();
   const end = new Date(team.shift_end_at).getTime();
   if (!Number.isFinite(start) || !Number.isFinite(end)) return 0;
@@ -49,6 +50,12 @@ export function createWorkflowState({ teams = [], tasks = [], routes = [], planI
         available,
         personnelCount,
         shiftMinutes: duration,
+        skills: Array.isArray(team.skills) ? team.skills : [],
+        equipment: Array.isArray(team.equipment) ? team.equipment : [],
+        vehicleEquipment: Array.isArray(team.vehicle_equipment) ? team.vehicle_equipment : [],
+        managingAgencyId: String(team.managing_agency_id || ""),
+        supportAgencyIds: Array.isArray(team.support_agency_ids) ? team.support_agency_ids : [],
+        authorizedRoadJurisdictions: Array.isArray(team.authorized_road_jurisdictions) ? team.authorized_road_jurisdictions : [],
         baseline: { available, personnelCount, shiftMinutes: duration },
       };
     }),
@@ -65,6 +72,11 @@ export function createWorkflowState({ teams = [], tasks = [], routes = [], planI
         manualPriorityLevel: null,
         priorityReason: "",
         mandatory: Boolean(task.mandatory),
+        serviceMinutes: numeric(task.service_minutes, 15),
+        requiredSkills: Array.isArray(task.required_skills) ? task.required_skills : [],
+        requiredEquipment: Array.isArray(task.required_equipment) ? task.required_equipment : [],
+        managingAgencyId: String(task.managing_agency_id || ""),
+        roadTeamDispatchEligible: task.road_team_dispatch_eligible !== false,
         managingAgencyName: String(task.managing_agency_name || "기관 미확인"),
         administrativeArea: [task.administrative_city, task.administrative_unit].filter(Boolean).join(" ") || "구역 미확인",
         roadJurisdiction: String(task.road_jurisdiction || "관할 미확인"),
@@ -96,13 +108,11 @@ export function applyPlanAssignments(state, routes, planId) {
     ...state,
     planId,
     tasks: state.tasks.map((task) => {
-      if (task.excluded && task.baseline.excluded) return task;
+      if (task.excluded) return task;
       const assignedTeamId = assignments.get(task.taskId) || null;
       return {
         ...task,
         assignedTeamId,
-        excluded: task.baseline.excluded,
-        fixed: task.baseline.fixed,
         baseline: {
           ...task.baseline,
           assignedTeamId,
@@ -209,11 +219,19 @@ export function validateWorkflow({
   planMetrics = [],
   metadata = {},
   scenarioId = "none",
+  optimizationStatus = "ready",
+  optimizationMessage = "",
 }) {
   const errors = [];
   const warnings = [];
   const resourcesById = new Map(state.resources.map((resource) => [resource.teamId, resource]));
   const assignedCounts = new Map();
+
+  if (optimizationStatus === "calculating") {
+    errors.push(issue("OPTIMIZATION_IN_PROGRESS", "변경한 조건으로 최적 경로를 계산하고 있습니다."));
+  } else if (optimizationStatus === "failed") {
+    errors.push(issue("OPTIMIZATION_FAILED", optimizationMessage || "변경한 조건을 만족하는 출동계획을 만들지 못했습니다."));
+  }
 
   state.resources.forEach((resource) => {
     if (resource.personnelCount < 1 || resource.personnelCount > resource.vehicleCapacity) {
@@ -225,13 +243,6 @@ export function validateWorkflow({
     }
     if (resource.shiftMinutes <= 0) {
       errors.push(issue("INVALID_SHIFT", `${resource.teamName} 근무시간이 0분 이하입니다.`, resource.teamId));
-    }
-    if (resourceChanged(resource)) {
-      errors.push(issue(
-        "RESOURCE_REPLAN_REQUIRED",
-        `${resource.teamName} 자원 조건이 검증된 계획과 달라 백엔드 재계획이 필요합니다.`,
-        resource.teamId,
-      ));
     }
   });
 
@@ -248,13 +259,6 @@ export function validateWorkflow({
       return;
     }
     if (task.excluded) {
-      if (!task.baseline.excluded) {
-        errors.push(issue(
-          "ROUTE_REPLAN_REQUIRED",
-          `${task.roadName} 업무 제외가 검증된 경로에 반영되지 않아 재계획이 필요합니다.`,
-          task.taskId,
-        ));
-      }
       return;
     }
     if (!task.assignedTeamId) {
@@ -268,13 +272,6 @@ export function validateWorkflow({
     }
     if (!resource.available) {
       errors.push(issue("UNAVAILABLE_TEAM", `${resource.teamName}이 비가용 상태인데 업무가 배정돼 있습니다.`, task.taskId));
-    }
-    if (task.baseline.assignedTeamId !== task.assignedTeamId) {
-      errors.push(issue(
-        "ROUTE_REPLAN_REQUIRED",
-        `${task.roadName} 담당팀 변경이 검증된 이동경로와 달라 재계획이 필요합니다.`,
-        task.taskId,
-      ));
     }
     assignedCounts.set(task.assignedTeamId, (assignedCounts.get(task.assignedTeamId) || 0) + 1);
   });

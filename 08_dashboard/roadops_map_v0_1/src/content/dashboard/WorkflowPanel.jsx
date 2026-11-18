@@ -7,10 +7,10 @@ import {
   countWorkflowChanges,
   createApprovalRecord,
   createWorkflowState,
-  recalculateWorkflow,
   validateWorkflow,
   workflowFingerprint,
 } from "./workflow-policy.js";
+import { optimizationInputFingerprint, optimizeAllocation } from "./web-optimizer.js";
 
 const TAB_LABELS = {
   resources: "1 출동팀",
@@ -92,7 +92,7 @@ function ResourceStep({ state, onChange, onNext }) {
       <label>가용 시간(분)<input type="number" min="1" step="5" value={resource.shiftMinutes}
         onChange={(event) => onChange(resource.teamId, "shiftMinutes", Number(event.target.value))} /></label>
     </div>)}
-    <p className="workflow-inline-note">출동팀·인원·가용 시간을 바꾸면 이동 경로를 다시 계산해야 합니다.</p>
+    <p className="workflow-inline-note">출동팀·인원·가용 시간을 바꾸면 가능한 계획을 다시 비교해 지도와 배분을 자동 갱신합니다.</p>
     <div className="workflow-step-actions">
       <Button variant="primary" onClick={onNext}>다음: 도로 배정</Button>
     </div>
@@ -240,14 +240,22 @@ export function WorkflowPanel({
   selectedPlan,
   scenarioId,
   onStateChange,
+  routeOptions,
+  routeLinks,
+  onResultChange,
 }) {
   const [activeTab, setActiveTab] = useState("resources");
   const [state, setState] = useState(/** @type {any} */ (null));
   const [lastValidatedFingerprint, setLastValidatedFingerprint] = useState(/** @type {any} */ (null));
   const [auditLog, setAuditLog] = useState(/** @type {any[]} */ ([]));
   const [approvalRecord, setApprovalRecord] = useState(/** @type {any} */ (null));
+  const [optimizedRoutes, setOptimizedRoutes] = useState(routes);
+  const [optimizedMetrics, setOptimizedMetrics] = useState(planMetrics);
+  const [optimizationStatus, setOptimizationStatus] = useState("ready");
+  const [optimizationMessage, setOptimizationMessage] = useState("검증된 기본 계획을 표시 중입니다.");
   const [storageReady, setStorageReady] = useState(false);
   const loadedStorageKey = useRef(/** @type {string | null} */ (null));
+  const optimizedInput = useRef(/** @type {string | null} */ (null));
   const storageKey = metadata.generated_at
     ? `roadops:web1:${metadata.snapshot_version}:${metadata.generated_at}`
     : null;
@@ -258,9 +266,36 @@ export function WorkflowPanel({
 
   useEffect(() => {
     if (!state && teams.length && tasks.length) {
-      setState(createWorkflowState({ teams, tasks, routes, planId: selectedPlan }));
+      const initial = createWorkflowState({ teams, tasks, routes, planId: selectedPlan });
+      optimizedInput.current = optimizationInputFingerprint(initial);
+      setState(initial);
     }
   }, [state, teams, tasks, routes, selectedPlan]);
+
+  const inputFingerprint = state ? optimizationInputFingerprint(state) : null;
+  useEffect(() => {
+    if (!state || !inputFingerprint || optimizedInput.current === inputFingerprint) return undefined;
+    optimizedInput.current = inputFingerprint;
+    setOptimizationStatus("calculating");
+    setOptimizationMessage("변경한 조건으로 팀 배분과 이동 경로를 다시 계산하고 있습니다.");
+    setLastValidatedFingerprint(null);
+    const timer = window.setTimeout(() => {
+      const result = /** @type {any} */ (optimizeAllocation({ state, routeOptions, routeLinks }));
+      if (result.status !== "pass") {
+        setOptimizationStatus("failed");
+        setOptimizationMessage(result.message);
+        record("자동 재계산 실패", result.message);
+        return;
+      }
+      setOptimizedRoutes(result.planRoutes);
+      setOptimizedMetrics(result.planMetrics);
+      setState((current) => applyPlanAssignments(current, result.planRoutes, current.planId));
+      setOptimizationStatus("ready");
+      setOptimizationMessage(`${result.candidateCount.toLocaleString("ko-KR")}개 가능 계획을 비교해 지도와 배분을 갱신했습니다.`);
+      record("자동 재계산 완료", `${result.candidateCount.toLocaleString("ko-KR")}개 가능 계획을 비교해 팀 배분·이동 경로·운영 지표를 갱신했습니다.`);
+    }, 120);
+    return () => window.clearTimeout(timer);
+  }, [inputFingerprint, routeLinks, routeOptions]);
 
   useEffect(() => {
     if (!storageKey || loadedStorageKey.current === storageKey) return;
@@ -279,65 +314,75 @@ export function WorkflowPanel({
 
   useEffect(() => {
     if (!state || state.planId === selectedPlan) return;
-    setState((current) => applyPlanAssignments(current, routes, selectedPlan));
+    setState((current) => applyPlanAssignments(current, optimizedRoutes, selectedPlan));
     setLastValidatedFingerprint(null);
     record("배분안 선택", `${planLabel(selectedPlan)} 배분안으로 전환했습니다.`);
-  }, [selectedPlan, routes, state]);
+  }, [selectedPlan, optimizedRoutes, state]);
 
   useEffect(() => {
     onStateChange?.(state);
   }, [state, onStateChange]);
 
+  useEffect(() => {
+    onResultChange?.({ routes: optimizedRoutes, planMetrics: optimizedMetrics, optimizationStatus });
+  }, [optimizedRoutes, optimizedMetrics, optimizationStatus, onResultChange]);
+
   const validation = useMemo(() => state ? validateWorkflow({
     state,
-    routes,
-    planMetrics,
+    routes: optimizedRoutes,
+    planMetrics: optimizedMetrics,
     metadata,
     scenarioId,
+    optimizationStatus,
+    optimizationMessage,
   }) : { errors: [], warnings: [], technicalValid: false, approvalReady: false },
-  [state, routes, planMetrics, metadata, scenarioId]);
+  [state, optimizedRoutes, optimizedMetrics, metadata, scenarioId, optimizationStatus, optimizationMessage]);
   const fingerprint = state ? workflowFingerprint(state, scenarioId) : null;
   const validationFresh = Boolean(fingerprint && fingerprint === lastValidatedFingerprint);
   const approvalCurrent = Boolean(fingerprint && approvalRecord?.workflowFingerprint === fingerprint);
   const changes = state ? countWorkflowChanges(state) : { resources: 0, tasks: 0 };
 
   const updateResource = (teamId, field, value) => {
-    setState((current) => recalculateWorkflow({
+    setState((current) => ({
       ...current,
       resources: current.resources.map((resource) => resource.teamId === teamId ? { ...resource, [field]: value } : resource),
-    }, routes));
+    }));
     setLastValidatedFingerprint(null);
     const teamLabel = TEAM_SHORT_LABELS[teamId] || teamId;
     const valueLabel = field === "available" ? (value ? "출동 가능" : "출동 불가")
       : field === "shiftMinutes" ? `${value}분` : `${value}명`;
-    record("출동팀 조건 변경", `${teamLabel}의 ${RESOURCE_FIELD_LABELS[field] || field}을 '${valueLabel}'로 변경하고 배분을 다시 계산했습니다.`);
+    record("출동팀 조건 변경", `${teamLabel}의 ${RESOURCE_FIELD_LABELS[field] || field}을 '${valueLabel}'로 변경해 자동 재계산을 요청했습니다.`);
   };
 
   const updateTask = (taskId, field, value) => {
-    setState((current) => recalculateWorkflow({
+    setState((current) => ({
       ...current,
-      tasks: current.tasks.map((task) => task.taskId === taskId ? { ...task, [field]: value } : task),
-    }, routes));
+      tasks: current.tasks.map((task) => task.taskId === taskId ? {
+        ...task,
+        [field]: value,
+        ...(field === "assignedTeamId" ? { fixed: Boolean(value) } : {}),
+      } : task),
+    }));
     setLastValidatedFingerprint(null);
     const task = state.tasks.find((item) => item.taskId === taskId);
     const valueLabel = field === "assignedTeamId" ? (TEAM_SHORT_LABELS[value] || "미배정")
       : value ? "사용" : "사용 안 함";
-    record("도로 조건 변경", `${task?.roadName || "선택 도로"}의 ${TASK_FIELD_LABELS[field] || field}을 '${valueLabel}'로 변경하고 배분을 다시 계산했습니다.`);
+    record("도로 조건 변경", `${task?.roadName || "선택 도로"}의 ${TASK_FIELD_LABELS[field] || field}을 '${valueLabel}'로 변경해 자동 재계산을 요청했습니다.`);
   };
 
   const updatePriority = (taskId, manualPriorityLevel) => {
-    setState((current) => recalculateWorkflow({
+    setState((current) => ({
       ...current,
       tasks: current.tasks.map((task) => task.taskId === taskId ? {
         ...task,
         manualPriorityLevel,
         priorityReason: manualPriorityLevel ? task.priorityReason : "",
       } : task),
-    }, routes));
+    }));
     setLastValidatedFingerprint(null);
     const task = state.tasks.find((item) => item.taskId === taskId);
     const priorityLabel = PRIORITY_OPTION_LABELS[manualPriorityLevel] || "자동 제안";
-    record("확인 순서 조정", `${task?.roadName || "선택 도로"}의 확인 순서를 '${priorityLabel}' 단계로 바꾸고 팀 배분을 다시 계산했습니다.`);
+    record("확인 순서 조정", `${task?.roadName || "선택 도로"}의 확인 순서를 '${priorityLabel}' 단계로 바꿔 자동 재계산을 요청했습니다.`);
   };
 
   const updatePriorityReason = (taskId, priorityReason) => {
@@ -394,6 +439,8 @@ export function WorkflowPanel({
     governance_authorities: governanceRows,
     plan_routes: routes,
     plan_metrics: planMetrics,
+    travel_route_options: routeOptions,
+    travel_route_links: routeLinks,
     map_metadata: [metadata],
   };
   return <DataComponent variant="plain" id="operations-workflow" queryId="teams"
@@ -406,6 +453,10 @@ export function WorkflowPanel({
         {approvalCurrent ? "확정 완료" : validation.errors.length ? "조건 확인 필요" : "확정 전"}
       </span>
       <p>{planLabel(state.planId)} · 자원 변경 {changes.resources} · 업무 변경 {changes.tasks}</p>
+      <small className="workflow-optimizer-status" data-status={optimizationStatus}>
+        {optimizationStatus === "calculating" ? "계산 중" : optimizationStatus === "failed" ? "계산 실패" : "경로 갱신 완료"}
+        <span>{optimizationMessage}</span>
+      </small>
     </div>
     <div className="workflow-tabs" role="tablist" aria-label="운영 계획 단계">
       {Object.entries(TAB_LABELS).map(([id, label]) => <button type="button" role="tab"

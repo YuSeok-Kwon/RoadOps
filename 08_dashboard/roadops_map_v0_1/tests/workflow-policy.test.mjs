@@ -65,12 +65,14 @@ test("validated snapshot becomes approval-ready only after acknowledgements and 
   assert.equal(result.approvalReady, true);
 });
 
-test("resource edits require backend replanning", () => {
+test("resource edits block approval only while automatic optimization is pending", () => {
   const state = validState();
   state.resources[0].personnelCount = 1;
-  const result = validateWorkflow({ state, routes, planMetrics, metadata: {} });
-  assert.equal(result.technicalValid, false);
-  assert.ok(result.errors.some((item) => item.code === "RESOURCE_REPLAN_REQUIRED"));
+  const pending = validateWorkflow({ state, routes, planMetrics, metadata: {}, optimizationStatus: "calculating" });
+  assert.equal(pending.technicalValid, false);
+  assert.ok(pending.errors.some((item) => item.code === "OPTIMIZATION_IN_PROGRESS"));
+  const ready = validateWorkflow({ state, routes, planMetrics, metadata: {}, optimizationStatus: "ready" });
+  assert.equal(ready.technicalValid, true);
   assert.deepEqual(countWorkflowChanges(state), { resources: 1, tasks: 0 });
 });
 
@@ -98,13 +100,13 @@ test("manual priority overrides require an operator reason", () => {
   assert.ok(!documented.errors.some((item) => item.code === "PRIORITY_REASON_REQUIRED"));
 });
 
-test("switching to another validated plan resets assignment baselines", () => {
+test("switching to another validated plan preserves operator constraints", () => {
   const state = validState();
   state.tasks[0].fixed = true;
   const changed = applyPlanAssignments(state, routes, "balanced_operations");
   assert.equal(changed.planId, "balanced_operations");
   assert.equal(changed.tasks[0].assignedTeamId, "team-a");
-  assert.equal(changed.tasks[0].fixed, false);
+  assert.equal(changed.tasks[0].fixed, true);
 });
 
 test("workflow fingerprint is deterministic and approval captures it", () => {

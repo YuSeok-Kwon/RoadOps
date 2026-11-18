@@ -344,6 +344,21 @@ def build_data_app_snapshot(
             ["allocation-kpis", "plan-comparison"],
             shared_caveats,
         ),
+        "travel_route_options": source(
+            "Reviewed full travel-time matrix for interactive allocation",
+            [inputs["travel_time"]],
+            ["operations-workflow", "roadops-map"],
+            [
+                *shared_caveats,
+                "The browser solver is limited to the reviewed small-instance matrix included in this snapshot.",
+            ],
+        ),
+        "travel_route_links": source(
+            "National standard-link geometries used by interactive routes",
+            [inputs["travel_time"], inputs["road_links"]],
+            ["operations-workflow", "roadops-map"],
+            shared_caveats,
+        ),
         "replan_routes": source(
             "Partial replanning route comparison",
             [inputs["replanning"], inputs["road_links"]],

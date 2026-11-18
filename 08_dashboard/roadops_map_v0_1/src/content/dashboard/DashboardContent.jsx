@@ -147,7 +147,8 @@ function MapFacilityGlyph({ kind }) {
     : <path className="facility-glyph" d="M1-5c.3 2-1.7 2.6-.7 4.3.8-.8 1-1.6.9-2.4C4-1.1 4.4 1 3.6 3.1 3 4.7 1.7 5.5 0 5.5s-3-1-3.6-2.5c-.7-1.8-.1-3.4 1.6-4.8-.1 1.3.1 2.2.7 2.7C-1.4-.9-.6-3.3 1-5Z" />;
 }
 
-function LayerStatus({ available, value, unavailableLabel }) {
+/** @param {{available: any, value?: any, unavailableLabel: any}} props */
+function LayerStatus({ available, value = null, unavailableLabel }) {
   if (available) {
     if (value === undefined || value === null || value === "" || value === "연결") return null;
     return <b className="layer-status-connected">{value}</b>;
@@ -955,6 +956,7 @@ export function DashboardContent() {
   const [selectedRiskId, setSelectedRiskId] = useState(/** @type {any} */ (null));
   const [selectedRouteKey, setSelectedRouteKey] = useState(/** @type {any} */ (null));
   const [workflowState, setWorkflowState] = useState(/** @type {any} */ (null));
+  const [workflowPlan, setWorkflowPlan] = useState(/** @type {any} */ (null));
   const [inspectorTab, setInspectorTab] = useState("priorities");
   const [mapGuideOpen, setMapGuideOpen] = useState(false);
   const [mapLayers, setMapLayers] = useState({
@@ -994,7 +996,8 @@ export function DashboardContent() {
   const selectedRisk = riskRows.find((row) => row.link_id === selectedRiskId)
     ?? [...riskRows].sort((left, right) => Number(right.priority_score) - Number(left.priority_score))[0]
     ?? null;
-  const planMetrics = rows("plan_metrics");
+  const basePlanMetrics = rows("plan_metrics");
+  const planMetrics = workflowPlan?.planMetrics?.length ? workflowPlan.planMetrics : basePlanMetrics;
   const selectedMetrics = planMetrics.find((row) => row.alternative_id === selectedPlan) ?? {};
   const workflowTasks = new Map((workflowState?.tasks ?? []).map((task) => [task.taskId, task]));
   const workflowResources = new Map((workflowState?.resources ?? []).map((resource) => [resource.teamId, resource]));
@@ -1017,7 +1020,7 @@ export function DashboardContent() {
   const selectedTask = effectiveTaskRows.find((row) => row.link_id === selectedRisk?.link_id) ?? null;
   const selectedAuthority = rows("governance_authorities")
     .find((row) => row.link_id === selectedRisk?.link_id) ?? null;
-  const allRouteRows = rows("plan_routes");
+  const allRouteRows = workflowPlan?.routes?.length ? workflowPlan.routes : rows("plan_routes");
   const routeRows = effectiveTaskRows.flatMap((task) => {
     const decision = workflowTasks.get(String(task.task_id));
     if (decision?.excluded) return [];
@@ -1037,7 +1040,7 @@ export function DashboardContent() {
   const emergencyFacilities = rows("emergency_facilities");
   const policeFacilityCount = emergencyFacilities.filter((row) => row.facility_kind === "police").length;
   const fireFacilityCount = emergencyFacilities.filter((row) => row.facility_kind === "fire").length;
-  const mapQueryIds = ["risk_links", "road_background", "accident_hotspots", "complaint_hotspots", "crime_caution_overlay", "emergency_facilities", "traffic_accident_overlay", "field_tasks", "governance_authorities", "teams", "plan_routes", "replan_routes", "scenario_impacts"];
+  const mapQueryIds = ["risk_links", "road_background", "accident_hotspots", "complaint_hotspots", "crime_caution_overlay", "emergency_facilities", "traffic_accident_overlay", "field_tasks", "governance_authorities", "teams", "plan_routes", "travel_route_options", "travel_route_links", "replan_routes", "scenario_impacts"];
   const sourceRowsByQuery = Object.fromEntries(mapQueryIds.map((queryId) => [queryId, rows(queryId)]));
 
   const selectTask = (linkId) => {
@@ -1249,8 +1252,10 @@ export function DashboardContent() {
             <PlanComparison rows={planMetrics} selectedPlan={selectedPlan} onSelect={setSelectedPlan} />
             <WorkflowPanel teams={rows("teams")} tasks={rows("field_tasks")}
               governanceRows={rows("governance_authorities")}
-              routes={rows("plan_routes")} planMetrics={planMetrics} metadata={metadata}
-              selectedPlan={selectedPlan} scenarioId={scenarioId} onStateChange={setWorkflowState} />
+              routes={rows("plan_routes")} planMetrics={basePlanMetrics} metadata={metadata}
+              routeOptions={rows("travel_route_options")} routeLinks={rows("travel_route_links")}
+              selectedPlan={selectedPlan} scenarioId={scenarioId} onStateChange={setWorkflowState}
+              onResultChange={setWorkflowPlan} />
           </>}
         </div>
       </aside>
