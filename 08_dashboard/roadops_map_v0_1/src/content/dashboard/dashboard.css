@@ -39,7 +39,7 @@
 .toolbar-title > div { display: flex; min-width: 0; flex-direction: column; }
 .toolbar-title strong { overflow: hidden; font-size: 19px; font-weight: 750; letter-spacing: -.035em; line-height: 24px; text-overflow: ellipsis; white-space: nowrap; }
 .eyebrow { color: var(--secondary); font-family: Poppins, var(--font-sans); font-size: 9px; font-weight: 700; letter-spacing: .16em; line-height: 13px; }
-.roadops-signal { display: grid; width: 23px; height: 39px; flex: 0 0 auto; box-sizing: border-box; padding: 5px 6px; grid-template-rows: repeat(3, 1fr); gap: 3px; border: 1px solid var(--border-strong); border-radius: 4px; background: var(--background); }
+.roadops-signal { display: flex; width: 24px; height: 44px; flex: 0 0 auto; box-sizing: border-box; align-items: center; justify-content: space-between; padding: 5px 7px; flex-direction: column; border: 1px solid var(--border-strong); border-radius: 4px; background: var(--background); }
 .roadops-signal i { display: block; width: 8px; height: 8px; border-radius: 50%; background: #e5484d; box-shadow: 0 0 6px color-mix(in srgb, #e5484d 58%, transparent); }
 .roadops-signal i:nth-child(2) { background: #f5b522; box-shadow: 0 0 6px color-mix(in srgb, #f5b522 58%, transparent); }
 .roadops-signal i:nth-child(3) { background: #8cc63f; box-shadow: 0 0 6px color-mix(in srgb, #8cc63f 58%, transparent); }
@@ -125,11 +125,9 @@
 }
 
 .roadops-metric-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.roadops-metric { position: relative; display: grid; min-width: 0; min-height: 62px; box-sizing: border-box; grid-template-columns: 32px minmax(0, 1fr); align-items: center; gap: 10px; padding: 8px 20px; border-right: 1px solid var(--border); }
+.roadops-metric { position: relative; display: flex; min-width: 0; min-height: 62px; box-sizing: border-box; justify-content: center; padding: 8px 20px; flex-direction: column; border-right: 1px solid var(--border); }
 .roadops-metric:first-child { padding-left: 0; }
 .roadops-metric:last-child { border-right: 0; }
-.roadops-metric-icon { display: grid; width: 30px; height: 30px; place-items: center; border: 1px solid var(--border); border-radius: 4px; color: var(--secondary); background: var(--surface); }
-.roadops-metric-icon .layer-icon { width: 16px; height: 16px; color: currentColor; }
 .roadops-metric-copy { display: flex; min-width: 0; flex-direction: column; }
 .roadops-metric-copy > span { color: var(--secondary); font-size: 9px; font-weight: 650; line-height: 13px; }
 .roadops-metric strong { margin-top: 1px; font-family: Poppins, var(--font-sans); font-size: 23px; font-weight: 650; letter-spacing: -.045em; line-height: 27px; }
@@ -201,7 +199,11 @@
 .map-layer-heading .layer-icon { width: 13px; height: 13px; color: var(--secondary); }
 .map-layer-controls label { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
 .map-layer-controls label > .layer-icon { width: 13px; height: 13px; }
-.map-layer-controls input { width: 14px; height: 14px; accent-color: #e5484d; }
+.map-layer-controls input { display: grid; width: 14px; height: 14px; box-sizing: border-box; flex: 0 0 auto; appearance: none; place-items: center; border: 1px solid var(--border-strong); border-radius: 3px; background: var(--background); cursor: pointer; }
+.map-layer-controls input::after { width: 7px; height: 4px; box-sizing: border-box; content: ""; border-bottom: 2px solid white; border-left: 2px solid white; transform: rotate(-45deg) scale(0); transform-origin: center; transition: transform 100ms ease; }
+.map-layer-controls input:checked { border-color: #1468b3; background: #1468b3; }
+.map-layer-controls input:checked::after { transform: rotate(-45deg) scale(1); }
+.map-layer-controls input:focus-visible { outline: 2px solid color-mix(in srgb, var(--chart-1) 55%, transparent); outline-offset: 2px; }
 .map-layer-controls input:disabled { cursor: not-allowed; opacity: .45; }
 .map-layer-controls label:has(input:disabled) { cursor: help; opacity: .65; }
 .map-layer-controls b { min-width: 17px; padding: 1px 5px; border-radius: 99px; color: var(--text); background: var(--muted); font-family: Poppins, var(--font-sans); font-size: 8px; text-align: center; }
@@ -225,7 +227,8 @@
 .crime-caution-overlay { opacity: .48; pointer-events: none; }
 .traffic-accident-overlay { opacity: .4; pointer-events: none; }
 .roadops-page[data-color-mode="dark"] .basemap-tiles image { opacity: .68; filter: brightness(.48) saturate(.58) contrast(1.18); }
-.map-zoom-controls { position: absolute; z-index: 4; top: 116px; left: 14px; display: grid; grid-template-columns: 28px 44px 28px 42px; align-items: center; overflow: hidden; border: 1px solid color-mix(in srgb, var(--border-strong) 80%, transparent); border-radius: 5px; background: color-mix(in srgb, var(--background) 94%, transparent); box-shadow: 0 8px 20px color-mix(in srgb, black 10%, transparent); backdrop-filter: blur(12px); }
+.map-zoom-controls { position: absolute; z-index: 4; top: 14px; right: 14px; display: grid; grid-template-columns: 28px 44px 28px 42px; align-items: center; overflow: hidden; border: 1px solid color-mix(in srgb, var(--border-strong) 80%, transparent); border-radius: 5px; background: color-mix(in srgb, var(--background) 94%, transparent); box-shadow: 0 8px 20px color-mix(in srgb, black 10%, transparent); backdrop-filter: blur(12px); }
+.roadops-map-wrap[data-route-open="true"] .map-zoom-controls { right: 304px; }
 .map-zoom-controls button,
 .map-zoom-controls span { display: grid; height: 28px; box-sizing: border-box; place-items: center; border: 0; border-right: 1px solid var(--border); color: var(--text); background: transparent; font: inherit; font-size: 10px; font-weight: 700; }
 .map-zoom-controls button { cursor: pointer; }

@@ -314,9 +314,8 @@ function BasemapTiles({ width, height, zoom, centerX, centerY, projectMercator, 
   return <g className="basemap-tiles" aria-hidden="true">{tiles}</g>;
 }
 
-function Metric({ label, value, note, tone = "neutral", icon = "layers" }) {
+function Metric({ label, value, note, tone = "neutral" }) {
   return <div className="roadops-metric" data-tone={tone}>
-    <span className="roadops-metric-icon"><LayerIcon type={icon} /></span>
     <span className="roadops-metric-copy">
       <span>{label}</span>
       <strong>{value}</strong>
@@ -488,6 +487,7 @@ function RoadMap({
   onSelectRoute,
   onCloseRoute,
   scenarioId,
+  horizon,
 }) {
   const overlayRows = [...riskRows, ...routeRows, ...replanRows, ...impactRows];
   const { width, height, project, projectMercator, mapToMercator } = useProjection(backgroundRows, overlayRows);
@@ -541,7 +541,7 @@ function RoadMap({
 
   return <div className="roadops-map-wrap" data-route-open={selectedRoute ? "true" : undefined}>
     {selectedRisk && <div className="map-focus-panel" data-risk={selectedRisk.risk_level}>
-      <span>선택 구간</span>
+      <span>{horizon === 0 ? "현재 선택 구간" : `${horizon}시간 후 선택 구간`}</span>
       <strong>{locationLabel(taskByLink.get(String(selectedRisk.link_id)) || selectedRisk)}</strong>
       <div>
         <b>{number(selectedRisk.priority_score)}</b>
@@ -1013,7 +1013,12 @@ export function DashboardContent() {
 
   useEffect(() => {
     setSelectedRouteKey(null);
-  }, [selectedPlan, horizon, scenarioId]);
+  }, [selectedPlan, scenarioId]);
+
+  useEffect(() => {
+    setSelectedRiskId(null);
+    setSelectedRouteKey(null);
+  }, [horizon]);
 
   useEffect(() => {
     const timer = window.setInterval(() => setCurrentTime(new Date()), 1000);
@@ -1027,6 +1032,7 @@ export function DashboardContent() {
   const forecastValidationRows = rows("forecast_validation");
   const allRiskRows = rows("risk_links");
   const riskRows = allRiskRows.filter((row) => Number(row.horizon_hours) === horizon && row.has_geometry);
+  const riskByLink = new Map(riskRows.map((row) => [String(row.link_id), row]));
   const selectedRisk = riskRows.find((row) => row.link_id === selectedRiskId)
     ?? [...riskRows].sort((left, right) => Number(right.priority_score) - Number(left.priority_score))[0]
     ?? null;
@@ -1036,16 +1042,23 @@ export function DashboardContent() {
   const workflowTasks = new Map((workflowState?.tasks ?? []).map((task) => [task.taskId, task]));
   const workflowResources = new Map((workflowState?.resources ?? []).map((resource) => [resource.teamId, resource]));
   const effectiveTaskRows = rows("field_tasks").map((row) => {
+    const horizonRisk = riskByLink.get(String(row.link_id));
+    const synchronizedRow = horizonRisk ? {
+      ...row,
+      priority_score: horizonRisk.priority_score,
+      risk_level: horizonRisk.risk_level,
+      location_label: horizonRisk.location_label || row.location_label,
+    } : row;
     const decision = workflowTasks.get(String(row.task_id));
     return decision ? {
-      ...row,
+      ...synchronizedRow,
       excluded: decision.excluded,
       fixed_team_id: decision.fixed ? decision.assignedTeamId : null,
       assigned_team_id: decision.assignedTeamId,
       manual_priority_level: decision.manualPriorityLevel,
       manual_priority_reason: decision.priorityReason,
       effective_priority_level: decision.manualPriorityLevel || decision.suggestedPriorityLevel,
-    } : row;
+    } : synchronizedRow;
   });
   const effectiveTeamRows = rows("teams").map((row) => ({
     ...row,
@@ -1176,10 +1189,10 @@ export function DashboardContent() {
         showHeading={false} showActions={false} sourceRows={planMetrics} displayRows={[selectedMetrics]}
         scopeFilters={[{ field: "alternative_id", label: "배분 대안", value: selectedPlan }]}>
         <div className="roadops-metric-grid">
-          <Metric icon="layers" label="점검 대상" value={riskRows.length} note={horizon === 0 ? "현재 확인 후보" : `${horizon}시간 후 확인 후보`} />
-          <Metric icon="warning" label="먼저 확인" value={highRiskCount} note="위험 단계가 높은 도로" tone={highRiskCount ? "warning" : "neutral"} />
-          <Metric icon="police" label="배분 완료" value={`${selectedMetrics.assigned_task_count ?? "—"}/${selectedMetrics.candidate_task_count ?? "—"}`} note="제외 조건 통과 업무" tone="positive" />
-          <Metric icon="crime" label="제약 위반" value={number(selectedMetrics.constraint_violation_count, 0)} note={scenarioId === "none" ? "기본 배분안" : "가정 상황 · 책임자 확인 필요"} tone="positive" />
+          <Metric label="점검 대상" value={riskRows.length} note={horizon === 0 ? "현재 확인 후보" : `${horizon}시간 후 확인 후보`} />
+          <Metric label="먼저 확인" value={highRiskCount} note="위험 단계가 높은 도로" tone={highRiskCount ? "warning" : "neutral"} />
+          <Metric label="배분 완료" value={`${selectedMetrics.assigned_task_count ?? "—"}/${selectedMetrics.candidate_task_count ?? "—"}`} note="제외 조건 통과 업무" tone="positive" />
+          <Metric label="제약 위반" value={number(selectedMetrics.constraint_violation_count, 0)} note={scenarioId === "none" ? "기본 배분안" : "가정 상황 · 책임자 확인 필요"} tone="positive" />
         </div>
       </DataComponent>
     </section>
@@ -1275,7 +1288,7 @@ export function DashboardContent() {
             showTrafficAccidents={mapLayers.trafficAccidents && rows("traffic_accident_overlay").length > 0}
             selectedRoute={selectedRoute} onSelectRisk={selectRisk} onSelectTask={selectTask}
             onSelectRoute={selectRoute} onCloseRoute={() => setSelectedRouteKey(null)}
-            scenarioId={scenarioId} />
+            scenarioId={scenarioId} horizon={horizon} />
         </DataComponent>
         <ReplanSummary rows={rows("scenario_summary")} scenarioId={scenarioId} />
       </section>
