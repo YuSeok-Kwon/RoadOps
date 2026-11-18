@@ -54,6 +54,7 @@
 .command-fact > span { color: var(--secondary); font-size: 8px; font-weight: 700; letter-spacing: .08em; line-height: 11px; }
 .data-status-group strong,
 .command-fact strong { overflow: hidden; max-width: 170px; font-size: 11px; font-weight: 650; line-height: 16px; text-overflow: ellipsis; white-space: nowrap; }
+.command-fact-weather strong { max-width: 260px; }
 .command-fact-time { margin-left: auto; }
 .command-fact-time strong { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 14px; letter-spacing: .04em; }
 .toolbar-controls { display: grid; min-width: 0; min-height: 55px; grid-template-columns: minmax(390px, 1fr) minmax(175px, 210px) minmax(195px, 230px); align-items: center; gap: 20px; }
@@ -284,7 +285,7 @@
 .team-points circle { stroke: white; stroke-width: 2.5; vector-effect: non-scaling-stroke; }
 .team-points circle[data-available="false"] { fill: var(--secondary) !important; opacity: .38; stroke-dasharray: 2 2; }
 .team-points text { fill: white; font-size: 10px; font-weight: 800; text-anchor: middle; pointer-events: none; }
-.team-home-icon { fill: white; pointer-events: none; }
+.team-home-icon { fill: none; stroke: white; stroke-width: 2.2; pointer-events: none; }
 .team-points .team-start-name { fill: var(--text); font-size: 8px; text-anchor: start; paint-order: stroke; stroke: var(--background); stroke-width: 3px; }
 .map-place-label { position: absolute; color: color-mix(in srgb, var(--secondary) 70%, transparent); font-size: 11px; font-weight: 650; letter-spacing: .08em; pointer-events: none; }
 .map-place-label--jeju { top: 22%; left: 48%; }
@@ -333,7 +334,7 @@
 .route-course-list li[data-current] { color: var(--text); background: color-mix(in srgb, var(--chart-1) 11%, transparent); }
 .route-course-list li b { display: grid; width: 19px; height: 19px; box-sizing: border-box; place-items: center; border: 2px solid var(--team-color, var(--chart-1)); border-radius: 99px; color: var(--text); background: var(--surface); font-family: Poppins, var(--font-sans); font-size: 8px; }
 .route-course-list li .course-home { border: 0; color: white; background: var(--chart-1); }
-.course-home svg { width: 12px; height: 12px; fill: currentColor; }
+.course-home svg { width: 12px; height: 12px; fill: none; stroke: currentColor; }
 .route-course-list li > span { display: flex; min-width: 0; flex-direction: column; }
 .route-course-list li > span strong { overflow: hidden; color: var(--text); font-size: 9px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
 .route-course-list li > span small { overflow: hidden; text-overflow: ellipsis; }
@@ -364,7 +365,7 @@
 .legend-group .legend-service { display: grid; width: 16px; height: 16px; box-sizing: border-box; place-items: center; border: 1px solid white; border-radius: 99px; color: white; background: #1468b3; }
 .legend-group .legend-service.fire { background: #d14343; }
 .legend-group .legend-service .layer-icon { width: 11px; height: 11px; color: white; stroke-width: 2; }
-.legend-start svg { width: 11px; height: 11px; fill: currentColor; }
+.legend-start svg { width: 11px; height: 11px; fill: none; stroke: currentColor; }
 .legend-group .legend-before { border-top-color: var(--secondary); border-top-style: dashed; }
 .legend-group .legend-after { border-top-color: #008f7a; }
 
@@ -696,7 +697,7 @@
 .operation-horizon-row > span { color: var(--secondary); font-size: 10px; font-weight: 700; white-space: nowrap; }
 .operation-horizon-row .horizon-buttons { max-width: 580px; }
 .selected-depot-chip { display: inline-flex; min-width: 0; align-items: center; gap: 7px; margin-left: auto; padding: 6px 9px; border: 1px solid var(--border); border-radius: 999px; color: var(--text); background: var(--background); font-size: 10px; font-weight: 700; }
-.selected-depot-chip svg { width: 14px; height: 14px; fill: var(--chart-1); }
+.selected-depot-chip svg { width: 14px; height: 14px; fill: none; stroke: var(--chart-1); }
 
 .operation-steps { display: grid; flex: 0 0 auto; min-height: 48px; padding: 0 28px; grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: center; border-bottom: 1px solid var(--border); background: var(--surface); }
 .operation-steps span { position: relative; display: flex; align-items: center; gap: 7px; color: var(--secondary); font-size: 10px; font-weight: 650; }
@@ -762,14 +763,14 @@
 .depot-list button:hover,
 .depot-list button[data-selected] { border-color: color-mix(in srgb, #6aa52d 55%, var(--border)); background: color-mix(in srgb, #6aa52d 7%, var(--background)); }
 .depot-home { display: grid; width: 30px; height: 30px; place-items: center; border-radius: 50%; color: white; background: var(--team-color); }
-.depot-home svg { width: 16px; height: 16px; fill: currentColor; }
+.depot-home svg { width: 16px; height: 16px; fill: none; stroke: currentColor; }
 .depot-list button > span:nth-child(2) { display: flex; min-width: 0; flex-direction: column; }
 .depot-list strong { font-size: 11px; line-height: 16px; }
 .depot-list small { overflow: hidden; color: var(--secondary); font-size: 8px; line-height: 13px; text-overflow: ellipsis; white-space: nowrap; }
 .depot-list button > b { grid-column: 2; color: #5d8f27; font-size: 8px; font-weight: 700; }
 
 .operation-empty-state { display: flex; height: 100%; min-height: 260px; box-sizing: border-box; align-items: center; justify-content: center; padding: 40px; flex-direction: column; border: 1px dashed var(--border-strong); border-radius: 8px; color: var(--secondary); background: var(--surface); text-align: center; }
-.operation-empty-state svg { width: 34px; height: 34px; margin-bottom: 12px; fill: #6aa52d; }
+.operation-empty-state svg { width: 34px; height: 34px; margin-bottom: 12px; fill: none; stroke: #6aa52d; }
 .operation-empty-state strong { color: var(--text); font-size: 14px; }
 .operation-empty-state span { max-width: 340px; margin-top: 7px; font-size: 10px; line-height: 17px; }
 .depot-evidence-card { overflow-y: auto; }
@@ -795,11 +796,34 @@
 .evidence-compact-grid p { display: flex; margin: 0 0 6px; flex-direction: column; }
 .evidence-compact-grid p b { overflow: hidden; font-size: 9px; line-height: 14px; text-overflow: ellipsis; white-space: nowrap; }
 .evidence-compact-grid p span { color: var(--secondary); font-size: 8px; line-height: 13px; }
+.evidence-disclosure { border-bottom: 1px solid var(--border); }
+.evidence-disclosure:last-child { border-bottom: 0; }
+.evidence-disclosure > button { display: grid; width: 100%; min-width: 0; padding: 7px 0; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; border: 0; color: var(--text); background: transparent; font: inherit; text-align: left; cursor: pointer; }
+.evidence-disclosure > button:hover { color: var(--chart-1); }
+.evidence-disclosure > button > span { display: flex; min-width: 0; flex-direction: column; }
+.evidence-disclosure > button b { overflow: hidden; font-size: 9px; line-height: 14px; text-overflow: ellipsis; white-space: nowrap; }
+.evidence-disclosure > button small { color: var(--secondary); font-size: 8px; line-height: 13px; }
+.evidence-disclosure > button i { color: var(--secondary); font-size: 8px; font-style: normal; white-space: nowrap; }
+.evidence-disclosure dl,
+.similar-place-list dl { display: grid; margin: 0 0 8px; padding: 8px; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px 12px; border-radius: 4px; background: var(--muted); }
+.evidence-disclosure dl div,
+.similar-place-list dl div { display: flex; min-width: 0; flex-direction: column; }
+.evidence-disclosure dt,
+.similar-place-list dt { color: var(--secondary); font-size: 7px; }
+.evidence-disclosure dd,
+.similar-place-list dd { margin: 2px 0 0; overflow-wrap: anywhere; font-size: 8px; font-weight: 650; line-height: 13px; }
+.crime-evidence-detail > dl { grid-template-columns: minmax(0, 1fr); }
+.crime-evidence-detail ul { margin: 0 0 7px; padding: 0; list-style: none; }
+.crime-evidence-detail li { display: flex; justify-content: space-between; gap: 8px; padding: 4px 0; border-bottom: 1px solid var(--border); font-size: 8px; }
+.crime-evidence-detail li:last-child { border-bottom: 0; }
+.crime-evidence-detail p { margin: 7px 0 9px; color: var(--secondary); font-size: 8px; line-height: 13px; }
 .similar-place-list { display: flex; flex-direction: column; gap: 6px; }
-.similar-place-list > div { display: grid; padding: 7px 9px; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 8px; border: 1px solid var(--border); border-radius: 5px; background: var(--background); }
+.similar-place-list > div { padding: 0 9px; border: 1px solid var(--border); border-radius: 5px; background: var(--background); }
+.similar-place-list > div > button { display: grid; width: 100%; min-width: 0; padding: 7px 0; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 8px; border: 0; color: var(--text); background: transparent; font: inherit; text-align: left; cursor: pointer; }
+.similar-place-list > div > button:hover { color: var(--chart-1); }
 .similar-place-list span { display: flex; align-items: center; gap: 6px; color: var(--secondary); font-size: 8px; }
 .similar-place-list span b { color: #d9820c; }
-.similar-place-list > div > strong { overflow: hidden; grid-column: 1 / -1; font-size: 9px; line-height: 14px; text-overflow: ellipsis; white-space: nowrap; }
+.similar-place-list > div > button > strong { overflow: hidden; grid-column: 1 / -1; font-size: 9px; line-height: 14px; text-overflow: ellipsis; white-space: nowrap; }
 .similar-place-list small { grid-column: 1 / -1; color: var(--secondary); font-size: 8px; }
 
 .route-choice-bar { display: flex; min-height: 52px; grid-column: 1 / -1; align-items: center; justify-content: flex-end; gap: 8px; padding: 9px 12px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface); }

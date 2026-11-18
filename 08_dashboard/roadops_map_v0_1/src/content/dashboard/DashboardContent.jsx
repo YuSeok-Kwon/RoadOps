@@ -157,26 +157,67 @@ function locationLabel(row) {
     || "위치 확인 필요";
 }
 
-function HomeIcon({ className = "" }) {
-  return <svg className={className} viewBox="0 0 20 20" aria-hidden="true">
-    <path d="M2.5 9.1 10 2.8l7.5 6.3v8.1h-5v-5H7.6v5H2.5Z" />
+// Open-source Lucide v0.468.0 icon geometry (ISC) is embedded locally so the
+// protected dashboard runtime does not need a new package dependency.
+const OPEN_ICON_NODES = {
+  warehouse: [
+    ["path", { d: "M22 8.35V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35A2 2 0 0 1 3.26 6.5l8-3.2a2 2 0 0 1 1.48 0l8 3.2A2 2 0 0 1 22 8.35Z" }],
+    ["path", { d: "M6 18h12" }],
+    ["path", { d: "M6 14h12" }],
+    ["rect", { width: 12, height: 12, x: 6, y: 10 }],
+  ],
+  accident: [
+    ["path", { d: "m21 8-2 2-1.5-3.7A2 2 0 0 0 15.646 5H8.4a2 2 0 0 0-1.903 1.257L5 10 3 8" }],
+    ["path", { d: "M7 14h.01" }],
+    ["path", { d: "M17 14h.01" }],
+    ["rect", { width: 18, height: 8, x: 3, y: 10, rx: 2 }],
+    ["path", { d: "M5 18v2" }],
+    ["path", { d: "M19 18v2" }],
+  ],
+  complaint: [
+    ["path", { d: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" }],
+    ["path", { d: "M13 8H7" }],
+    ["path", { d: "M17 12H7" }],
+  ],
+  crime: [
+    ["path", { d: "M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" }],
+    ["path", { d: "M12 8v4" }],
+    ["path", { d: "M12 16h.01" }],
+  ],
+  police: [
+    ["path", { d: "M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" }],
+    ["path", { d: "m9 12 2 2 4-4" }],
+  ],
+  fire: [
+    ["path", { d: "M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" }],
+  ],
+  layers: [
+    ["path", { d: "M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z" }],
+    ["path", { d: "M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12" }],
+    ["path", { d: "M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17" }],
+  ],
+  warning: [
+    ["path", { d: "m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" }],
+    ["path", { d: "M12 9v4" }],
+    ["path", { d: "M12 17h.01" }],
+  ],
+};
+
+function OpenIcon({ name, className = "", strokeWidth = 1.8, ...props }) {
+  const nodes = OPEN_ICON_NODES[name] || OPEN_ICON_NODES.layers;
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"
+    className={className} aria-hidden="true" {...props}>
+    {nodes.map(([tag, attributes], index) => React.createElement(tag, { ...attributes, key: index }))}
   </svg>;
 }
 
+function HomeIcon({ className = "", ...props }) {
+  return <OpenIcon name="warehouse" className={className} strokeWidth={2} {...props} />;
+}
+
 function LayerIcon({ type, className = "" }) {
-  const paths = {
-    accident: <><path d="M10 2.5 18 17H2Z" /><path d="M10 7v4.2M10 14.1v.2" /></>,
-    complaint: <path d="M3 3.5h14v9H9l-4.2 4v-4H3Z" />,
-    crime: <><path d="M10 2.4 16 4.6v4.8c0 3.8-2.4 6.4-6 8.2-3.6-1.8-6-4.4-6-8.2V4.6Z" /><path d="M10 7v3.3M10 13v.1" /></>,
-    police: <><path d="M10 2.4 16 4.6v4.8c0 3.8-2.4 6.4-6 8.2-3.6-1.8-6-4.4-6-8.2V4.6Z" /><path d="m10 6.2 1 2 2.2.3-1.6 1.5.4 2.2-2-1-2 1 .4-2.2-1.6-1.5 2.2-.3Z" /></>,
-    fire: <path d="M11.4 2.5c.5 3-2.6 3.9-1 6.4 1.2-1.2 1.5-2.4 1.4-3.6 2.8 2 4.1 4.3 3.7 7-.4 3-2.6 5.2-5.5 5.2s-5.1-2.2-5.5-5.2c-.3-2.4.8-4.7 3.4-6.8-.2 2 .2 3.3 1.1 4.1-.2-2.8.6-5.1 2.4-7.1Z" />,
-    layers: <><path d="m10 2.5 7.5 4L10 10 2.5 6.5Z" /><path d="m3.3 10.2 6.7 3.5 6.7-3.5M3.3 13.7l6.7 3.5 6.7-3.5" /></>,
-    warning: <><path d="M10 2.5 18 17H2Z" /><path d="M10 7v4.2M10 14.1v.2" /></>,
-  };
-  return <svg className={`layer-icon ${className}`.trim()} data-type={type}
-    viewBox="0 0 20 20" aria-hidden="true">
-    {paths[type] || paths.layers}
-  </svg>;
+  return <OpenIcon name={type} className={`layer-icon ${className}`.trim()} data-type={type} />;
 }
 
 function MapFacilityGlyph({ kind }) {
@@ -375,6 +416,18 @@ function weatherRainfall(row) {
   return label || "자료 없음";
 }
 
+function weatherRainfallDetail(row) {
+  const amount = weatherRainfall(row);
+  if (amount === "0mm") return "강수 없음";
+  return `${Number(row?.horizon_hours) === 0 ? "최근 1시간 강수량" : "시간당 예상 강수량"} ${amount}`;
+}
+
+function weatherWindDetail(row) {
+  return row?.maximum_wind_speed_mps == null
+    ? "최대풍속 확인 불가"
+    : `최대풍속 ${number(row.maximum_wind_speed_mps)}m/s`;
+}
+
 function validationSummary(row) {
   if (!row) return { label: "검증 정보 없음", tone: "pending", detail: "아직 예측 검증 결과가 없습니다." };
   if (row.validation_status === "descriptive_only") {
@@ -413,10 +466,10 @@ function WeatherForecastStrip({ rows, validationRows, horizon, onSelect }) {
           data-status={row.status} onClick={() => onSelect(Number(row.horizon_hours))}>
           <span>{Number(row.horizon_hours) === 0 ? "현재" : `${row.horizon_hours}시간 후`}</span>
           <strong>{weatherTemperature(row)}</strong>
-          <small>{row.sky_summary} · {row.precipitation_summary}</small>
+          <small>{row.sky_summary}</small>
           <em>
-            <b>{Number(row.horizon_hours) === 0 ? "최근 1시간" : "예상 1시간"} {weatherRainfall(row)}</b>
-            <i>최대 바람 {row.maximum_wind_speed_mps == null ? "확인 불가" : `${number(row.maximum_wind_speed_mps)}m/s`}</i>
+            <b>{weatherRainfallDetail(row)}</b>
+            <i>{weatherWindDetail(row)}</i>
           </em>
         </button>)}
       </div>
@@ -441,10 +494,10 @@ function MapLegend({
       <span><i data-priority="normal">일반</i>일반 순서</span>
     </div>
     {showAccidentHotspots && <div className="legend-group">
-      <span title="한국도로교통공단 선정 사고다발지역"><i className="legend-accident" />공단 사고다발</span>
+      <span title="한국도로교통공단 선정 교통사고 다발지역"><i className="legend-accident" />교통사고 다발</span>
     </div>}
     {showTrafficAccidents && <div className="legend-group">
-      <span title="생활안전지도 연간 교통사고다발구역"><i className="legend-traffic-overlay" />사고 비교</span>
+      <span title="생활안전지도 연간 교통사고 다발구역"><i className="legend-traffic-overlay" />교통사고 비교</span>
     </div>}
     {showComplaintHotspots && <div className="legend-group">
       <span title="신고자 정보를 제거한 3건 이상 민원 집계"><i className="legend-complaint" />민원 집계</span>
@@ -804,7 +857,7 @@ function RoadMap({
                 style={{ fill: TEAM_COLORS[row.team_id] || "#475569" }}>
                 <title>{`${row.team_name} · ${row.start_location_name || "출발 거점"} · ${row.available === false ? "비가용" : "가용"}`}</title>
               </circle>
-              <path className="team-home-icon" d="M-7 -1 0 -7l7 6v8H2V2h-4v5h-5Z" />
+              <HomeIcon className="team-home-icon" x="-8" y="-8" width="16" height="16" />
               <text className="team-start-name" x="16" y="4">{row.start_location_name || row.team_name || "출발 거점"}</text>
             </g>
           </g>;
@@ -948,19 +1001,20 @@ function HistoricalSimilarity({ rows, selectedLinkId }) {
 function CrimeContext({ rows, administrativeCity }) {
   const row = rows.find((item) => item.administrative_city === administrativeCity);
   if (!row) return null;
-  const categories = Array.isArray(row.top_categories) ? row.top_categories : [];
+  const categories = patrolCrimeCategories(row);
+  const displayedTotal = categories.reduce((sum, item) => sum + Number(item.occurrence_count || 0), 0);
   return <DataComponent variant="plain" id="crime-context" queryId="crime_statistics"
-    kind="custom" title={`${row.administrative_city} 범죄 통계`}
-    description={`${row.analysis_year}년 경찰청 비식별 행정시 통계입니다.`}
+    kind="custom" title={`${row.administrative_city} 생활안전 참고`}
+    description={`${row.analysis_year}년 경찰청 비식별 행정시 통계 중 현장 순찰 관련 항목입니다.`}
     sourceRows={rows} displayRows={[row]} className="crime-context-card"
     scopeFilters={[{ field: "administrative_city", label: "행정시", value: row.administrative_city }]}>
-    <div className="crime-total"><span>연간 발생 합계</span><strong>{number(row.occurrence_count, 0)}건</strong></div>
+    <div className="crime-total"><span>화면 표시 항목 합계</span><strong>{number(displayedTotal, 0)}건</strong></div>
     <ol className="crime-category-list">
       {categories.map((item, index) => <li key={item.crime_category}>
         <b>{index + 1}</b><span>{item.crime_category}</span><strong>{number(item.occurrence_count, 0)}건</strong>
       </li>)}
     </ol>
-    <p className="crime-context-note">시 단위 참고 통계입니다. 이 도로에서 발생한 범죄 건수나 범죄 다발지 표시는 아닙니다.</p>
+    <p className="crime-context-note">사기·사이버 등 도로 순찰과 직접 관련이 낮은 항목은 숨겼습니다. 시 단위 참고 통계이며 이 도로 또는 특정 동의 범죄 건수는 아닙니다.</p>
   </DataComponent>;
 }
 
@@ -1000,20 +1054,51 @@ function DepotSelector({ teams, selectedDepotId, onSelect }) {
   </DataComponent>;
 }
 
-function DepotEvidence({ depot, tasks, accidents, history, weather, crimeAvailable, onSelectTask }) {
+function depotAdministrativeCity(depot) {
+  const address = String(depot?.start_location_address || "");
+  if (address.includes("서귀포시")) return "서귀포시";
+  if (address.includes("제주시")) return "제주시";
+  return "제주 전역";
+}
+
+function patrolCrimeCategories(row) {
+  const excluded = /(사기|사이버|온라인|정보통신|지능|기타)/;
+  return (Array.isArray(row?.top_categories) ? row.top_categories : [])
+    .filter((item) => !excluded.test(String(item.crime_category || "")))
+    .slice(0, 4);
+}
+
+function DepotEvidence({
+  depot,
+  tasks,
+  accidents,
+  history,
+  weather,
+  crimeRows,
+  crimeOverlayRows,
+  onSelectTask,
+  onShowCrime,
+}) {
+  const [expandedEvidence, setExpandedEvidence] = useState(null);
+  useEffect(() => setExpandedEvidence(null), [depot?.team_id, weather?.horizon_hours]);
   if (!depot) return <div className="operation-empty-state">
     <HomeIcon />
     <strong>왼쪽에서 출발 거점을 선택하세요.</strong>
     <span>선택한 거점 주변의 기상·도로 위험·사고다발·과거 유사상황을 한곳에서 확인할 수 있습니다.</span>
   </div>;
+  const administrativeCity = depotAdministrativeCity(depot);
+  const crimeRow = crimeRows.find((row) => row.administrative_city === administrativeCity);
+  const crimeCategories = patrolCrimeCategories(crimeRow);
+  const crimeAvailable = crimeOverlayRows.length > 0;
+  const toggleEvidence = (key) => setExpandedEvidence((current) => current === key ? null : key);
   return <DataComponent variant="plain" id="depot-evidence" queryId="field_tasks"
-    queryIds={["field_tasks", "risk_links", "weather_forecast", "accident_hotspots", "historical_similarity", "crime_caution_overlay"]}
+    queryIds={["field_tasks", "risk_links", "weather_forecast", "accident_hotspots", "historical_similarity", "crime_statistics", "crime_caution_overlay"]}
     kind="custom" title={`${depot.start_location_name} 주변 상황`}
     description="출동 전 담당자가 확인할 근거를 장소 중심으로 정리했습니다."
     sourceRows={tasks} displayRows={tasks} className="depot-evidence-card">
     <div className="evidence-weather">
       <span>선택 시점 기상</span><strong>{weather ? `${weatherTemperature(weather)} · ${weather.sky_summary}` : "확인 불가"}</strong>
-      <small>{weather ? `${weather.precipitation_summary} · 1시간 강수 ${weatherRainfall(weather)} · 최대 바람 ${number(weather.maximum_wind_speed_mps)}m/s` : "예보 자료 없음"}</small>
+      <small>{weather ? `${weatherRainfallDetail(weather)} · ${weatherWindDetail(weather)}` : "예보 자료 없음"}</small>
     </div>
     <section className="evidence-section">
       <div className="evidence-section-head"><strong>우선 검토 도로</strong><span>{tasks.length}곳</span></div>
@@ -1027,28 +1112,72 @@ function DepotEvidence({ depot, tasks, accidents, history, weather, crimeAvailab
     </section>
     <section className="evidence-section evidence-compact-grid">
       <div>
-        <div className="evidence-section-head"><strong>주변 사고다발지역</strong><span>공단 공개자료</span></div>
-        {accidents.slice(0, 2).map((row) => <p key={row.hotspot_id}>
-          <b>{row.location_name}</b><span>사고 {number(row.accident_count, 0)}건 · 약 {number(row.distance_km)}km</span>
-        </p>)}
+        <div className="evidence-section-head"><strong>주변 교통사고 다발지역</strong><span>한국도로교통공단</span></div>
+        {accidents.slice(0, 2).map((row) => {
+          const key = `accident:${row.hotspot_id}`;
+          const expanded = expandedEvidence === key;
+          return <div className="evidence-disclosure" key={row.hotspot_id} data-expanded={expanded || undefined}>
+            <button type="button" aria-expanded={expanded} onClick={() => toggleEvidence(key)}>
+              <span><b>{row.location_name}</b><small>교통사고 {number(row.accident_count, 0)}건 · 약 {number(row.distance_km)}km</small></span>
+              <i>{expanded ? "접기" : "자세히"}</i>
+            </button>
+            {expanded && <dl>
+              <div><dt>기준 연도</dt><dd>{row.analysis_year}년</dd></div>
+              <div><dt>사상자</dt><dd>{number(row.casualty_count, 0)}명</dd></div>
+              <div><dt>사망</dt><dd>{number(row.fatality_count, 0)}명</dd></div>
+              <div><dt>중상</dt><dd>{number(row.serious_injury_count, 0)}명</dd></div>
+            </dl>}
+          </div>;
+        })}
         {!accidents.length && <p><span>주변 공개자료 없음</span></p>}
       </div>
       <div>
-        <div className="evidence-section-head"><strong>범죄주의 참고</strong><span>위험점수와 분리</span></div>
-        <p><b>{crimeAvailable ? "경찰청 밀도 계층 연결됨" : "자료 확인 필요"}</b>
-          <span>{crimeAvailable ? "정확한 동별 건수가 아닌 비식별 지도 계층입니다." : "승인된 계층이 없습니다."}</span></p>
+        <div className="evidence-section-head"><strong>생활안전 참고</strong><span>도로 위험점수와 분리</span></div>
+        <div className="evidence-disclosure" data-expanded={expandedEvidence === "crime" || undefined}>
+          <button type="button" aria-expanded={expandedEvidence === "crime"} onClick={() => {
+            const opening = expandedEvidence !== "crime";
+            toggleEvidence("crime");
+            if (opening && crimeAvailable) onShowCrime?.();
+          }}>
+            <span><b>{crimeAvailable ? `${administrativeCity} 범죄주의 밀도 지도` : "범죄주의 지도 확인 필요"}</b>
+              <small>{crimeCategories.length ? crimeCategories.map((item) => item.crime_category).join(" · ") : "생활안전 공간자료"}</small></span>
+            <i>{expandedEvidence === "crime" ? "접기" : "자세히"}</i>
+          </button>
+          {expandedEvidence === "crime" && <div className="crime-evidence-detail">
+            <dl>
+              <div><dt>선택 거점 위치</dt><dd>{depot.start_location_address || depot.start_location_name}</dd></div>
+              <div><dt>지도 표시 범위</dt><dd>경찰청 범죄주의구간 밀도 계층 · 제주 전역</dd></div>
+              <div><dt>통계 범위</dt><dd>{crimeRow ? `${crimeRow.analysis_year}년 ${crimeRow.administrative_city} 비식별 집계` : "행정시 집계 확인 필요"}</dd></div>
+            </dl>
+            {crimeCategories.length > 0 && <ul>{crimeCategories.map((item) => <li key={item.crime_category}>
+              <span>{item.crime_category}</span><b>{number(item.occurrence_count, 0)}건</b>
+            </li>)}</ul>}
+            <p>사기·사이버 등 도로 순찰과 직접 관련이 낮은 항목은 숨겼습니다. 원자료가 동별 정확한 건수를 제공하지 않아 특정 동의 범죄 건수로 해석할 수 없습니다.</p>
+          </div>}
+        </div>
       </div>
     </section>
     <section className="evidence-section">
       <div className="evidence-section-head"><strong>비슷했던 날의 사건 장소</strong><span>과거 수집 이력</span></div>
       <div className="similar-place-list">
-        {history.slice(0, 2).map((row) => <div key={row.observed_at}>
-          <span><b>{number(row.similarity_score, 0)}% 유사</b>{dateTime(row.observed_at)}</span>
-          <strong>{row.matched_places.length
-            ? row.matched_places.slice(0, 2).map(locationLabel).join(" · ")
-            : "현재 분석도로 밖의 사건 위치"}</strong>
-          <small>당시 도로 위험정보 {number(row.event_count, 0)}건</small>
-        </div>)}
+        {history.slice(0, 2).map((row) => {
+          const key = `history:${row.observed_at}`;
+          const expanded = expandedEvidence === key;
+          const places = row.matched_places.slice(0, 3).map(locationLabel);
+          return <div key={row.observed_at} data-expanded={expanded || undefined}>
+            <button type="button" aria-expanded={expanded} onClick={() => toggleEvidence(key)}>
+              <span><b>{number(row.similarity_score, 0)}% 유사</b>{dateTime(row.observed_at)}</span>
+              <strong>{places.length ? places.join(" · ") : "제공 좌표 확인 필요"}</strong>
+              <small>제주 C-ITS 도로 돌발정보 {number(row.event_count, 0)}건</small>
+            </button>
+            {expanded && <dl>
+              <div><dt>위험정보</dt><dd>제주 C-ITS 도로 돌발정보</dd></div>
+              <div><dt>발생 위치</dt><dd>{places.length ? places.join(" · ") : "제공 좌표 확인 필요"}</dd></div>
+              <div><dt>제공 코드</dt><dd>{Array.isArray(row.event_codes) && row.event_codes.length ? row.event_codes.join(" · ") : "확인 불가"}</dd></div>
+              <div><dt>당시 건수</dt><dd>{number(row.event_count, 0)}건</dd></div>
+            </dl>}
+          </div>;
+        })}
       </div>
     </section>
   </DataComponent>;
@@ -1359,7 +1488,7 @@ function LegacyDashboardContent() {
         </div>
         <div className="command-fact command-fact-weather">
           <span>현재 날씨</span>
-          <strong>{currentWeather ? `${weatherTemperature(currentWeather)} · ${currentWeather.sky_summary} · 강수 ${weatherRainfall(currentWeather)}` : "확인 불가"}</strong>
+          <strong>{currentWeather ? `${weatherTemperature(currentWeather)} · ${currentWeather.sky_summary} · ${weatherRainfallDetail(currentWeather)}` : "확인 불가"}</strong>
         </div>
         <div className="command-fact command-fact-time">
           <span>현재 시각</span>
@@ -1442,11 +1571,11 @@ function LegacyDashboardContent() {
           ]} className="roadops-map-card">
           <div className="map-layer-controls" role="group" aria-label="지도 계층 선택">
             <span className="map-layer-heading"><LayerIcon type="layers" />표시</span>
-            <label title="한국도로교통공단 선정 사고다발지역"><input type="checkbox" checked={mapLayers.accidentHotspots}
+            <label title="한국도로교통공단 선정 교통사고 다발지역"><input type="checkbox" checked={mapLayers.accidentHotspots}
               onChange={(event) => setMapLayers((current) => ({ ...current, accidentHotspots: event.target.checked }))} />
-              <LayerIcon type="accident" />사고다발
+              <LayerIcon type="accident" />교통사고 다발
               <LayerStatus available={rows("accident_hotspots").length > 0} value={rows("accident_hotspots").length}
-                unavailableLabel="사고다발지역 자료를 연결하지 못했습니다." /></label>
+                unavailableLabel="교통사고 다발지역 자료를 연결하지 못했습니다." /></label>
             <label title={rows("complaint_hotspots").length ? "비식별 도로민원 다발지역을 표시합니다." : "승인된 제주 도로민원 내보내기 자료가 필요합니다."}>
               <input type="checkbox" checked={mapLayers.complaintHotspots && rows("complaint_hotspots").length > 0}
                 disabled={!rows("complaint_hotspots").length}
@@ -1761,9 +1890,9 @@ export function DashboardContent() {
     className={`operation-map-card${mapExpanded ? " expanded" : ""}`}>
     <div className="operation-map-toolbar">
       <div className="operation-layer-buttons" role="group" aria-label="지도 참고 계층">
-        <label title="한국도로교통공단 사고다발지역"><input type="checkbox" checked={mapLayers.accidentHotspots}
+        <label title="한국도로교통공단 교통사고 다발지역"><input type="checkbox" checked={mapLayers.accidentHotspots}
           onChange={(event) => setMapLayers((current) => ({ ...current, accidentHotspots: event.target.checked }))} />
-          <LayerIcon type="accident" />사고다발</label>
+          <LayerIcon type="accident" />교통사고 다발</label>
         <label title="경찰청 범죄주의 밀도 계층"><input type="checkbox" checked={mapLayers.crimeCaution}
           onChange={(event) => setMapLayers((current) => ({ ...current, crimeCaution: event.target.checked }))} />
           <LayerIcon type="crime" />범죄주의</label>
@@ -1795,8 +1924,8 @@ export function DashboardContent() {
       <div className="toolbar-primary">
         <div className="toolbar-title"><div><span className="eyebrow">ROADOPS / JEJU</span><strong>도로 현장 운영 상황판</strong></div></div>
         <div className="toolbar-live-state"><span className="live-pill"><i />자동 갱신</span><small>{Number(metadata.automatic_refresh_interval_minutes) || 10}분 주기</small></div>
-        <div className="data-status-group"><span>데이터 기준</span><strong>{dateTime(metadata.latest_risk_target_at)}</strong></div>
-        <div className="command-fact command-fact-weather"><span>선택 시점 날씨</span><strong>{selectedWeather ? `${weatherTemperature(selectedWeather)} · ${selectedWeather.sky_summary} · 강수 ${weatherRainfall(selectedWeather)}` : "확인 불가"}</strong></div>
+        <div className="data-status-group"><span>최근 갱신</span><strong>{dateTime(metadata.generated_at || snapshot.generatedAt)}</strong></div>
+        <div className="command-fact command-fact-weather"><span>{horizon === 0 ? "현재 날씨" : `${horizon}시간 후 날씨`}</span><strong>{selectedWeather ? `${weatherTemperature(selectedWeather)} · ${selectedWeather.sky_summary} · ${weatherRainfallDetail(selectedWeather)}` : "확인 불가"}</strong></div>
         <div className="command-fact command-fact-time"><span>현재 시각</span><strong>{currentTime.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })}</strong></div>
         <div className="theme-control"><span>화면</span><div className="theme-buttons" role="group" aria-label="화면 테마 선택">
           <button type="button" aria-pressed={colorMode === "dark"} onClick={() => setColorMode("dark")}>다크</button>
@@ -1822,7 +1951,9 @@ export function DashboardContent() {
       <section className="operation-evidence-slot">
         <DepotEvidence depot={selectedDepot} tasks={candidates} accidents={nearbyAccidents}
           history={similarHistory} weather={selectedWeather}
-          crimeAvailable={rows("crime_caution_overlay").length > 0}
+          crimeRows={rows("crime_statistics")}
+          crimeOverlayRows={rows("crime_caution_overlay")}
+          onShowCrime={() => setMapLayers((current) => ({ ...current, crimeCaution: true }))}
           onSelectTask={(linkId) => setSelectedRiskId(linkId)} />
       </section>
       <RouteChoice depot={selectedDepot}

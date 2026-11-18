@@ -2,6 +2,7 @@ from pathlib import Path
 
 from roadops.historical_similarity import (
     build_historical_similarity,
+    event_locations,
     summarize_weather,
     weather_similarity,
 )
@@ -31,6 +32,23 @@ def test_similarity_reports_partial_evidence_coverage():
     assert coverage == 0.4
 
 
+def test_event_locations_preserve_coordinates_and_group_codes():
+    locations = event_locations(
+        [
+            {"link_id": "road-1", "longitude": 126.4, "latitude": 33.4, "code": 534},
+            {"link_id": "road-1", "longitude": 126.4, "latitude": 33.4, "code": 258},
+        ]
+    )
+    assert locations == [
+        {
+            "link_id": "road-1",
+            "longitude": 126.4,
+            "latitude": 33.4,
+            "event_codes": ["258", "534"],
+        }
+    ]
+
+
 def test_repository_snapshots_produce_auditable_matches():
     matches, report = build_historical_similarity(
         PROJECT_ROOT / "02_outputs/data/cits_snapshot_monitor_v0_1/snapshots"
@@ -39,3 +57,4 @@ def test_repository_snapshots_produce_auditable_matches():
     assert report["snapshot_count"] >= 2
     assert matches
     assert all("similarity_score" in row for row in matches)
+    assert all("event_locations" in row for row in matches)

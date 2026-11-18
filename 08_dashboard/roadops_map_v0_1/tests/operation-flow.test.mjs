@@ -52,4 +52,11 @@ test("sorts evidence by distance and labels similar-event places", () => {
   assert.equal(nearbyRows(depots[0], tasks, 1)[0].task_id, "task-1");
   const history = historicalPlaces([{ observed_at: "now", event_link_ids: ["2"] }], tasks);
   assert.equal(history[0].matched_places[0].task_id, "task-2");
+  const spatialHistory = historicalPlaces([{
+    observed_at: "later",
+    event_locations: [{ link_id: "provider-2", longitude: 126.5104, latitude: 33.5, event_codes: ["534"] }],
+  }], tasks);
+  assert.equal(spatialHistory[0].matched_places[0].task_id, "task-1");
+  assert.equal(spatialHistory[0].matched_places[0].historical_link_id, "provider-2");
+  assert.deepEqual(spatialHistory[0].matched_places[0].historical_event_codes, ["534"]);
 });

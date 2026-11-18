@@ -71,6 +71,32 @@ def _run_key(path: Path, source_id: str) -> str:
     return path.name[: -len(suffix)] if path.name.endswith(suffix) else path.stem
 
 
+def event_locations(records: Iterable[Mapping[str, Any]]) -> list[dict[str, Any]]:
+    """Keep provider coordinates and codes for explainable historical drill-downs."""
+
+    grouped: dict[tuple[str, float, float], set[str]] = {}
+    for row in records:
+        link_id = str(row.get("link_id") or "").strip()
+        longitude = _number(row.get("longitude"))
+        latitude = _number(row.get("latitude"))
+        if link_id in {"", "-1"} or longitude is None or latitude is None:
+            continue
+        key = (link_id, longitude, latitude)
+        code = str(row.get("code") or "").strip()
+        grouped.setdefault(key, set())
+        if code:
+            grouped[key].add(code)
+    return [
+        {
+            "link_id": link_id,
+            "longitude": longitude,
+            "latitude": latitude,
+            "event_codes": sorted(codes),
+        }
+        for (link_id, longitude, latitude), codes in sorted(grouped.items())
+    ]
+
+
 def build_historical_similarity(
     snapshot_dir: Path,
     *,
@@ -130,6 +156,7 @@ def build_historical_similarity(
                         if str(row.get("code") or "").strip()
                     }
                 ),
+                "event_locations": event_locations(event_records),
                 **{f"weather_{key}": value for key, value in features.items()},
             }
         )

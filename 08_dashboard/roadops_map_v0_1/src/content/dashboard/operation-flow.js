@@ -118,9 +118,38 @@ export function routeSummary(routes) {
 export function historicalPlaces(rows, tasks, limit = 3) {
   const tasksByLink = new Map(tasks.map((task) => [String(task.link_id), task]));
   return rows.slice(0, limit).map((row) => {
-    const places = (Array.isArray(row.event_link_ids) ? row.event_link_ids : [])
-      .map((linkId) => tasksByLink.get(String(linkId)))
-      .filter(Boolean);
-    return { ...row, matched_places: places };
+    const rawLocations = Array.isArray(row.event_locations) && row.event_locations.length
+      ? row.event_locations
+      : (Array.isArray(row.event_link_ids) ? row.event_link_ids : [])
+        .map((linkId) => ({ link_id: String(linkId) }));
+    const places = rawLocations.map((location) => {
+      const exact = tasksByLink.get(String(location.link_id));
+      if (exact) return { ...exact, historical_event_codes: location.event_codes || [] };
+      const nearest = tasks
+        .map((task) => ({ task, distance: distanceKm(location, task) }))
+        .filter((candidate) => Number.isFinite(candidate.distance) && candidate.distance <= 0.25)
+        .sort((left, right) => left.distance - right.distance)[0];
+      if (nearest) {
+        return {
+          ...nearest.task,
+          historical_link_id: location.link_id,
+          historical_distance_km: nearest.distance,
+          historical_event_codes: location.event_codes || [],
+        };
+      }
+      if (numeric(location.longitude) == null || numeric(location.latitude) == null) return null;
+      return {
+        link_id: location.link_id,
+        longitude: location.longitude,
+        latitude: location.latitude,
+        location_label: `위도 ${Number(location.latitude).toFixed(4)}, 경도 ${Number(location.longitude).toFixed(4)}`,
+        historical_event_codes: location.event_codes || [],
+      };
+    }).filter(Boolean);
+    const uniquePlaces = Array.from(new Map(places.map((place) => [
+      place.location_label || place.task_id || place.link_id,
+      place,
+    ])).values());
+    return { ...row, matched_places: uniquePlaces };
   });
 }
