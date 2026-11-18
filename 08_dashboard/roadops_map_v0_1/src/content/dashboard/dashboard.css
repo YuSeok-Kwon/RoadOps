@@ -90,6 +90,9 @@
 .weather-strip-title { display: flex; min-width: 0; justify-content: center; padding-right: 18px; flex-direction: column; border-right: 1px solid var(--border); }
 .weather-strip-title span { font-size: 12px; font-weight: 750; }
 .weather-strip-title small { margin-top: 2px; color: var(--secondary); font-size: 9px; }
+.forecast-validation-badge { width: fit-content; margin-top: 4px; padding: 2px 6px; border: 1px solid var(--border); border-radius: 999px; color: var(--secondary); background: var(--surface); font-size: 8px; line-height: 12px; cursor: help; }
+.forecast-validation-badge[data-tone="limited"] { border-color: color-mix(in srgb, #f59e0b 45%, var(--border)); color: #c77600; }
+.forecast-validation-badge[data-tone="pass"] { border-color: color-mix(in srgb, #6aa52d 45%, var(--border)); color: #5d8f27; }
 .weather-forecast-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .weather-forecast-list button { display: grid; min-width: 0; padding: 7px 15px; grid-template-columns: auto 1fr; grid-template-rows: auto auto; align-content: center; align-items: baseline; column-gap: 9px; border: 0; border-right: 1px solid var(--border); color: var(--text); background: transparent; font: inherit; text-align: left; cursor: pointer; }
 .weather-forecast-list button:last-child { border-right: 0; }

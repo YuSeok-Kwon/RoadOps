@@ -67,6 +67,7 @@ RISK_FORECAST_FIELDS = (
     "weather_evidence_kind",
     "weather_source_id",
     "weather_base_at",
+    "weather_fetched_at",
     "weather_valid_at",
     "weather_evidence_at",
     "weather_temperature_c",
@@ -151,6 +152,7 @@ def _weather_overlay(
     weather_kind: str | None = None
     weather_source_id: str | None = None
     weather_evidence_at: str | None = None
+    weather_fetched_at: str | None = None
 
     if weather is None:
         row.update(
@@ -169,6 +171,7 @@ def _weather_overlay(
         weather_kind = "observation"
         weather_source_id = "kma_ultra_short_nowcast"
         weather_evidence_at = _text(weather.get("observed_at"))
+        weather_fetched_at = _text(weather.get("observation_fetched_at"))
         row.update(
             {
                 "weather_status": "matched",
@@ -188,6 +191,7 @@ def _weather_overlay(
         weather_kind = "forecast"
         weather_source_id = _text(weather.get("forecast_source_id"))
         weather_evidence_at = _text(weather.get("forecast_valid_at"))
+        weather_fetched_at = _text(weather.get("forecast_fetched_at"))
         row.update(
             {
                 "weather_status": "matched",
@@ -240,6 +244,7 @@ def _weather_overlay(
         "weather_base_at": (
             _text(weather.get("forecast_base_at")) if weather else None
         ),
+        "weather_fetched_at": weather_fetched_at,
         "weather_valid_at": (
             _text(weather.get("forecast_valid_at")) if weather else None
         ),
@@ -459,6 +464,26 @@ def build_risk_forecasts(
         for row in output
     ):
         failed_checks.append("future_traffic_leakage")
+    if any(
+        (base_at := _datetime(row.get("weather_base_at"))) is not None
+        and base_at > generated_at
+        for row in output
+    ):
+        failed_checks.append("future_weather_base_leakage")
+    if any(
+        (fetched_at := _datetime(row.get("weather_fetched_at"))) is not None
+        and fetched_at > generated_at
+        for row in output
+    ):
+        failed_checks.append("future_weather_fetch_leakage")
+    if any(
+        row["horizon_hours"] == 0
+        and row.get("weather_evidence_kind") == "observation"
+        and (observed_at := _datetime(row.get("weather_evidence_at"))) is not None
+        and observed_at > generated_at
+        for row in output
+    ):
+        failed_checks.append("future_weather_observation_leakage")
     if not gateway_pressure and any(
         row["gateway_inflow_status"] != "unavailable" for row in output
     ):

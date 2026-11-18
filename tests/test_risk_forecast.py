@@ -68,6 +68,7 @@ def _weather_rows():
             "row_status": "usable",
             "observation_status": "matched",
             "observed_at": "2026-11-12T18:00:00+09:00",
+            "observation_fetched_at": "2026-11-12T18:05:00+09:00",
             "observed_temperature_c": "14",
             "observed_rainfall_1h_raw": "0",
             "observed_precipitation_type": "0",
@@ -80,6 +81,7 @@ def _weather_rows():
                 else "kma_ultra_short_forecast"
             ),
             "forecast_base_at": "2026-11-12T17:00:00+09:00",
+            "forecast_fetched_at": "2026-11-12T18:06:00+09:00",
             "forecast_valid_at": target.isoformat(),
             "forecast_temperature_c": "13",
             "forecast_rainfall_raw": rainfall,
@@ -102,6 +104,7 @@ def test_forecast_builds_one_row_per_event_and_horizon_without_future_leakage():
     assert all(set(row) == set(RISK_FORECAST_FIELDS) for row in rows)
     by_horizon = {row["horizon_hours"]: row for row in rows}
     assert by_horizon[0]["weather_evidence_kind"] == "observation"
+    assert by_horizon[0]["weather_fetched_at"] == "2026-11-12T18:05:00+09:00"
     assert by_horizon[0]["traffic_assumption"] == "current_observation"
     assert by_horizon[1]["traffic_assumption"] == "unavailable_no_future_model"
     assert by_horizon[1]["traffic_score"] is None
@@ -111,6 +114,16 @@ def test_forecast_builds_one_row_per_event_and_horizon_without_future_leakage():
     assert by_horizon[6]["gateway_inflow_status"] == "unavailable"
     assert report["failed_checks"] == []
     assert report["output_rows"] == 4
+
+
+def test_forecast_rejects_weather_fetched_after_generation():
+    weather = _weather_rows()
+    weather[1]["forecast_fetched_at"] = "2026-11-12T18:08:00+09:00"
+
+    _, report = build_risk_forecasts([_event()], weather, generated_at=NOW)
+
+    assert report["status"] == "fail"
+    assert "future_weather_fetch_leakage" in report["failed_checks"]
 
 
 def test_forecast_rain_scenario_changes_priority_and_preserves_uncertainty():

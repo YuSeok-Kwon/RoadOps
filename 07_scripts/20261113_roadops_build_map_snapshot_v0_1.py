@@ -127,6 +127,12 @@ def parse_args() -> argparse.Namespace:
         default=PROJECT_ROOT / "02_outputs/data/gateway_api_audit_v0_1/quality_report.json",
     )
     parser.add_argument(
+        "--forecast-validation",
+        type=Path,
+        default=PROJECT_ROOT
+        / "02_outputs/data/forecast_validation_v0_1/quality_report.json",
+    )
+    parser.add_argument(
         "--output-dir",
         type=Path,
         default=PROJECT_ROOT / "02_outputs/data/map_snapshot_v0_1",
@@ -224,6 +230,16 @@ def build_data_app_snapshot(
             [
                 "Temperature and humidity are shown as ranges across the reviewed Jeju forecast grids.",
                 "Maximum wind speed is the largest value among usable grid forecasts, not a single-site observation.",
+            ],
+        ),
+        "forecast_validation": source(
+            "RoadOps replay forecast validation",
+            [inputs["forecast_validation"]],
+            ["weather-forecast-strip"],
+            [
+                "The score is an operational priority scenario, not an accident probability.",
+                "Performance is not claimed until at least 20 matched points across 3 target times are available.",
+                "The required baseline is the same-link score persisted from forecast creation time.",
             ],
         ),
         "accident_hotspots": source(
@@ -421,6 +437,7 @@ def main() -> int:
         "traffic_accident_overlay": args.traffic_accident_overlay,
         "reverse_geocode": args.reverse_geocode,
         "gateway_audit": args.gateway_audit,
+        "forecast_validation": args.forecast_validation,
     }
     for name, path in inputs.items():
         if not path.exists():
@@ -443,6 +460,7 @@ def main() -> int:
         traffic_accident_overlay_rows=read_json(args.traffic_accident_overlay).get("records", []),
         reverse_geocode_rows=read_json(args.reverse_geocode).get("records", []),
         gateway_quality=read_json(args.gateway_audit),
+        forecast_validation_rows=read_json(args.forecast_validation).get("metrics", []),
         link_rows=read_csv(args.road_links),
         generated_at=generated_at,
     )

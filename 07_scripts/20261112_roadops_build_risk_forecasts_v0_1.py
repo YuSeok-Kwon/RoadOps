@@ -66,7 +66,7 @@ def parse_args() -> argparse.Namespace:
         "--as-of",
         help=(
             "Timezone-aware ISO timestamp for deterministic current-state checks. "
-            "Defaults to the weather timeline generation timestamp."
+            "Defaults to the latest weather generation or evidence-fetch timestamp."
         ),
     )
     parser.add_argument("--strict", action="store_true")
@@ -83,19 +83,35 @@ def _relative(path: Path) -> str:
 def _generated_at(value: str | None, weather_rows: list[Mapping[str, Any]]) -> datetime:
     candidate = value
     if candidate is None:
-        timestamps = sorted(
-            {
-                str(row.get("generated_at") or "").strip()
-                for row in weather_rows
-                if str(row.get("generated_at") or "").strip()
-            }
-        )
-        if len(timestamps) != 1:
+        generated_timestamps = {
+            str(row.get("generated_at") or "").strip()
+            for row in weather_rows
+            if str(row.get("generated_at") or "").strip()
+        }
+        if len(generated_timestamps) != 1:
             raise SystemExit(
                 "Weather timeline must contain exactly one generated_at value, "
                 "or pass --as-of explicitly."
             )
-        candidate = timestamps[0]
+        timestamps = set(generated_timestamps)
+        for row in weather_rows:
+            timestamps.update(
+                str(row.get(field) or "").strip()
+                for field in ("observation_fetched_at", "forecast_fetched_at")
+                if str(row.get(field) or "").strip()
+            )
+        parsed_timestamps = []
+        for timestamp in timestamps:
+            try:
+                parsed_timestamp = datetime.fromisoformat(
+                    timestamp.replace("Z", "+00:00")
+                )
+            except ValueError as exc:
+                raise SystemExit(f"Invalid weather evidence timestamp: {timestamp}") from exc
+            if parsed_timestamp.tzinfo is None:
+                raise SystemExit("Weather evidence timestamps must include a UTC offset")
+            parsed_timestamps.append(parsed_timestamp)
+        candidate = max(parsed_timestamps).isoformat()
     try:
         parsed = datetime.fromisoformat(candidate.replace("Z", "+00:00"))
     except ValueError as exc:

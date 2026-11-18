@@ -330,14 +330,37 @@ function weatherTemperature(row) {
   return `${number(minimum)}–${number(maximum)}°C`;
 }
 
-function WeatherForecastStrip({ rows, horizon, onSelect }) {
+function validationSummary(row) {
+  if (!row) return { label: "검증 정보 없음", tone: "pending", detail: "아직 예측 검증 결과가 없습니다." };
+  if (row.validation_status === "descriptive_only") {
+    return { label: "현재값 산출", tone: "current", detail: row.note };
+  }
+  if (row.validation_status === "pending") {
+    return { label: "검증 표본 대기", tone: "pending", detail: row.note };
+  }
+  const detail = `비교 ${number(row.matched_points, 0)}건 · RoadOps 오차 ${number(row.forecast_mae, 2)} · 현재값 유지 오차 ${number(row.persistence_mae, 2)}`;
+  if (row.validation_status === "insufficient_evidence") {
+    return { label: `초기 검증 ${number(row.matched_points, 0)}건`, tone: "limited", detail: `${detail}. ${row.note}` };
+  }
+  return {
+    label: Number(row.mae_improvement) > 0 ? "기준선 대비 개선" : "개선 미확인",
+    tone: Number(row.mae_improvement) > 0 ? "pass" : "limited",
+    detail,
+  };
+}
+
+function WeatherForecastStrip({ rows, validationRows, horizon, onSelect }) {
+  const validation = validationSummary(validationRows.find((row) => Number(row.horizon_hours) === horizon));
   return <DataComponent variant="plain" id="weather-forecast-strip" queryId="weather_forecast"
+    queryIds={["weather_forecast", "forecast_validation"]}
     kind="custom" title="제주 단기 기상" description="기상청 예보 격자의 제주 전역 범위입니다."
-    showHeading={false} showActions={false} sourceRows={rows} displayRows={rows}>
+    showHeading={false} showActions={false} sourceRows={[...rows, ...validationRows]} displayRows={rows}>
     <div className="weather-strip-inner">
       <div className="weather-strip-title">
         <span>제주 단기 기상</span>
         <small>기상청 · 제주 전역 격자 범위</small>
+        <b className="forecast-validation-badge" data-tone={validation.tone}
+          title={validation.detail}>{validation.label}</b>
       </div>
       <div className="weather-forecast-list">
         {rows.map((row) => <button type="button" key={row.horizon_hours}
@@ -991,6 +1014,7 @@ export function DashboardContent() {
   const rows = (queryId) => queries[queryId]?.rows ?? [];
   const metadata = /** @type {any} */ (rows("map_metadata")[0] ?? {});
   const weatherRows = rows("weather_forecast");
+  const forecastValidationRows = rows("forecast_validation");
   const allRiskRows = rows("risk_links");
   const riskRows = allRiskRows.filter((row) => Number(row.horizon_hours) === horizon && row.has_geometry);
   const selectedRisk = riskRows.find((row) => row.link_id === selectedRiskId)
@@ -1117,7 +1141,7 @@ export function DashboardContent() {
     </section>
 
     <section className="roadops-weather" aria-label="제주 단기 기상">
-      <WeatherForecastStrip rows={weatherRows} horizon={horizon}
+      <WeatherForecastStrip rows={weatherRows} validationRows={forecastValidationRows} horizon={horizon}
         onSelect={(hours) => setHorizonIndex(Math.max(0, HORIZONS.indexOf(hours)))} />
     </section>
 

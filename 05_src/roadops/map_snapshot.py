@@ -579,6 +579,7 @@ def build_map_snapshot(
     gateway_quality: Mapping[str, Any] | None = None,
     link_rows: Iterable[Mapping[str, Any]],
     generated_at: str,
+    forecast_validation_rows: Iterable[Mapping[str, Any]] = (),
 ) -> tuple[dict[str, list[dict[str, Any]]], dict[str, Any]]:
     """Build map query rows and a deterministic quality report."""
 
@@ -593,6 +594,7 @@ def build_map_snapshot(
     traffic_accident_overlay = [
         dict(row) for row in traffic_accident_overlay_rows
     ]
+    forecast_validation = [dict(row) for row in forecast_validation_rows]
     location_by_link = {
         str(row.get("link_id")): dict(row)
         for row in reverse_geocode_rows
@@ -854,6 +856,7 @@ def build_map_snapshot(
             "task_count": len(field_tasks),
             "authority_record_count": len(governance_authorities),
             "weather_forecast_horizon_count": len(weather_forecast),
+            "forecast_validation_horizon_count": len(forecast_validation),
             "accident_hotspot_count": len(accident_hotspots),
             "historical_similarity_match_count": len(historical_similarity),
             "crime_statistic_city_count": len(crime_statistics),
@@ -884,6 +887,7 @@ def build_map_snapshot(
     queries = {
         "map_metadata": metadata,
         "weather_forecast": weather_forecast,
+        "forecast_validation": forecast_validation,
         "accident_hotspots": accident_hotspots,
         "historical_similarity": historical_similarity,
         "crime_statistics": crime_statistics,

@@ -33,6 +33,7 @@ OPERATIONAL_STAGES = (
     ("gateway_api_audit", "20261112_roadops_audit_gateway_apis_v0_1.py"),
     ("gateway_pressure", "20261117_roadops_build_gateway_pressure_v0_1.py"),
     ("risk_forecasts", "20261112_roadops_build_risk_forecasts_v0_1.py"),
+    ("forecast_validation", "20261118_roadops_validate_risk_forecasts_v0_1.py"),
     ("reverse_geocode", "20261117_roadops_reverse_geocode_links_v0_1.py"),
     ("allocation_baselines", "20261112_roadops_build_allocation_baselines_v0_1.py"),
     ("travel_time", "20261113_roadops_build_travel_time_matrix_v0_1.py", "--refresh-cache"),
