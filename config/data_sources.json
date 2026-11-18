@@ -282,6 +282,50 @@
       }
     },
     {
+      "id": "kma_api_hub_hsr_image",
+      "name": "KMA HSR radar composite image",
+      "name_ko": "기상청 레이더 합성영상 HSR",
+      "documentation_url": "https://apihub.kma.go.kr/",
+      "endpoint_url": "https://apihub.kma.go.kr/api/typ03/cgi/rdr/nph-rdr_cmp1_img",
+      "kind": "png_image_api",
+      "authentication": {
+        "environment_variable": "KMA_API_HUB_AUTH_KEY",
+        "query_parameter": "authKey"
+      },
+      "runtime_params": "kma_hsr_latest",
+      "default_params": {"cmp": "HSR", "qcd": "HSLP", "obs": "ECHD", "map": "HR", "legend": 1},
+      "join_key": "tm",
+      "coordinate_system": "KMA HR map image",
+      "expected_fields": ["png_image", "tm"],
+      "quality_contract": {
+        "timestamp_field": "tm",
+        "source_timezone": "Asia/Seoul",
+        "freshness_max_minutes": 40
+      }
+    },
+    {
+      "id": "kma_api_hub_qpf_image",
+      "name": "KMA ultra-short precipitation forecast image",
+      "name_ko": "기상청 초단기 강수예측영상",
+      "documentation_url": "https://apihub.kma.go.kr/",
+      "endpoint_url": "https://apihub.kma.go.kr/api/typ03/cgi/rdr/nph-qpf_ana_img",
+      "kind": "png_image_api",
+      "authentication": {
+        "environment_variable": "KMA_API_HUB_AUTH_KEY",
+        "query_parameter": "authKey"
+      },
+      "runtime_params": "kma_qpf_horizons",
+      "default_params": {"qpf": "M", "eva": 1, "option": 1, "map": "HR", "legend": 1},
+      "join_key": "tm,ef",
+      "coordinate_system": "KMA HR map image",
+      "expected_fields": ["png_image", "tm", "ef"],
+      "quality_contract": {
+        "timestamp_field": "tm",
+        "source_timezone": "Asia/Seoul",
+        "forecast_horizons_minutes": [60, 180, 360]
+      }
+    },
+    {
       "id": "kac_realtime_flights",
       "name": "KAC real-time flight operations",
       "name_ko": "한국공항공사 실시간 항공기 운항정보",

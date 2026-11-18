@@ -14,6 +14,7 @@ import {
   routeSummary,
   tasksForDepot,
 } from "./operation-flow.js";
+import radarSnapshot from "../assets/kma-radar.json";
 import "./dashboard.css";
 
 const HORIZONS = [0, 1, 3, 6];
@@ -494,7 +495,7 @@ function weatherSourceLabel(row) {
   return "기상청 예보";
 }
 
-function WeatherMapView({ backgroundRows, weatherRows, selectedWeather, horizon, onSelectHorizon }) {
+function WeatherMapView({ backgroundRows, weatherRows, radarRows, selectedWeather, horizon, onSelectHorizon }) {
   const { width, height, project, projectMercator, mapToMercator } = useProjection(backgroundRows, []);
   const mapView = { zoom: 1, centerX: width / 2, centerY: height / 2 };
   const viewBox = `0 0 ${width} ${height}`;
@@ -502,6 +503,8 @@ function WeatherMapView({ backgroundRows, weatherRows, selectedWeather, horizon,
   const gridCount = Number(selectedWeather?.grid_count);
   const usableGridCount = Number(selectedWeather?.usable_grid_count);
   const currentView = Number(horizon) === 0;
+  const radarFrame = radarRows.find((row) => Number(row.horizon_hours) === Number(horizon));
+  const radarReady = radarFrame?.status === "ready" && radarFrame?.image_data_uri;
 
   return <div className="operation-weather-view">
     <div className="weather-view-summary" aria-label="선택 시점 기상 요약">
@@ -520,7 +523,8 @@ function WeatherMapView({ backgroundRows, weatherRows, selectedWeather, horizon,
 
     <div className="weather-view-body">
       <div className="weather-radar-map" aria-label="제주 강수 분포 지도">
-        <svg viewBox={viewBox} role="img" aria-label="제주도 기상 배경지도">
+        {radarReady ? <img className="weather-radar-image" src={radarFrame.image_data_uri}
+          alt={`${currentView ? "레이더 강수 실황" : `${horizon}시간 후 강수예측`} ${dateTime(radarFrame.valid_at)}`} /> : <svg viewBox={viewBox} role="img" aria-label="제주도 기상 배경지도">
           <BasemapTiles width={width} height={height} zoom={mapView.zoom}
             centerX={mapView.centerX} centerY={mapView.centerY}
             projectMercator={projectMercator} mapToMercator={mapToMercator} />
@@ -528,16 +532,18 @@ function WeatherMapView({ backgroundRows, weatherRows, selectedWeather, horizon,
             {backgroundRows.map((row, index) => <path key={row.link_id || index}
               d={pathFor(geometry(row.geometry_json), project)} />)}
           </g>
-        </svg>
-        <div className="weather-radar-status" data-current={currentView || undefined}>
+        </svg>}
+        {!radarReady && <div className="weather-radar-status" data-current={currentView || undefined}>
           <span>{currentView ? "현재 강수 관측" : `${horizon}시간 후 강수 예측`}</span>
-          <strong>{currentView ? "레이더 자료 권한 확인 중" : "초단기 강수예측 자료 연결 대기"}</strong>
+          <strong>강수영상을 불러오지 못했습니다</strong>
           <p>{currentView
-            ? "현재 강수영역은 관측 레이더 실응답이 확인된 뒤 표시합니다. 그전에는 강수영역을 임의로 만들지 않습니다."
-            : "기상청 초단기 강수예측 자료로 예상 강수영역을 표시할 예정입니다. 현재는 검증된 수치 예보만 제공합니다."}</p>
-        </div>
-        <span className="weather-map-badge">{selectedWeather?.sky_summary || "기상 확인"}</span>
-        <span className="weather-map-attribution">© OpenStreetMap contributors</span>
+            ? "마지막 정상 레이더 영상을 확인 중입니다. 수치 기상정보는 계속 제공됩니다."
+            : "해당 예측 시점의 영상을 확인 중입니다. 수치 예보는 계속 제공됩니다."}</p>
+        </div>}
+        <span className="weather-map-badge">{radarReady
+          ? `${currentView ? "레이더 실황" : "강수예측"} · ${dateTime(radarFrame.valid_at)}`
+          : selectedWeather?.sky_summary || "기상 확인"}</span>
+        <span className="weather-map-attribution">{radarReady ? "기상청 API허브" : "© OpenStreetMap contributors"}</span>
       </div>
 
       <aside className="weather-timeline" aria-label="시간대별 기상 예보">
@@ -1849,6 +1855,7 @@ export function DashboardContent() {
 
   const metadata = rows("map_metadata")[0] ?? {};
   const weatherRows = rows("weather_forecast");
+  const radarRows = Array.isArray(radarSnapshot?.records) ? radarSnapshot.records : [];
   const selectedWeather = weatherRows.find((row) => Number(row.horizon_hours) === horizon) ?? weatherRows[0];
   const allRiskRows = rows("risk_links");
   const riskRows = allRiskRows.filter((row) => Number(row.horizon_hours) === horizon && row.has_geometry);
@@ -1977,7 +1984,7 @@ export function DashboardContent() {
     description={surfaceView === "weather" ? "현재 강수 관측과 1·3·6시간 후 예상 강수 분포를 구분해 확인합니다."
       : phase === "select" ? "경로는 거점을 선택한 뒤에만 만들어집니다."
         : "배경지도 위에 선택 거점, 점검 후보와 확정된 경로만 표시합니다."}
-    sourceRows={surfaceView === "weather" ? weatherRows : allRiskRows}
+    sourceRows={surfaceView === "weather" ? [...weatherRows, ...radarRows] : allRiskRows}
     displayRows={surfaceView === "weather" ? (selectedWeather ? [selectedWeather] : []) : riskRows}
     sourceRowsByQuery={sourceRowsByQuery}
     scopeFilters={[{ field: "horizon_hours", label: "예측 시점", value: String(horizon) }]}
@@ -2017,7 +2024,7 @@ export function DashboardContent() {
       scenarioId={phase === "ai-result" ? scenarioId : "none"} horizon={horizon}
       mode={phase === "manual" || phase === "manual-review" ? "manual" : phase}
       selectedDepotId={selectedDepotId} manualTaskIds={manualTaskIds} />
-      : <WeatherMapView backgroundRows={rows("road_background")} weatherRows={weatherRows}
+      : <WeatherMapView backgroundRows={rows("road_background")} weatherRows={weatherRows} radarRows={radarRows}
         selectedWeather={selectedWeather} horizon={horizon}
         onSelectHorizon={(hours) => setHorizonIndex(Math.max(0, HORIZONS.indexOf(hours)))} />}
   </DataComponent>;

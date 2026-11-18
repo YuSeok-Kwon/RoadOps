@@ -80,7 +80,7 @@ def test_project_registry_has_unique_expected_sources():
     source_ids = [spec.source_id for spec in specs]
     by_id = {spec.source_id: spec for spec in specs}
 
-    assert len(source_ids) == 26
+    assert len(source_ids) == 28
     assert len(source_ids) == len(set(source_ids))
     assert "jeju_cits_road_event" in source_ids
     assert "molit_standard_node_link" in source_ids
@@ -88,6 +88,8 @@ def test_project_registry_has_unique_expected_sources():
     assert "kma_ultra_short_nowcast" in source_ids
     assert "kma_short_forecast" in source_ids
     assert "kma_radar_rain_zone" in source_ids
+    assert "kma_api_hub_hsr_image" in source_ids
+    assert "kma_api_hub_qpf_image" in source_ids
     assert "kac_realtime_flights" in source_ids
     assert "kac_hourly_arrival_passengers" in source_ids
     assert "komsa_ferry_schedule" in source_ids

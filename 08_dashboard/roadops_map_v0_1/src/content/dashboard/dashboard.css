@@ -760,6 +760,7 @@
 .weather-view-body { display: grid; min-width: 0; min-height: 0; flex: 1 1 auto; grid-template-columns: minmax(0, 1.45fr) minmax(210px, .55fr); gap: 10px; }
 .weather-radar-map { position: relative; min-height: 238px; overflow: hidden; border: 1px solid var(--border); border-radius: 7px; background: #d8edf3; }
 .weather-radar-map svg { display: block; width: 100%; height: 100%; min-height: 238px; }
+.weather-radar-image { display: block; width: 100%; height: 100%; min-height: 238px; object-fit: contain; background: #edf2f4; }
 .weather-radar-map .basemap-tiles { opacity: .74; }
 .weather-road-context path { fill: none; stroke: color-mix(in srgb, #1468b3 50%, transparent); stroke-width: 1.1; vector-effect: non-scaling-stroke; }
 .weather-radar-status { position: absolute; top: 50%; left: 50%; display: flex; width: min(350px, calc(100% - 36px)); box-sizing: border-box; padding: 13px 15px; flex-direction: column; border: 1px solid color-mix(in srgb, #1468b3 35%, var(--border)); border-radius: 8px; box-shadow: 0 10px 30px color-mix(in srgb, #0d2438 18%, transparent); background: color-mix(in srgb, var(--surface) 92%, transparent); transform: translate(-50%, -50%); backdrop-filter: blur(8px); }

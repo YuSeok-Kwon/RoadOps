@@ -12,6 +12,8 @@ def test_operational_refresh_order_preserves_dependencies():
     stage_ids = [stage_id for stage_id, _ in commands(PROJECT_ROOT, "operational")]
     assert stage_ids.index("cits_snapshots") < stage_ids.index("spatial_join")
     assert stage_ids.index("integrated_events") < stage_ids.index("risk_scores")
+    assert stage_ids.index("weather_timeline") < stage_ids.index("kma_radar")
+    assert stage_ids.index("kma_radar") < stage_ids.index("dashboard_snapshot")
     assert stage_ids.index("safemap_response_layers") < stage_ids.index("dashboard_snapshot")
     assert stage_ids.index("travel_time") < stage_ids.index("optimized_allocation")
     assert stage_ids[-1] == "dashboard_snapshot"

@@ -30,6 +30,7 @@ OPERATIONAL_STAGES = (
     ),
     ("risk_scores", "20261112_roadops_build_risk_scores_v0_1.py"),
     ("weather_timeline", "20261112_roadops_build_weather_timeline_v0_1.py"),
+    ("kma_radar", "20261118_roadops_collect_kma_radar_v0_1.py"),
     ("gateway_api_audit", "20261112_roadops_audit_gateway_apis_v0_1.py"),
     ("gateway_pressure", "20261117_roadops_build_gateway_pressure_v0_1.py"),
     ("risk_forecasts", "20261112_roadops_build_risk_forecasts_v0_1.py"),
