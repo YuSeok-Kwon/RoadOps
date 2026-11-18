@@ -1,0 +1,500 @@
+{
+  "captured_date": "2026-11-18",
+  "forecast": {
+    "schema_version": 1,
+    "validation_version": "roadops-forecast-validation-v0.1",
+    "status": "pass_with_limitations",
+    "generated_at": "2026-11-18T21:12:41.408073+09:00",
+    "forecast_semantics": "operational_priority_scenario_not_accident_probability",
+    "baseline": "same_link_same_forecast_vintage_current_score_persistence",
+    "minimum_evidence": {
+      "matched_points": 20,
+      "target_times": 3
+    },
+    "snapshot_count": 20,
+    "leakage_failure_count": 0,
+    "leakage_failures": [],
+    "metrics": [
+      {
+        "horizon_hours": 0,
+        "validation_status": "descriptive_only",
+        "comparison_status": "not_applicable",
+        "matched_points": 178,
+        "target_times": 6,
+        "link_count": 12,
+        "forecast_mae": null,
+        "persistence_mae": null,
+        "mae_improvement": null,
+        "interval_coverage_ratio": null,
+        "note": "현재 시점은 예측 정확도가 아닌 현재 상태 산출 가용성만 확인합니다."
+      },
+      {
+        "horizon_hours": 1,
+        "validation_status": "insufficient_evidence",
+        "comparison_status": "provisional",
+        "matched_points": 13,
+        "target_times": 4,
+        "link_count": 6,
+        "forecast_mae": 3.268,
+        "persistence_mae": 3.443,
+        "mae_improvement": 0.175,
+        "interval_coverage_ratio": 0.846,
+        "forecast_wins": 3,
+        "ties": 2,
+        "persistence_wins": 8,
+        "note": "비교 표본이 부족해 성능 우위를 판단할 수 없습니다."
+      },
+      {
+        "horizon_hours": 3,
+        "validation_status": "insufficient_evidence",
+        "comparison_status": "provisional",
+        "matched_points": 2,
+        "target_times": 1,
+        "link_count": 2,
+        "forecast_mae": 3.867,
+        "persistence_mae": 5.883,
+        "mae_improvement": 2.015,
+        "interval_coverage_ratio": 1.0,
+        "forecast_wins": 1,
+        "ties": 0,
+        "persistence_wins": 1,
+        "note": "비교 표본이 부족해 성능 우위를 판단할 수 없습니다."
+      },
+      {
+        "horizon_hours": 6,
+        "validation_status": "pending",
+        "comparison_status": "not_available",
+        "matched_points": 0,
+        "target_times": 0,
+        "link_count": 0,
+        "forecast_mae": null,
+        "persistence_mae": null,
+        "mae_improvement": null,
+        "interval_coverage_ratio": null,
+        "forecast_wins": 0,
+        "ties": 0,
+        "persistence_wins": 0,
+        "note": "비교할 수 있는 실제 시점이 아직 없습니다."
+      }
+    ],
+    "limitations": [
+      "priority_score_validation_not_accident_probability_validation",
+      "current_available_history_is_sparse",
+      "same_time_persistence_is_the_required_baseline"
+    ],
+    "inputs": {
+      "current_forecasts": "02_outputs/data/risk_forecasts_v0_1/risk_forecasts.csv",
+      "bootstrap": "demo/cached_inputs_v0_1/forecast_replay_snapshots.json",
+      "archive_directory": "02_outputs/data/forecast_validation_v0_1/archive"
+    },
+    "outputs": {
+      "quality_report": "02_outputs/data/forecast_validation_v0_1/quality_report.json",
+      "matched_forecasts": "02_outputs/data/forecast_validation_v0_1/matched_forecasts.csv"
+    }
+  },
+  "allocation_benchmark_20261113": {
+    "schema_version": 1,
+    "evaluation_version": "roadops-allocation-evaluation-v0.1",
+    "scenario_id": "demo-three-teams-two-hours-v0.1",
+    "status": "pass",
+    "metric_semantics": {
+      "travel_time": "free_flow_speed_limit_estimate_not_live_eta",
+      "constraint_violation": "shift_exceeded_team_count plus unavailable_route_leg_count for baselines; optimizer hard-constraint violations for alternatives"
+    },
+    "comparison": [
+      {
+        "method_id": "risk_first",
+        "method_group": "baseline",
+        "assigned_task_count": 9,
+        "unassigned_task_count": 0,
+        "risk_weighted_coverage_ratio": 1.0,
+        "high_priority_unassigned_count": 0,
+        "network_total_travel_minutes": 166.941,
+        "maximum_team_elapsed_minutes": 132.302,
+        "shift_exceeded_team_count": 1,
+        "unavailable_route_leg_count": 0,
+        "network_constraint_violation_count": 1
+      },
+      {
+        "method_id": "nearest",
+        "method_group": "baseline",
+        "assigned_task_count": 9,
+        "unassigned_task_count": 0,
+        "risk_weighted_coverage_ratio": 1.0,
+        "high_priority_unassigned_count": 0,
+        "network_total_travel_minutes": 164.253,
+        "maximum_team_elapsed_minutes": 130.171,
+        "shift_exceeded_team_count": 1,
+        "unavailable_route_leg_count": 0,
+        "network_constraint_violation_count": 1
+      },
+      {
+        "method_id": "safety_first",
+        "method_group": "optimized",
+        "assigned_task_count": 9,
+        "unassigned_task_count": 0,
+        "risk_weighted_coverage_ratio": 1.0,
+        "high_priority_unassigned_count": 0,
+        "network_total_travel_minutes": 90.167,
+        "maximum_team_elapsed_minutes": 91.197,
+        "shift_exceeded_team_count": 0,
+        "unavailable_route_leg_count": 0,
+        "network_constraint_violation_count": 0
+      },
+      {
+        "method_id": "balanced_operations",
+        "method_group": "optimized",
+        "assigned_task_count": 9,
+        "unassigned_task_count": 0,
+        "risk_weighted_coverage_ratio": 1.0,
+        "high_priority_unassigned_count": 0,
+        "network_total_travel_minutes": 99.999,
+        "maximum_team_elapsed_minutes": 91.197,
+        "shift_exceeded_team_count": 0,
+        "unavailable_route_leg_count": 0,
+        "network_constraint_violation_count": 0
+      }
+    ],
+    "improvements_vs_nearest": {
+      "safety_first": {
+        "comparison_method_id": "nearest",
+        "network_travel_minutes_reduced": 74.086,
+        "network_travel_reduction_percent": 45.1,
+        "maximum_team_elapsed_minutes_reduced": 38.974,
+        "maximum_team_elapsed_reduction_percent": 29.9,
+        "network_constraint_violations_reduced": 1
+      },
+      "balanced_operations": {
+        "comparison_method_id": "nearest",
+        "network_travel_minutes_reduced": 64.254,
+        "network_travel_reduction_percent": 39.1,
+        "maximum_team_elapsed_minutes_reduced": 38.974,
+        "maximum_team_elapsed_reduction_percent": 29.9,
+        "network_constraint_violations_reduced": 1
+      }
+    },
+    "optimizer_benchmark": {
+      "repeat_count": 10,
+      "duration_milliseconds": {
+        "minimum": 2625.617,
+        "mean": 3031.831,
+        "median": 3000.214,
+        "p95_nearest_rank": 3408.694,
+        "maximum": 3408.694
+      },
+      "successful_run_count": 10,
+      "unique_plan_fingerprint_count": 1,
+      "deterministic_outputs": true,
+      "plan_fingerprint": "554ef87304f8b067f82689b1c8e6bd9813fa1f0ef3cbb33a241cd3c3738513fa"
+    }
+  },
+  "replanning_generated_at": "2026-11-18T21:23:42.194333+09:00",
+  "replanning": [
+    {
+      "scenario": {
+        "scenario_id": "demo-road-closure-v0.1",
+        "scenario_type": "road_closure",
+        "reason_code": "road_closure_what_if_injected",
+        "semantics": "what_if_not_observed_road_closure",
+        "affected_link_ids": [
+          "4050005521"
+        ],
+        "travel_matrix_status": "pass_with_limitations"
+      },
+      "change_diff": {
+        "affected_team_ids": [
+          "team-north"
+        ],
+        "unchanged_team_ids": [
+          "team-east",
+          "team-west"
+        ],
+        "preserved_completed_task_ids": [
+          "link:4060438807:h0"
+        ],
+        "preserved_fixed_task_ids": [
+          "link:4050418600:h0"
+        ],
+        "before_metrics": {
+          "risk_weighted_coverage_ratio": 0.904656,
+          "network_total_travel_minutes": 118.858,
+          "maximum_team_elapsed_minutes": 87.312,
+          "unassigned_task_count": 1,
+          "constraint_violation_count": 0
+        },
+        "after_metrics": {
+          "risk_weighted_coverage_ratio": 0.904656,
+          "network_total_travel_minutes": 120.642,
+          "maximum_team_elapsed_minutes": 87.312,
+          "unassigned_task_count": 0,
+          "constraint_violation_count": 0
+        },
+        "metric_delta": {
+          "risk_weighted_coverage_ratio": 0.0,
+          "network_total_travel_minutes": 1.784,
+          "maximum_team_elapsed_minutes": 0.0,
+          "unassigned_task_count": -1.0,
+          "constraint_violation_count": 0.0
+        },
+        "team_changes": [
+          {
+            "team_id": "team-east",
+            "change_status": "unaffected_preserved",
+            "before_task_ids": [
+              "link:4060438807:h0",
+              "link:4050418600:h0"
+            ],
+            "after_task_ids": [
+              "link:4060438807:h0",
+              "link:4050418600:h0"
+            ],
+            "task_sequence_changed": false,
+            "route_changed_task_ids": [],
+            "travel_minutes_delta": 0.0,
+            "elapsed_minutes_delta": 0.0,
+            "change_reasons": []
+          },
+          {
+            "team_id": "team-north",
+            "change_status": "affected_replanned",
+            "before_task_ids": [
+              "link:4050005521:h0",
+              "link:4050484700:h0",
+              "link:4050484600:h0"
+            ],
+            "after_task_ids": [
+              "link:4050484700:h0",
+              "link:4050484600:h0",
+              "link:4050005521:h0"
+            ],
+            "task_sequence_changed": true,
+            "route_changed_task_ids": [],
+            "travel_minutes_delta": 1.784,
+            "elapsed_minutes_delta": 1.784,
+            "change_reasons": [
+              "route_uses_closed_link:4050005521"
+            ]
+          },
+          {
+            "team_id": "team-west",
+            "change_status": "unaffected_preserved",
+            "before_task_ids": [
+              "link:4050456800:h0",
+              "link:4050429802:h0",
+              "link:4060024900:h0"
+            ],
+            "after_task_ids": [
+              "link:4050456800:h0",
+              "link:4050429802:h0",
+              "link:4060024900:h0"
+            ],
+            "task_sequence_changed": false,
+            "route_changed_task_ids": [],
+            "travel_minutes_delta": 0.0,
+            "elapsed_minutes_delta": 0.0,
+            "change_reasons": []
+          }
+        ]
+      },
+      "explanation": {
+        "summary": "road_closure 시나리오로 1개 팀의 남은 경로만 재계획했습니다.",
+        "affected_team_ids": [
+          "team-north"
+        ],
+        "unchanged_team_ids": [
+          "team-east",
+          "team-west"
+        ],
+        "preserved_completed_task_ids": [
+          "link:4060438807:h0"
+        ],
+        "preserved_fixed_task_ids": [
+          "link:4050418600:h0"
+        ],
+        "metric_delta": {
+          "risk_weighted_coverage_ratio": 0.0,
+          "network_total_travel_minutes": 1.784,
+          "maximum_team_elapsed_minutes": 0.0,
+          "unassigned_task_count": -1.0,
+          "constraint_violation_count": 0.0
+        },
+        "team_change_reasons": {
+          "team-north": [
+            "route_uses_closed_link:4050005521"
+          ]
+        },
+        "change_reason_messages": [
+          "team-north의 남은 경로가 통제 링크 4050005521를 사용해 통제 링크를 제외한 경로로 다시 계산했습니다."
+        ],
+        "warnings": [
+          "시나리오 결과이며 실제 통제 또는 관측된 폭우로 단정하지 않습니다.",
+          "제주 ITS 실시간 속도를 반영했으며, 미관측 도로는 제한속도 기준으로 보완했습니다.",
+          "담당자 승인 전에는 현장 지시로 사용하지 않습니다."
+        ],
+        "manual_approval_required": true
+      },
+      "status": "pass"
+    },
+    {
+      "scenario": {
+        "scenario_type": "heavy_rain",
+        "reason_code": "heavy_rain_what_if_injected",
+        "semantics": "what_if_not_observed_weather",
+        "affected_link_ids": [
+          "4050456800",
+          "4050484600"
+        ],
+        "priority_delta": 15.0,
+        "service_minutes_delta": 10.0,
+        "travel_time_multiplier": 1.25,
+        "changed_task_ids": [
+          "link:4050456800:h0",
+          "link:4050484600:h0"
+        ],
+        "changed_route_count": 48,
+        "scenario_id": "demo-heavy-rain-v0.1"
+      },
+      "change_diff": {
+        "affected_team_ids": [
+          "team-north",
+          "team-west"
+        ],
+        "unchanged_team_ids": [
+          "team-east"
+        ],
+        "preserved_completed_task_ids": [
+          "link:4060438807:h0"
+        ],
+        "preserved_fixed_task_ids": [
+          "link:4050418600:h0"
+        ],
+        "before_metrics": {
+          "risk_weighted_coverage_ratio": 0.904656,
+          "network_total_travel_minutes": 118.858,
+          "maximum_team_elapsed_minutes": 87.312,
+          "unassigned_task_count": 1,
+          "constraint_violation_count": 0
+        },
+        "after_metrics": {
+          "risk_weighted_coverage_ratio": 0.911955,
+          "network_total_travel_minutes": 121.175,
+          "maximum_team_elapsed_minutes": 107.03,
+          "unassigned_task_count": 0,
+          "constraint_violation_count": 0
+        },
+        "metric_delta": {
+          "risk_weighted_coverage_ratio": 0.007299,
+          "network_total_travel_minutes": 2.317,
+          "maximum_team_elapsed_minutes": 19.718,
+          "unassigned_task_count": -1.0,
+          "constraint_violation_count": 0.0
+        },
+        "team_changes": [
+          {
+            "team_id": "team-east",
+            "change_status": "unaffected_preserved",
+            "before_task_ids": [
+              "link:4060438807:h0",
+              "link:4050418600:h0"
+            ],
+            "after_task_ids": [
+              "link:4060438807:h0",
+              "link:4050418600:h0"
+            ],
+            "task_sequence_changed": false,
+            "route_changed_task_ids": [],
+            "travel_minutes_delta": 0.0,
+            "elapsed_minutes_delta": 0.0,
+            "change_reasons": []
+          },
+          {
+            "team_id": "team-north",
+            "change_status": "affected_replanned",
+            "before_task_ids": [
+              "link:4050005521:h0",
+              "link:4050484700:h0",
+              "link:4050484600:h0"
+            ],
+            "after_task_ids": [
+              "link:4050005521:h0",
+              "link:4050429802:h0",
+              "link:4060024900:h0"
+            ],
+            "task_sequence_changed": true,
+            "route_changed_task_ids": [],
+            "travel_minutes_delta": 31.108,
+            "elapsed_minutes_delta": 31.108,
+            "change_reasons": [
+              "assigned_task_in_heavy_rain_area:4050484600"
+            ]
+          },
+          {
+            "team_id": "team-west",
+            "change_status": "affected_replanned",
+            "before_task_ids": [
+              "link:4050456800:h0",
+              "link:4050429802:h0",
+              "link:4060024900:h0"
+            ],
+            "after_task_ids": [
+              "link:4050484700:h0",
+              "link:4050484600:h0",
+              "link:4050456800:h0"
+            ],
+            "task_sequence_changed": true,
+            "route_changed_task_ids": [],
+            "travel_minutes_delta": -28.791,
+            "elapsed_minutes_delta": -8.791,
+            "change_reasons": [
+              "assigned_task_in_heavy_rain_area:4050456800",
+              "route_crosses_heavy_rain_area"
+            ]
+          }
+        ]
+      },
+      "explanation": {
+        "summary": "heavy_rain 시나리오로 2개 팀의 남은 경로만 재계획했습니다.",
+        "affected_team_ids": [
+          "team-north",
+          "team-west"
+        ],
+        "unchanged_team_ids": [
+          "team-east"
+        ],
+        "preserved_completed_task_ids": [
+          "link:4060438807:h0"
+        ],
+        "preserved_fixed_task_ids": [
+          "link:4050418600:h0"
+        ],
+        "metric_delta": {
+          "risk_weighted_coverage_ratio": 0.007299,
+          "network_total_travel_minutes": 2.317,
+          "maximum_team_elapsed_minutes": 19.718,
+          "unassigned_task_count": -1.0,
+          "constraint_violation_count": 0.0
+        },
+        "team_change_reasons": {
+          "team-north": [
+            "assigned_task_in_heavy_rain_area:4050484600"
+          ],
+          "team-west": [
+            "assigned_task_in_heavy_rain_area:4050456800",
+            "route_crosses_heavy_rain_area"
+          ]
+        },
+        "change_reason_messages": [
+          "폭우 What-if 영향 링크 4050456800, 4050484600의 위험 우선순위와 점검시간, 이동시간을 보수적으로 조정했습니다.",
+          "영향팀의 남은 업무만 다시 비교하고 비영향팀 경로는 고정했습니다."
+        ],
+        "warnings": [
+          "시나리오 결과이며 실제 통제 또는 관측된 폭우로 단정하지 않습니다.",
+          "제주 ITS 실시간 속도를 반영했으며, 미관측 도로는 제한속도 기준으로 보완했습니다.",
+          "담당자 승인 전에는 현장 지시로 사용하지 않습니다."
+        ],
+        "manual_approval_required": true
+      },
+      "status": "pass"
+    }
+  ]
+}
