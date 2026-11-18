@@ -48,11 +48,11 @@ export async function writeRoadOpsStory({presentation:p,input}){
   note(s,'RoadOps는 도로관리 담당자의 작업계획과 변경 검토를 보조한다. 배경은 image_gen으로 새로 생성한 상황 재현 이미지이며 실제 제주 장소·재난·RoadOps 현장 운영 사례를 촬영한 자료가 아니다. 뉴스 사진을 입력이나 편집 대상으로 사용하지 않았다. 프롬프트와 제작 방식은 생성 기록에 보존한다. 3장부터 저장 입력·가정 자원·What-if 시뮬레이션으로 이어진다.','04_docs/presentation/assets/roadops_submission_20261118/generated_visuals.json','PROJECT_BRIEF.md');break;
  case 2:
   s=page(p,n,'비가 쏟아지면, 어느 도로부터 확인할까요?');
-  scene(s,a+'/10_jeju_road_original_detail_v1.png','제주 도로에서 착안한 비와 얕은 물고임의 AI 생성 상황 재현 이미지. 실제 현장 기록이 아니다.',{left:64,top:215,width:565,height:414},{left:0.42,top:0.28,right:0,bottom:0.03});
+  scene(s,a+'/11_jeju_road_inspector_v1.png','비 오는 제주 도로에서 착안한 환경에서 담당자가 손전등으로 배수구와 물고임을 점검하는 AI 생성 장면. 실제 인물이나 현장 기록이 아니다.',{left:64,top:215,width:565,height:414});
   txt(s,'점검할 곳은\n여러 곳.',695,251,500,135,46,C.black,true);
   txt(s,'움직일 수 있는 자원은\n한정돼 있습니다.',698,466,500,110,32,C.blue,true);
   src(s,'AI 생성 · 상황 재현 이미지 · 실제 장소나 재난 현장을 촬영한 자료가 아닙니다.');
-  note(s,'젖은 노면과 물고임으로 도로 점검 필요성을 표현한 원본 생성 이미지다. 실제 사고·침수의 근거 자료로 해석하지 않는다. 원본 이미지와 색감을 유지하고, 슬라이드에서 노면 중심으로 확대 배치한다. 표지는 도로 전경, 이 장은 세부 위험 상황을 보여주며 흰 배경과 제목 위치를 본문에 맞춘다.','04_docs/presentation/assets/roadops_submission_20261118/generated_visuals.json');break;
+  note(s,'기존 이미지의 차분한 비·안개·현무암 돌담 색감을 참고해 담당자의 현장 점검 동작을 중심으로 새로 생성했다. 인물은 가상의 도로관리 점검 담당자이며 실제 직원·기관·출동 기록을 나타내지 않는다. 표지는 도로 전경, 이 장은 사람이 노면과 배수 상태를 살피는 장면을 보여준다. 흰 배경과 제목 위치는 본문과 일치한다.','04_docs/presentation/assets/roadops_submission_20261118/generated_visuals.json');break;
  case 3:
   s=page(p,n,'오늘의 점검 계획은 담당자가 정해야 합니다','이제 도로관리 담당자의 판단 과정을 따라가는 운영 시뮬레이션을 시작합니다.');
   txt(s,'폭우가 예보된 날, 업무를 인계받았습니다.\n위험정보를 오늘 수행할 점검 계획으로 바꿔야 합니다.',74,242,1120,118,38,C.black,true);
