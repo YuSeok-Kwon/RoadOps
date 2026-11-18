@@ -314,11 +314,14 @@ function BasemapTiles({ width, height, zoom, centerX, centerY, projectMercator, 
   return <g className="basemap-tiles" aria-hidden="true">{tiles}</g>;
 }
 
-function Metric({ label, value, note, tone = "neutral" }) {
+function Metric({ label, value, note, tone = "neutral", icon = "layers" }) {
   return <div className="roadops-metric" data-tone={tone}>
-    <span>{label}</span>
-    <strong>{value}</strong>
-    <small>{note}</small>
+    <span className="roadops-metric-icon"><LayerIcon type={icon} /></span>
+    <span className="roadops-metric-copy">
+      <span>{label}</span>
+      <strong>{value}</strong>
+      <small>{note}</small>
+    </span>
   </div>;
 }
 
@@ -982,6 +985,7 @@ export function DashboardContent() {
   const [workflowPlan, setWorkflowPlan] = useState(/** @type {any} */ (null));
   const [inspectorTab, setInspectorTab] = useState("priorities");
   const [mapGuideOpen, setMapGuideOpen] = useState(false);
+  const [currentTime, setCurrentTime] = useState(() => new Date());
   const [mapLayers, setMapLayers] = useState({
     accidentHotspots: true,
     complaintHotspots: true,
@@ -1011,9 +1015,15 @@ export function DashboardContent() {
     setSelectedRouteKey(null);
   }, [selectedPlan, horizon, scenarioId]);
 
+  useEffect(() => {
+    const timer = window.setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
   const rows = (queryId) => queries[queryId]?.rows ?? [];
   const metadata = /** @type {any} */ (rows("map_metadata")[0] ?? {});
   const weatherRows = rows("weather_forecast");
+  const currentWeather = weatherRows.find((row) => Number(row.horizon_hours) === 0) ?? weatherRows[0];
   const forecastValidationRows = rows("forecast_validation");
   const allRiskRows = rows("risk_links");
   const riskRows = allRiskRows.filter((row) => Number(row.horizon_hours) === horizon && row.has_geometry);
@@ -1087,13 +1097,37 @@ export function DashboardContent() {
 
   return <article className="roadops-page" data-dashboard-layout="viewport" data-color-mode={colorMode}>
     <section className="roadops-toolbar" aria-label="지도 제어">
-      <div className="toolbar-title">
-        <div><span className="eyebrow">ROADOPS / JEJU</span><strong>도로 현장 운영 상황판</strong></div>
-        <div className="data-status-group">
-          <span className="roadops-freshness-badge stored">저장된 데이터 · 기준 {dateTime(metadata.latest_risk_target_at)}</span>
+      <div className="toolbar-primary">
+        <div className="toolbar-title">
+          <span className="roadops-signal" aria-hidden="true"><i /><i /><i /></span>
+          <div><span className="eyebrow">ROADOPS / JEJU</span><strong>도로 현장 운영 상황판</strong></div>
+        </div>
+        <div className="toolbar-live-state">
+          <span className="live-pill"><i />자동 갱신</span>
           <small>{Number(metadata.automatic_refresh_interval_minutes) > 0
-            ? `운영 데이터 ${Number(metadata.automatic_refresh_interval_minutes)}분마다 자동 갱신`
-            : "자동 갱신 일정 미설정"}</small>
+            ? `${Number(metadata.automatic_refresh_interval_minutes)}분 주기`
+            : "주기 미설정"}</small>
+        </div>
+        <div className="data-status-group">
+          <span>데이터 기준</span>
+          <strong>{dateTime(metadata.latest_risk_target_at)}</strong>
+        </div>
+        <div className="command-fact command-fact-weather">
+          <span>현재 날씨</span>
+          <strong>{currentWeather ? `${weatherTemperature(currentWeather)} · ${currentWeather.sky_summary}` : "확인 불가"}</strong>
+        </div>
+        <div className="command-fact command-fact-time">
+          <span>현재 시각</span>
+          <strong>{currentTime.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })}</strong>
+        </div>
+        <div className="theme-control">
+          <span>화면</span>
+          <div className="theme-buttons" role="group" aria-label="화면 테마 선택">
+            <button type="button" aria-pressed={colorMode === "dark"}
+              onClick={() => setColorMode("dark")}>다크</button>
+            <button type="button" aria-pressed={colorMode === "light"}
+              onClick={() => setColorMode("light")}>화이트</button>
+          </div>
         </div>
       </div>
       <div className="toolbar-controls">
@@ -1128,15 +1162,6 @@ export function DashboardContent() {
           <Dropdown label="재계획 시나리오" value={scenarioId}
             choices={scenarioChoices} choiceLabels={SCENARIO_LABELS} onChange={setScenarioId} />
         </div>
-        <div className="theme-control">
-          <span>화면 테마</span>
-          <div className="theme-buttons" role="group" aria-label="화면 테마 선택">
-            <button type="button" aria-pressed={colorMode === "dark"}
-              onClick={() => setColorMode("dark")}>다크</button>
-            <button type="button" aria-pressed={colorMode === "light"}
-              onClick={() => setColorMode("light")}>화이트</button>
-          </div>
-        </div>
       </div>
     </section>
 
@@ -1151,10 +1176,10 @@ export function DashboardContent() {
         showHeading={false} showActions={false} sourceRows={planMetrics} displayRows={[selectedMetrics]}
         scopeFilters={[{ field: "alternative_id", label: "배분 대안", value: selectedPlan }]}>
         <div className="roadops-metric-grid">
-          <Metric label="점검 대상" value={riskRows.length} note={horizon === 0 ? "현재 확인 후보" : `${horizon}시간 후 확인 후보`} />
-          <Metric label="먼저 확인" value={highRiskCount} note="위험 단계가 높은 도로" tone={highRiskCount ? "warning" : "neutral"} />
-          <Metric label="배분 완료" value={`${selectedMetrics.assigned_task_count ?? "—"}/${selectedMetrics.candidate_task_count ?? "—"}`} note="제외 조건 통과 업무" tone="positive" />
-          <Metric label="제약 위반" value={number(selectedMetrics.constraint_violation_count, 0)} note={scenarioId === "none" ? "기본 배분안" : "가정 상황 · 책임자 확인 필요"} tone="positive" />
+          <Metric icon="layers" label="점검 대상" value={riskRows.length} note={horizon === 0 ? "현재 확인 후보" : `${horizon}시간 후 확인 후보`} />
+          <Metric icon="warning" label="먼저 확인" value={highRiskCount} note="위험 단계가 높은 도로" tone={highRiskCount ? "warning" : "neutral"} />
+          <Metric icon="police" label="배분 완료" value={`${selectedMetrics.assigned_task_count ?? "—"}/${selectedMetrics.candidate_task_count ?? "—"}`} note="제외 조건 통과 업무" tone="positive" />
+          <Metric icon="crime" label="제약 위반" value={number(selectedMetrics.constraint_violation_count, 0)} note={scenarioId === "none" ? "기본 배분안" : "가정 상황 · 책임자 확인 필요"} tone="positive" />
         </div>
       </DataComponent>
     </section>
@@ -1256,6 +1281,12 @@ export function DashboardContent() {
       </section>
 
       <aside className="roadops-inspector">
+        <div className="inspector-status-head">
+          <div><span>ACTIVE OPERATIONS</span><strong>현장 대응 대기열</strong></div>
+          <span className="inspector-alert" data-active={highRiskCount > 0 || undefined}>
+            <i />{highRiskCount > 0 ? `우선 확인 ${highRiskCount}` : "긴급 항목 없음"}
+          </span>
+        </div>
         <div className="inspector-tabs" role="tablist" aria-label="현장 운영 정보">
           {[{ id: "priorities", label: "우선순위 목록" }, { id: "segment", label: "선택 구간" }, { id: "plan", label: "출동계획" }].map((tab) =>
             <button type="button" role="tab" key={tab.id} aria-selected={inspectorTab === tab.id}

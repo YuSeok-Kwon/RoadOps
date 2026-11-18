@@ -75,25 +75,25 @@
 
 :root[data-roadops-color-mode="dark"] {
   color-scheme: dark;
-  --background: #101311;
-  --surface: #171b18;
-  --surface-raised: #1d221e;
-  --muted: #202521;
-  --control: #171b18;
-  --control-hover: #29302a;
-  --interaction-hover: #202521;
-  --interaction-active: #29302a;
-  --text: #f7faf7;
-  --secondary: #aab4aa;
-  --border: #303831;
-  --border-strong: #485249;
+  --background: #080e14;
+  --surface: #101820;
+  --surface-raised: #16212b;
+  --muted: #18232d;
+  --control: #101820;
+  --control-hover: #22313d;
+  --interaction-hover: #18232d;
+  --interaction-active: #22313d;
+  --text: #f4f7fa;
+  --secondary: #9ba9b6;
+  --border: #26333e;
+  --border-strong: #3d4b57;
   --accent: #68b7f0;
-  --positive: #8fd45b;
+  --positive: #91d53e;
   --negative: #ff6764;
   --chart-1: #68b7f0;
   --chart-2: #8f94e8;
-  --chart-3: #9bd95d;
+  --chart-3: #91d53e;
   --chart-4: #f2b95f;
-  --data-app-chrome-background: #0d100e;
-  --data-app-chrome-text: #f7faf7;
+  --data-app-chrome-background: #060b10;
+  --data-app-chrome-text: #f4f7fa;
 }
