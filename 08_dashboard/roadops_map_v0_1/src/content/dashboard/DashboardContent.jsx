@@ -125,6 +125,39 @@ function HomeIcon({ className = "" }) {
   </svg>;
 }
 
+function LayerIcon({ type, className = "" }) {
+  const paths = {
+    accident: <><path d="M10 2.5 18 17H2Z" /><path d="M10 7v4.2M10 14.1v.2" /></>,
+    complaint: <path d="M3 3.5h14v9H9l-4.2 4v-4H3Z" />,
+    crime: <><path d="M10 2.4 16 4.6v4.8c0 3.8-2.4 6.4-6 8.2-3.6-1.8-6-4.4-6-8.2V4.6Z" /><path d="M10 7v3.3M10 13v.1" /></>,
+    police: <><path d="M10 2.4 16 4.6v4.8c0 3.8-2.4 6.4-6 8.2-3.6-1.8-6-4.4-6-8.2V4.6Z" /><path d="m10 6.2 1 2 2.2.3-1.6 1.5.4 2.2-2-1-2 1 .4-2.2-1.6-1.5 2.2-.3Z" /></>,
+    fire: <path d="M11.4 2.5c.5 3-2.6 3.9-1 6.4 1.2-1.2 1.5-2.4 1.4-3.6 2.8 2 4.1 4.3 3.7 7-.4 3-2.6 5.2-5.5 5.2s-5.1-2.2-5.5-5.2c-.3-2.4.8-4.7 3.4-6.8-.2 2 .2 3.3 1.1 4.1-.2-2.8.6-5.1 2.4-7.1Z" />,
+    layers: <><path d="m10 2.5 7.5 4L10 10 2.5 6.5Z" /><path d="m3.3 10.2 6.7 3.5 6.7-3.5M3.3 13.7l6.7 3.5 6.7-3.5" /></>,
+    warning: <><path d="M10 2.5 18 17H2Z" /><path d="M10 7v4.2M10 14.1v.2" /></>,
+  };
+  return <svg className={`layer-icon ${className}`.trim()} data-type={type}
+    viewBox="0 0 20 20" aria-hidden="true">
+    {paths[type] || paths.layers}
+  </svg>;
+}
+
+function MapFacilityGlyph({ kind }) {
+  return kind === "police"
+    ? <path className="facility-glyph" d="M0-5 4-3.5v3.2C4 2.3 2.4 4.1 0 5.3-2.4 4.1-4 2.3-4-.3v-3.2Z" />
+    : <path className="facility-glyph" d="M1-5c.3 2-1.7 2.6-.7 4.3.8-.8 1-1.6.9-2.4C4-1.1 4.4 1 3.6 3.1 3 4.7 1.7 5.5 0 5.5s-3-1-3.6-2.5c-.7-1.8-.1-3.4 1.6-4.8-.1 1.3.1 2.2.7 2.7C-1.4-.9-.6-3.3 1-5Z" />;
+}
+
+function LayerStatus({ available, value, unavailableLabel }) {
+  if (available) {
+    if (value === undefined || value === null || value === "" || value === "연결") return null;
+    return <b className="layer-status-connected">{value}</b>;
+  }
+  return <span className="layer-status-warning" role="img"
+    aria-label={unavailableLabel} title={unavailableLabel}>
+    <LayerIcon type="warning" />
+  </span>;
+}
+
 function InfoTip({ label, children }) {
   return <span className="info-tip-wrap">
     <button type="button" className="info-tip" aria-label={`${label} 설명`}>i</button>
@@ -336,33 +369,28 @@ function MapLegend({
       <span><i data-priority="normal">일반</i>일반 순서</span>
     </div>
     {showAccidentHotspots && <div className="legend-group">
-      <span className="legend-title">과거 사고</span>
-      <span><i className="legend-accident" />공단 선정 사고다발지역</span>
+      <span title="한국도로교통공단 선정 사고다발지역"><i className="legend-accident" />공단 사고다발</span>
     </div>}
     {showTrafficAccidents && <div className="legend-group">
-      <span className="legend-title">사고 교차검증</span>
-      <span><i className="legend-traffic-overlay" />생활안전지도 연간 계층</span>
+      <span title="생활안전지도 연간 교통사고다발구역"><i className="legend-traffic-overlay" />사고 비교</span>
     </div>}
     {showComplaintHotspots && <div className="legend-group">
-      <span className="legend-title">도로 민원</span>
-      <span><i className="legend-complaint" />3건 이상 비식별 집계 구역</span>
+      <span title="신고자 정보를 제거한 3건 이상 민원 집계"><i className="legend-complaint" />민원 집계</span>
     </div>}
     {showCrimeCaution && <div className="legend-group">
-      <span className="legend-title">범죄 주의</span>
-      <span><i className="legend-crime" />경찰청 연간 밀도분석</span>
+      <span title="경찰청 연간 범죄주의구간 밀도분석"><i className="legend-crime" />범죄주의</span>
     </div>}
     {(showPoliceFacilities || showFireFacilities) && <div className="legend-group">
-      <span className="legend-title">긴급 대응기관</span>
-      {showPoliceFacilities && <span><i className="legend-police">경</i>경찰관서</span>}
-      {showFireFacilities && <span><i className="legend-fire">119</i>소방서·안전센터</span>}
+      {showPoliceFacilities && <span title="경찰관서"><i className="legend-service police"><LayerIcon type="police" /></i>경찰</span>}
+      {showFireFacilities && <span title="소방서·119안전센터"><i className="legend-service fire"><LayerIcon type="fire" /></i>소방</span>}
     </div>}
     <div className="legend-group">
-      <span className="legend-title">순찰 코스</span>
-      <span><i className="legend-line" />팀 색 점선·이동</span>
-      <span><i className="legend-start"><HomeIcon /></i>공개자료 기반 출발 거점</span>
-      <span><i className="legend-point">1</i>팀 색 테두리·점검 순서</span>
-      <span><i className="legend-point legend-unassigned">미</i>현재 계획에서 미배정</span>
-      <span><i className="legend-point legend-excluded">제</i>점검 제외 조건 적용</span>
+      <span className="legend-title">순찰</span>
+      <span title="순찰팀 이동 경로"><i className="legend-line" />이동</span>
+      <span title="공개자료 기반 출발 거점"><i className="legend-start"><HomeIcon /></i>출발</span>
+      <span title="점검 순서"><i className="legend-point">1</i>순서</span>
+      <span title="현재 계획에서 미배정"><i className="legend-point legend-unassigned">미</i>미배정</span>
+      <span title="점검 제외 조건 적용"><i className="legend-point legend-excluded">제</i>제외</span>
       {showScenario && <span><i className="legend-before" />변경 전</span>}
       {showScenario && <span><i className="legend-after" />변경 후</span>}
     </div>
@@ -572,14 +600,13 @@ function RoadMap({
           row.facility_kind === "police" ? showPoliceFacilities : showFireFacilities
         )).map((row) => {
           const [x, y] = project(row.longitude, row.latitude);
-          const markerText = row.facility_kind === "police" ? "경" : "119";
           const contact = row.phone_number ? ` · ${row.phone_number}` : "";
           return <g key={row.facility_id} className={`emergency-facility ${row.facility_kind}`}
             transform={`translate(${x} ${y}) scale(${markerScale})`}>
             <circle r="8">
               <title>{`${row.facility_name} · ${row.facility_type} · ${row.road_address}${contact}`}</title>
             </circle>
-            <text y="2.5">{markerText}</text>
+            <MapFacilityGlyph kind={row.facility_kind} />
           </g>;
         })}
       </g>
@@ -1007,6 +1034,9 @@ export function DashboardContent() {
   const impactRows = rows("scenario_impacts").filter((row) => row.scenario_id === scenarioId);
   const highRiskCount = riskRows.filter((row) => ["high", "critical"].includes(row.risk_level)).length;
   const scenarioChoices = ["none", ...rows("scenario_summary").map((row) => row.scenario_id)];
+  const emergencyFacilities = rows("emergency_facilities");
+  const policeFacilityCount = emergencyFacilities.filter((row) => row.facility_kind === "police").length;
+  const fireFacilityCount = emergencyFacilities.filter((row) => row.facility_kind === "fire").length;
   const mapQueryIds = ["risk_links", "road_background", "accident_hotspots", "complaint_hotspots", "crime_caution_overlay", "emergency_facilities", "traffic_accident_overlay", "field_tasks", "governance_authorities", "teams", "plan_routes", "replan_routes", "scenario_impacts"];
   const sourceRowsByQuery = Object.fromEntries(mapQueryIds.map((queryId) => [queryId, rows(queryId)]));
 
@@ -1114,39 +1144,51 @@ export function DashboardContent() {
             { field: "scenario_id", label: "재계획 시나리오", value: scenarioId },
           ]} className="roadops-map-card">
           <div className="map-layer-controls" role="group" aria-label="지도 계층 선택">
-            <span>지도 계층</span>
-            <label><input type="checkbox" checked={mapLayers.accidentHotspots}
+            <span className="map-layer-heading"><LayerIcon type="layers" />표시</span>
+            <label title="한국도로교통공단 선정 사고다발지역"><input type="checkbox" checked={mapLayers.accidentHotspots}
               onChange={(event) => setMapLayers((current) => ({ ...current, accidentHotspots: event.target.checked }))} />
-              사고다발지역 <b>{rows("accident_hotspots").length}</b></label>
+              <LayerIcon type="accident" />사고다발
+              <LayerStatus available={rows("accident_hotspots").length > 0} value={rows("accident_hotspots").length}
+                unavailableLabel="사고다발지역 자료를 연결하지 못했습니다." /></label>
             <label title={rows("complaint_hotspots").length ? "비식별 도로민원 다발지역을 표시합니다." : "승인된 제주 도로민원 내보내기 자료가 필요합니다."}>
-              <input type="checkbox" checked={mapLayers.complaintHotspots}
+              <input type="checkbox" checked={mapLayers.complaintHotspots && rows("complaint_hotspots").length > 0}
                 disabled={!rows("complaint_hotspots").length}
                 onChange={(event) => setMapLayers((current) => ({ ...current, complaintHotspots: event.target.checked }))} />
-              민원 다발지역 <b>{rows("complaint_hotspots").length || "자료 대기"}</b>
+              <LayerIcon type="complaint" />민원
+              <LayerStatus available={rows("complaint_hotspots").length > 0} value={rows("complaint_hotspots").length}
+                unavailableLabel="민원 자료가 연결되지 않았습니다." />
             </label>
             <label title={rows("crime_caution_overlay").length ? "경찰청 연간 범죄 밀도분석을 표시합니다." : "생활안전지도 사용승인과 인증키가 필요합니다."}>
               <input type="checkbox" checked={mapLayers.crimeCaution}
                 disabled={!rows("crime_caution_overlay").length}
                 onChange={(event) => setMapLayers((current) => ({ ...current, crimeCaution: event.target.checked }))} />
-              범죄 주의구간 <b>{rows("crime_caution_overlay").length ? "연결" : "승인 대기"}</b>
+              <LayerIcon type="crime" />범죄주의
+              <LayerStatus available={rows("crime_caution_overlay").length > 0}
+                unavailableLabel="범죄주의구간이 연결되지 않았습니다." />
             </label>
             <label title="경찰 인계 판단을 돕기 위해 제주 경찰관서 위치를 표시합니다.">
               <input type="checkbox" checked={mapLayers.policeFacilities}
-                disabled={!rows("emergency_facilities").some((row) => row.facility_kind === "police")}
+                disabled={!policeFacilityCount}
                 onChange={(event) => setMapLayers((current) => ({ ...current, policeFacilities: event.target.checked }))} />
-              경찰관서 <b>{rows("emergency_facilities").filter((row) => row.facility_kind === "police").length || "자료 대기"}</b>
+              <LayerIcon type="police" />경찰
+              <LayerStatus available={policeFacilityCount > 0} value={policeFacilityCount}
+                unavailableLabel="경찰관서 자료가 연결되지 않았습니다." />
             </label>
             <label title="소방 인계 판단을 돕기 위해 제주 소방서·119안전센터 위치를 표시합니다.">
               <input type="checkbox" checked={mapLayers.fireFacilities}
-                disabled={!rows("emergency_facilities").some((row) => row.facility_kind === "fire")}
+                disabled={!fireFacilityCount}
                 onChange={(event) => setMapLayers((current) => ({ ...current, fireFacilities: event.target.checked }))} />
-              소방시설 <b>{rows("emergency_facilities").filter((row) => row.facility_kind === "fire").length || "자료 대기"}</b>
+              <LayerIcon type="fire" />소방
+              <LayerStatus available={fireFacilityCount > 0} value={fireFacilityCount}
+                unavailableLabel="소방시설 자료가 연결되지 않았습니다." />
             </label>
             <label title="TAAS 사고다발지역과 별도로 생활안전지도 연간 사고 계층을 비교 표시합니다.">
               <input type="checkbox" checked={mapLayers.trafficAccidents}
                 disabled={!rows("traffic_accident_overlay").length}
                 onChange={(event) => setMapLayers((current) => ({ ...current, trafficAccidents: event.target.checked }))} />
-              사고 교차검증 <b>{rows("traffic_accident_overlay").length ? "연결" : "자료 대기"}</b>
+              <LayerIcon type="layers" />사고비교
+              <LayerStatus available={rows("traffic_accident_overlay").length > 0}
+                unavailableLabel="사고 비교 계층이 연결되지 않았습니다." />
             </label>
           </div>
           <button type="button" className="map-guide-toggle" aria-expanded={mapGuideOpen}
@@ -1163,7 +1205,7 @@ export function DashboardContent() {
             <span><i data-guide="accident" /><b>빗금 영역</b> 한국도로교통공단이 선정한 2025년 사고다발지역</span>
             <span><i data-guide="complaint" /><b>보라색 원</b> 신고자 정보를 제거하고 3건 이상만 묶은 약 500m 도로민원 집계</span>
             <span><i data-guide="crime" /><b>반투명 밀도</b> 생활안전지도·경찰청의 2025년 범죄주의구간(위험점수와 분리)</span>
-            <span><i data-guide="facility" /><b>경·119 원</b> 경찰·소방 인계를 위한 공식 시설 위치(위험점수와 분리)</span>
+            <span><i data-guide="facility" /><b>방패·불꽃</b> 경찰·소방 인계를 위한 공식 시설 위치(위험점수와 분리)</span>
             <span><i data-guide="traffic-overlay" /><b>붉은 반투명 계층</b> 생활안전지도 사고다발구역 교차검증 계층</span>
           </div>}
           <RoadMap backgroundRows={rows("road_background")} riskRows={riskRows}
@@ -1173,7 +1215,7 @@ export function DashboardContent() {
             complaintRows={rows("complaint_hotspots")}
             showComplaintHotspots={mapLayers.complaintHotspots && rows("complaint_hotspots").length > 0}
             crimeCautionRows={rows("crime_caution_overlay")}
-            emergencyFacilityRows={rows("emergency_facilities")}
+            emergencyFacilityRows={emergencyFacilities}
             trafficAccidentOverlayRows={rows("traffic_accident_overlay")}
             showCrimeCaution={mapLayers.crimeCaution && rows("crime_caution_overlay").length > 0}
             showPoliceFacilities={mapLayers.policeFacilities}
