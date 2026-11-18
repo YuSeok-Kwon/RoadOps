@@ -519,10 +519,10 @@ function WeatherMapView({ backgroundRows, weatherRows, radarRows, selectedWeathe
         <small>{weatherSourceLabel(selectedWeather)} · 제주 전역 격자 종합</small>
       </div>
       <dl className="weather-view-metrics">
-        <div><dt>기온</dt><dd>{weatherTemperature(selectedWeather)}</dd></div>
+        <div><dt>기온</dt><dd>{weatherTemperature(selectedWeather)}</dd><small aria-hidden="true">&nbsp;</small></div>
         <div className="weather-rainfall-metric"><dt>{currentView ? "최근 1시간 강수량" : "시간당 예상 강수량"}</dt><dd>{weatherRainfallMetric(selectedWeather)}</dd><small>{selectedWeather?.precipitation_summary || "강수 형태 확인 불가"}</small></div>
-        <div><dt>습도</dt><dd>{weatherHumidityDetail(selectedWeather)}</dd></div>
-        <div><dt>최대풍속</dt><dd>{selectedWeather?.maximum_wind_speed_mps == null ? "확인 불가" : `${number(selectedWeather.maximum_wind_speed_mps)}m/s`}</dd></div>
+        <div><dt>습도</dt><dd>{weatherHumidityDetail(selectedWeather)}</dd><small aria-hidden="true">&nbsp;</small></div>
+        <div><dt>최대풍속</dt><dd>{selectedWeather?.maximum_wind_speed_mps == null ? "확인 불가" : `${number(selectedWeather.maximum_wind_speed_mps)}m/s`}</dd><small aria-hidden="true">&nbsp;</small></div>
       </dl>
     </div>
 
