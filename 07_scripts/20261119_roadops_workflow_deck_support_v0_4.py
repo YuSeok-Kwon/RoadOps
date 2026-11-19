@@ -7,6 +7,7 @@ import copy
 import hashlib
 import json
 import posixpath
+import re
 import sys
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
@@ -17,6 +18,88 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "05_src"))
 REL = "http://schemas.openxmlformats.org/package/2006/relationships"
 CT = "http://schemas.openxmlformats.org/package/2006/content-types"
+
+
+def normalize_media_parts(files: dict[str, bytes]) -> dict:
+    """Use conventional ppt/media targets, retaining image bytes and slide XML.
+
+    The v0.4 dependency namespace is valid OPC, but Canva displayed placeholders
+    for images there. Keep images in the same flat folder as the source deck.
+    Reuse identical original media without rewriting the preserved slides.
+    """
+    types = etree.fromstring(files["[Content_Types].xml"])
+    overrides = {x.get("PartName").lstrip("/"): x.get("ContentType")
+                 for x in types if x.tag.endswith("Override")}
+    defaults = {x.get("Extension"): x.get("ContentType")
+                for x in types if x.tag.endswith("Default")}
+    known = {hashlib.sha256(data).digest(): name for name, data in files.items()
+             if re.fullmatch(r"ppt/media/[^/]+", name)}
+    mapped: dict[str, str] = {}
+    added: dict[str, bytes] = {}
+    changed_relationships = 0
+
+    for name, data in list(files.items()):
+        if not name.endswith(".rels"):
+            continue
+        owner_dir = posixpath.dirname(posixpath.dirname(name))
+        rels = etree.fromstring(data)
+        changed = False
+        for rel in rels:
+            if not rel.get("Type", "").endswith("/image") or rel.get("TargetMode") == "External":
+                continue
+            target = rel.get("Target")
+            old = target.lstrip("/") if target.startswith("/") else posixpath.normpath(posixpath.join(owner_dir, target))
+            if re.fullmatch(r"ppt/media/[^/]+", old):
+                continue
+            if old not in mapped:
+                payload = files[old]
+                digest = hashlib.sha256(payload).digest()
+                new = known.get(digest)
+                if new is None:
+                    extension = old.rsplit(".", 1)[-1].lower()
+                    number = 1
+                    while f"ppt/media/image{number}.{extension}" in files or f"ppt/media/image{number}.{extension}" in added:
+                        number += 1
+                    new = f"ppt/media/image{number}.{extension}"
+                    added[new] = payload
+                    known[digest] = new
+                    typ = overrides.get(old) or defaults.get(extension)
+                    if not typ:
+                        raise ValueError(f"Missing image content type: {old}")
+                    if extension not in defaults:
+                        etree.SubElement(types, "{"+CT+"}Default", Extension=extension, ContentType=typ)
+                        defaults[extension] = typ
+                    elif defaults[extension] != typ:
+                        etree.SubElement(types, "{"+CT+"}Override", PartName="/"+new, ContentType=typ)
+                mapped[old] = new
+            rel.set("Target", posixpath.relpath(mapped[old], owner_dir))
+            changed = True
+            changed_relationships += 1
+        if changed:
+            files[name] = etree.tostring(rels, xml_declaration=True, encoding="UTF-8", standalone=True)
+
+    files.update(added)
+    for old in mapped:
+        del files[old]
+    for node in list(types):
+        if node.get("PartName", "").lstrip("/") in mapped:
+            types.remove(node)
+    files["[Content_Types].xml"] = etree.tostring(types, xml_declaration=True, encoding="UTF-8", standalone=True)
+    return {"relocated_media": len(mapped), "new_media_files": len(added),
+            "rewritten_image_relationships": changed_relationships}
+
+
+def repair_media(source: Path, output: Path) -> None:
+    """Repair a previously delivered deck without regenerating its content."""
+    if source.resolve() == output.resolve() or output.exists():
+        raise ValueError("Choose a new output path; source files are never overwritten")
+    with ZipFile(source) as archive:
+        files = {name: archive.read(name) for name in archive.namelist()}
+    result = normalize_media_parts(files)
+    with ZipFile(output, "w", ZIP_DEFLATED) as archive:
+        for name, data in files.items():
+            archive.writestr(name, data)
+    print(json.dumps({**result, "output": str(output)}, ensure_ascii=False))
 
 
 def prepare(source: Path, snapshot: Path, output: Path) -> None:
@@ -92,7 +175,7 @@ def merge(source: Path, candidate: Path, output: Path) -> None:
     """Keep the original package and replace only slides 3–17 and their new assets.
 
     Original slide 1/2 XML, relationships, fonts, layouts and media remain byte-identical.
-    New chart/image/note dependencies get a separate OPC namespace.
+    New chart/note dependencies use a separate OPC namespace; images use ppt/media.
     """
     with ZipFile(source) as z:
         original = {n: z.read(n) for n in z.namelist()}
@@ -152,6 +235,7 @@ def merge(source: Path, candidate: Path, output: Path) -> None:
                 rel.set("Target", posixpath.relpath(copy_part(resolve(part, rel.get("Target"))), posixpath.dirname(part)))
         files[rel_path(part)] = etree.tostring(rels, xml_declaration=True, encoding="UTF-8", standalone=True)
     files["[Content_Types].xml"] = etree.tostring(types, xml_declaration=True, encoding="UTF-8", standalone=True)
+    normalize_media_parts(files)
     for i in [1, 2]:
         part = f"ppt/slides/slide{i}.xml"
         assert files[part] == original[part]
@@ -173,5 +257,7 @@ if __name__ == "__main__":
         prepare(*(Path(p) for p in args))
     elif action == "merge":
         merge(*(Path(p) for p in args))
+    elif action == "repair-media":
+        repair_media(*(Path(p) for p in args))
     else:
-        raise SystemExit("Use prepare SOURCE SNAPSHOT BUILD or merge SOURCE CANDIDATE OUTPUT")
+        raise SystemExit("Use prepare SOURCE SNAPSHOT BUILD, merge SOURCE CANDIDATE OUTPUT, or repair-media SOURCE OUTPUT")
