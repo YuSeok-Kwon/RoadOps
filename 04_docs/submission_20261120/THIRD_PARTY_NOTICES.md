@@ -21,7 +21,7 @@
 
 직접·간접 의존성의 원문 LICENSE/NOTICE가 있는 경우 `licenses/npm`과 `licenses/python`에 보존했습니다. Python·Node 실행 바이너리, 브라우저, 설치된 패키지 폴더는 ZIP에 포함하지 않습니다. 포함된 웹 실행본은 앱 코드와 필요한 JavaScript를 빌드한 결과이며 일반 실행 시 npm 다운로드가 없습니다.
 
-2026-11-20 npm 감사 결과: 운영 의존성 보고 0건, 개발 의존성 4건(Vite·PostCSS·nanoid·source-map-js, high 3·moderate 1). 상세 영향 조건·수정 정보는 `evidence/dependency-audit.json`의 advisory URL에 있습니다. `run_web.py`는 빌드된 파일을 Python 표준 라이브러리로 로컬에 제공하며 Vite 개발 서버를 실행하지 않습니다. 이 결과는 전체 코드의 보안 보증을 뜻하지 않습니다.
+2026-11-20 npm 취약점 점검에서 실행용 패키지는 0건, 개발용 패키지는 4건이 보고됐습니다(Vite·PostCSS·nanoid·source-map-js, high 3건·moderate 1건). 영향을 받는 조건과 수정 정보는 `evidence/dependency-audit.json`에 연결된 보안 권고문에서 확인할 수 있습니다. `run_web.py`는 Python 표준 라이브러리로 빌드된 파일을 로컬에 제공하며 Vite 개발 서버를 사용하지 않습니다. 이 점검 결과만으로 전체 코드의 보안을 보장할 수는 없습니다.
 
 ## 데이터·지도·이미지
 
