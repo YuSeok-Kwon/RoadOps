@@ -232,6 +232,12 @@ The documented C-ITS/ITS operational URLs use HTTP and may transmit API keys in 
 - [Velog 8부 마지막 기록 초안 / Velog Part 8 closing draft](./04_docs/content/20261120_roadops_part_8_velog_draft_v0_1.md)
 - [LinkedIn 7부 마지막 기록 초안 / LinkedIn Part 7 closing draft](./04_docs/content/20261120_roadops_part_7_linkedin_draft_v0_1.txt)
 
+## 공모전 제출 패키지 / Competition delivery
+
+[최종 제출 매뉴얼 / Submission guide](./04_docs/submission_20261120/README.md)에 필수 제출물별 위치, 저장 자료 웹 실행, 독립 경로 검증, 데이터 이용조건과 센터 적용 한계를 정리했습니다. 패키징 도구는 `07_scripts/20261120_roadops_package_submission.py`입니다. 제출 ZIP과 15페이지 PDF는 로컬 `02_outputs/submission_20261120/`에 보관하며, 인증키·개발 가상환경·설치된 패키지는 포함하지 않습니다.
+
+The delivery contains a 15-page proposal, two frozen browser demos, source, manuals, data lineage and verification evidence. It preserves original input timestamps and explicitly labels saved-data playback.
+
 ## 파일 이름 / File naming
 
 분석 문서와 노트북은 `YYYYMMDD_roadops_주제_v버전` 형식을 사용합니다. `final`, `최종` 같은 이름은 사용하지 않습니다.

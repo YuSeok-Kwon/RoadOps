@@ -7,9 +7,9 @@ import {fileURLToPath} from 'node:url';
 import {replanClosure} from '../08_dashboard/roadops_map_v0_1/src/content/dashboard/closure-replanning.js';
 import {createWorkflowState} from '../08_dashboard/roadops_map_v0_1/src/content/dashboard/workflow-policy.js';
 const ROOT=path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const BUILD=path.join(ROOT,'999_Temporary/roadops_detour_1213_20261120');
+const BUILD=process.env.ROADOPS_CAPTURE_OUTPUT || path.join(ROOT,'999_Temporary/roadops_detour_1213_20261120');
 const CAPTURE=path.join(BUILD,'actual-screens');
-const SNAPSHOT=process.env.ROADOPS_CAPTURE_SNAPSHOT || '/tmp/roadops-capture-20261119/site/snapshot.abb1f47d7b712e8dd6f8f0ee5d118992c99050f4c7a1647daca31a8d965e974e.json';
+const SNAPSHOT=process.env.ROADOPS_CAPTURE_SNAPSHOT || path.join(ROOT,'demo/presentation_20261119/data.json');
 await fs.mkdir(CAPTURE,{recursive:true});
 const fixture=JSON.parse(await fs.readFile(path.join(ROOT,'tests/fixtures/roadops_sogil_detour.json')));
 const network=JSON.parse(await fs.readFile(path.join(ROOT,'08_dashboard/roadops_map_v0_1/src/content/assets/routing-network.json')));
@@ -28,15 +28,15 @@ assert.ok(result.routes.slice(1).every(r=>!r.route_link_ids.includes('4050000302
 assert.deepEqual(result.routes.map(r=>r.task_id),baseRoutes.map(r=>r.task_id));
 await fs.writeFile(path.join(BUILD,'verified-result.json'),JSON.stringify(result,null,2));
 if(process.argv.includes('--verify-only')) {console.log(JSON.stringify({status:'pass',before:100.57,after:125.613,overtime:5.613}));process.exit(0);}
-const {chromium}=await import('/Users/yu_seok/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs');
-const browser=await chromium.launch({headless:true,executablePath:'/Users/yu_seok/Library/Caches/ms-playwright/chromium-1148/chrome-mac/Chromium.app/Contents/MacOS/Chromium'});
+const {chromium}=await import(process.env.ROADOPS_PLAYWRIGHT_MODULE || 'playwright');
+const browser=await chromium.launch({headless:true,...(process.env.ROADOPS_BROWSER_PATH ? {executablePath:process.env.ROADOPS_BROWSER_PATH} : {})});
 try {
  const page=await browser.newPage({viewport:{width:1920,height:1000},deviceScaleFactor:3});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  const snapshot=await fs.readFile(SNAPSHOT,'utf8');
- await page.route('**/snapshot.*.json',r=>r.fulfill({body:snapshot,contentType:'application/json'}));
+ if(process.env.ROADOPS_CAPTURE_SNAPSHOT) await page.route('**/snapshot.*.json',r=>r.fulfill({body:snapshot,contentType:'application/json'}));
  await page.addInitScript(()=>{sessionStorage.setItem('roadops-operation-session-v1',JSON.stringify({phase:'review',selectedDepotId:'team-north'}));localStorage.setItem('roadops-color-mode','light');});
- await page.goto('http://127.0.0.1:5173/',{waitUntil:'networkidle'});
+ await page.goto(process.env.ROADOPS_APP_URL || 'http://127.0.0.1:5173/',{waitUntil:'networkidle'});
  await page.getByRole('button',{name:'AI 자동선택',exact:true}).click();
  await page.getByRole('button',{name:'추천 경로 만들기',exact:true}).click();
  await page.locator('.ai-result-panel').waitFor();
@@ -79,6 +79,6 @@ try {
  assert.equal(overflow,false);
  await page.locator('.closure-replan-result').screenshot({path:path.join(BUILD,'narrow-result.png')});
  assert.deepEqual(errors,[]);
- await fs.writeFile(path.join(BUILD,'capture-evidence.json'),JSON.stringify({capturedAt:new Date().toISOString(),sourceUrl:page.url(),snapshotPath:SNAPSHOT,snapshotSha256:crypto.createHash('sha256').update(snapshot).digest('hex'),method:'Actual app controls, Worker calculation and element screenshots. Frozen source response for this isolated browser only; no DOM or screenshot edits.',closedLinkIds:['4050000302'],completedCount:1,elapsedMinutes:39.8,elapsedMeaning:'시연에서 동일하게 둔 완료 소요시간 가정이며 실측 기록이 아님',budgetMinutes:120,originalText,resultText:actualResult,routeText,beforeView,afterView,visibleRoutePathsChanged:[false,false,true],errors,narrowOverflow:overflow},null,2));
+ await fs.writeFile(path.join(BUILD,'capture-evidence.json'),JSON.stringify({capturedAt:new Date().toISOString(),sourceUrl:page.url(),snapshotPath:SNAPSHOT,snapshotSha256:crypto.createHash('sha256').update(snapshot).digest('hex'),method:process.env.ROADOPS_CAPTURE_SNAPSHOT ? 'Actual app controls, Worker calculation and element screenshots. Frozen source response for this isolated browser only; no DOM or screenshot edits.' : 'Packaged application and snapshot served directly; no response interception, DOM or screenshot edits.',closedLinkIds:['4050000302'],completedCount:1,elapsedMinutes:39.8,elapsedMeaning:'시연에서 동일하게 둔 완료 소요시간 가정이며 실측 기록이 아님',budgetMinutes:120,originalText,resultText:actualResult,routeText,beforeView,afterView,visibleRoutePathsChanged:[false,false,true],errors,narrowOverflow:overflow},null,2));
  console.log(JSON.stringify({captured:CAPTURE,resultText:actualResult,routeText}));
 } finally {await browser.close();}

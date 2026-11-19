@@ -1730,8 +1730,8 @@ function LegacyDashboardContent() {
           <div><span className="eyebrow">ROADOPS / JEJU</span><strong>도로 현장 운영 상황판</strong></div>
         </div>
         <div className="toolbar-live-state">
-          <span className="live-pill"><i />자동 갱신</span>
-          <small>{Number(metadata.automatic_refresh_interval_minutes) > 0
+          <span className="live-pill"><i />{metadata.delivery_mode === "submission_snapshot" ? "저장 자료 시연" : "자동 갱신"}</span>
+          <small>{metadata.delivery_mode === "submission_snapshot" ? "실시간 수집 없음" : Number(metadata.automatic_refresh_interval_minutes) > 0
             ? `${Number(metadata.automatic_refresh_interval_minutes)}분 주기`
             : "주기 미설정"}</small>
         </div>
@@ -2291,7 +2291,7 @@ export function DashboardContent() {
     <section className="roadops-toolbar operation-toolbar" aria-label="운영 상황 제어">
       <div className="toolbar-primary">
         <div className="toolbar-title"><div><span className="eyebrow">ROADOPS / JEJU</span><strong>도로 현장 운영 상황판</strong></div></div>
-        <div className="toolbar-live-state"><span className="live-pill"><i />자동 갱신</span><small>{Number(metadata.automatic_refresh_interval_minutes) || 10}분 주기</small></div>
+        <div className="toolbar-live-state"><span className="live-pill"><i />{metadata.delivery_mode === "submission_snapshot" ? "저장 자료 시연" : "자동 갱신"}</span><small>{metadata.delivery_mode === "submission_snapshot" ? "실시간 수집 없음" : `${Number(metadata.automatic_refresh_interval_minutes) || 10}분 주기`}</small></div>
         <div className="data-status-group"><span>최근 갱신</span><strong>{dateTime(metadata.generated_at || snapshot.generatedAt)}</strong></div>
         <div className="command-fact command-fact-weather"><span>제주 전역 · {horizon === 0 ? "현재 날씨" : `${horizon}시간 후 날씨`}</span><strong>{selectedWeather ? `${weatherTemperature(selectedWeather)} · ${selectedWeather.sky_summary} · ${weatherRainfallDetail(selectedWeather)}` : "확인 불가"}</strong></div>
         <div className="command-fact command-fact-time"><span>현재 시각</span><strong>{currentTime.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })}</strong></div>
