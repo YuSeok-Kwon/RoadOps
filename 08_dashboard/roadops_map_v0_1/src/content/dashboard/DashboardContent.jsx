@@ -1949,6 +1949,7 @@ export function DashboardContent() {
   const rows = (queryId) => queries[queryId]?.rows ?? [];
   const [initialOperation] = useState(readOperationSession);
   const [inspectionPlans, setInspectionPlans] = useState(initialOperation.inspectionPlans || {});
+  const [surfaceOverrides, setSurfaceOverrides] = useState(initialOperation.surfaceOverrides || {});
   const [hotspotYear, setHotspotYear] = useState(() => latestHotspotYear(rows("accident_hotspots")));
   const [phase, setPhase] = useState(initialOperation.phase === "ai-result" ? "ai-config" : initialOperation.phase);
   const [selectedDepotId, setSelectedDepotId] = useState(initialOperation.selectedDepotId);
@@ -2012,9 +2013,10 @@ export function DashboardContent() {
       surfaceView,
       mapLayers,
       inspectionPlans,
+      surfaceOverrides,
     }));
   }, [phase, selectedDepotId, manualTaskIds, horizonIndex, selectedPlan, scenarioId,
-    selectedRiskId, selectedRouteKey, mapExpanded, surfaceView, mapLayers, inspectionPlans]);
+    selectedRiskId, selectedRouteKey, mapExpanded, surfaceView, mapLayers, inspectionPlans, surfaceOverrides]);
 
   useEffect(() => {
     setSelectedRiskId(null);
@@ -2282,7 +2284,7 @@ export function DashboardContent() {
         <div className="toolbar-title"><div><span className="eyebrow">ROADOPS / JEJU</span><strong>도로 현장 운영 상황판</strong></div></div>
         <div className="toolbar-live-state"><span className="live-pill"><i />자동 갱신</span><small>{Number(metadata.automatic_refresh_interval_minutes) || 10}분 주기</small></div>
         <div className="data-status-group"><span>최근 갱신</span><strong>{dateTime(metadata.generated_at || snapshot.generatedAt)}</strong></div>
-        <div className="command-fact command-fact-weather"><span>{horizon === 0 ? "현재 날씨" : `${horizon}시간 후 날씨`}</span><strong>{selectedWeather ? `${weatherTemperature(selectedWeather)} · ${selectedWeather.sky_summary} · ${weatherRainfallDetail(selectedWeather)}` : "확인 불가"}</strong></div>
+        <div className="command-fact command-fact-weather"><span>제주 전역 · {horizon === 0 ? "현재 날씨" : `${horizon}시간 후 날씨`}</span><strong>{selectedWeather ? `${weatherTemperature(selectedWeather)} · ${selectedWeather.sky_summary} · ${weatherRainfallDetail(selectedWeather)}` : "확인 불가"}</strong></div>
         <div className="command-fact command-fact-time"><span>현재 시각</span><strong>{currentTime.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })}</strong></div>
         <div className="theme-control"><span>화면</span><div className="theme-buttons" role="group" aria-label="화면 테마 선택">
           <button type="button" aria-pressed={colorMode === "dark"} onClick={() => setColorMode("dark")}>다크</button>
@@ -2389,6 +2391,14 @@ export function DashboardContent() {
       surfaceRows={rows("surface_accidents")} hazardRows={rows("designated_hazards")}
       hotspotRows={rows("accident_hotspots")} hotspotYear={hotspotYear} onYear={setHotspotYear}
       onSelectTask={setSelectedRiskId} plans={inspectionPlans}
+      depot={selectedDepot} horizon={horizon} currentTime={currentTime}
+      weatherRows={rows("depot_weather")} surfaceOverrides={surfaceOverrides}
+      onSurfaceOverride={(key, value) => setSurfaceOverrides(current => {
+        const next = { ...current };
+        if (value === null) delete next[key];
+        else next[key] = value;
+        return next;
+      })}
       onShowHotspot={(row) => showEvidenceOnMap(evidenceMapTarget("accident", `accident:${row.hotspot_id}`, row.location_name, row))}
       onApply={(plan) => {
         setInspectionPlans(current => ({ ...current, [plan.linkId]: plan }));

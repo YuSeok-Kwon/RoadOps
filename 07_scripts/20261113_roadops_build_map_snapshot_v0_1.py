@@ -217,6 +217,14 @@ def build_data_app_snapshot(
         "Replanning layers are What-if scenarios and require operator approval.",
     ]
     query_sources = {
+        "depot_weather": source(
+            "기상청 거점별 격자 관측·예보",
+            [inputs["weather_timeline"], inputs["resources"]],
+            ["jeju-inspection-evidence"],
+            ["거점 좌표에 해당하는 기상청 격자를 일치시킵니다. 다른 격자의 값으로 대체하지 않습니다.",
+             "현재는 관측 우선, 관측 불가 시 예보를 사용하며 미래 시점은 예보를 사용합니다.",
+             "예상 노면은 점검 준비를 위한 규칙 기반 추정이며 도로의 실제 노면 관측이 아닙니다."],
+        ),
         "map_metadata": source(
             "Map snapshot metadata",
             [inputs["risk_forecasts"]],

@@ -1100,6 +1100,12 @@
 .inspection-evidence-view p, .inspection-actions p { line-height:1.6; }
 .inspection-source, .inspection-actions small { color:var(--secondary); font-size:13px; line-height:1.6; }
 .inspection-source a { color:inherit; text-decoration:underline; }
+.inspection-weather { margin-top:16px; padding:16px; background:var(--background); border:1px solid var(--border); border-radius:8px; }
+.inspection-weather-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.inspection-weather p { margin:10px 0; }
+.inspection-weather small { display:block; color:var(--secondary); line-height:1.6; }
+.inspection-selection-mode { color:var(--text); border:1px solid var(--border); border-radius:5px; padding:4px 8px; font-size:12px; }
+.inspection-auto-reset { background:transparent; border:1px solid var(--border); border-radius:6px; padding:8px 12px; color:var(--text); cursor:pointer; }
 .inspection-metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:20px; padding:22px 0; }
 .inspection-metrics div { display:flex; flex-direction:column; gap:8px; }
 .inspection-metrics strong { font-size:36px; color:var(--text); font-variant-numeric:tabular-nums; }

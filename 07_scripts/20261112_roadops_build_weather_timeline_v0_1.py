@@ -19,6 +19,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT / "05_src"))
 
 from roadops.cits_snapshot import write_json_atomic  # noqa: E402
+from roadops.depot_weather import depot_weather_grids  # noqa: E402
 from roadops.integrated_events import required_weather_grids  # noqa: E402
 from roadops.live import LiveFetchError, fetch_json_payload  # noqa: E402
 from roadops.probe import extract_records, load_source_specs  # noqa: E402
@@ -38,6 +39,8 @@ WEATHER_SOURCE_IDS = (
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--resources", type=Path,
+                        default=PROJECT_ROOT / "config/resource_scenarios/demo_three_teams_v0_1.json")
     parser.add_argument(
         "--joined-records",
         type=Path,
@@ -140,7 +143,8 @@ def main() -> int:
         raise SystemExit("DATA_GO_KR_SERVICE_KEY is required")
 
     joined_records = _read_jsonl(args.joined_records)
-    grids = required_weather_grids(joined_records)
+    resources = json.loads(args.resources.read_text(encoding="utf-8"))
+    grids = set(required_weather_grids(joined_records)) | depot_weather_grids(resources.get("teams", []))
     specs = {spec.source_id: spec for spec in load_source_specs(args.config)}
     missing_specs = sorted(set(WEATHER_SOURCE_IDS) - set(specs))
     if missing_specs:

@@ -12,6 +12,7 @@ import re
 from typing import Any, Iterable, Mapping
 
 from roadops.spatial import parse_link_geometry_wkt
+from roadops.depot_weather import build_depot_weather_rows
 
 
 MAP_SNAPSHOT_VERSION = "roadops-map-snapshot-v0.1"
@@ -980,6 +981,7 @@ def build_map_snapshot(
     queries = {
         "map_metadata": metadata,
         "weather_forecast": weather_forecast,
+        "depot_weather": build_depot_weather_rows(weather_rows, teams),
         "forecast_validation": forecast_validation,
         "accident_hotspots": accident_hotspots,
         "historical_similarity": historical_similarity,

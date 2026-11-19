@@ -24,7 +24,7 @@ export function matchingHazards(task, records) {
   return records.filter(row => tokens.some(token => String(row.location).includes(token)))
     .map(row => ({ ...row, match_precision: "same_administrative_area", road_location_confirmed: false }));
 }
-export function makeInspectionPlan({ task, surface, surfaceRows, hazards, startYear = 2005, endYear = 2020 }) {
+export function makeInspectionPlan({ task, surface, surfaceSelection = null, surfaceRows, hazards, startYear = 2005, endYear = 2020 }) {
   const summary = surfaceSummary(surfaceRows, surface, startYear, endYear);
   const matched = matchingHazards(task, hazards).filter(r => r.designation_status === "review_required");
   const actions = [];
@@ -34,10 +34,12 @@ export function makeInspectionPlan({ task, surface, surfaceRows, hazards, startY
     actions.push(`${hazard.name}: 정확한 지구 위치와 ${check} 확인 (같은 행정지역 참고)`);
   }
   return { version: "jeju-inspection-v1", linkId: String(task?.link_id || ""),
-    surface: surface || "미확인", surfaceBasis: "담당자 선택 · 현장 확인 필요", startYear, endYear,
+    surface: surface || "미확인",
+    surfaceBasis: `${surfaceSelection?.mode === "automatic" ? "거점 날씨 기반 자동 추정" : "담당자 선택"} · 현장 확인 필요`,
+    surfaceSelection, startYear, endYear,
     statisticalEvidence: summary.completeYears ? { accidents: summary.accidents, fatalities: summary.fatalities, completeYears: summary.completeYears, missingYears: summary.missingYears } : null,
     hazardIds: matched.map(r => r.hazard_id), actions: [...new Set(actions)],
-    sourceUrls: [...new Set([...(summary.completeYears ? ["https://jejudatahub.net/data/view/data/891"] : []), ...matched.map(r => r.source_url)])],
+    sourceUrls: [...new Set([...(summary.completeYears ? ["https://jejudatahub.net/data/view/data/891"] : []), ...(surfaceSelection?.weather?.source_url ? [surfaceSelection.weather.source_url] : []), ...matched.map(r => r.source_url)])],
     automaticClosure: false, scoreAdjustment: 0,
     note: "과거 통계·행정지역 참고로 생성한 점검 항목. 실제 노면·지구 위치·추가 소요시간은 담당자 확인." };
 }
