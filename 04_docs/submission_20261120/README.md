@@ -8,6 +8,10 @@
 
 ## 가장 빠른 실행
 
+설치 없이 확인: **[RoadOps 웹 시연](https://yuseok-kwon.github.io/RoadOps/)** · **[GitHub 소스 코드](https://github.com/YuSeok-Kwon/RoadOps)** · **[기획서 PDF](https://yuseok-kwon.github.io/RoadOps/proposal.pdf)**
+
+웹 시연은 로그인 없이 열 수 있는 GitHub Pages 정적 실행본입니다. 아래 절차는 ZIP을 내려받아 PC에서 실행할 때 사용합니다.
+
 1. ZIP 전체를 압축 해제합니다. ZIP 내부에서 바로 실행하지 마세요.
 2. Python 3.11 이상이 설치된 PC에서 `START_WEB.cmd`(Windows) 또는 `START_WEB.command`(macOS)를 실행합니다. 이 실행본은 **pip·npm을 통한 추가 패키지 설치, API 키, GPU, Codex 계정이 필요 없습니다.**
 3. 열린 시작 화면에서 **발표 사례 실행** 또는 **최종 기능 실행**을 선택합니다.
@@ -55,6 +59,7 @@ python3 run_web.py
 | 요구사항 | 파일·폴더 |
 |---|---|
 | 기획서 1부, 15페이지 이내 | `RoadOps_기획서_권유석.pdf` — 15페이지 |
+| PDF 미리보기 호환본 | `web/proposal.pdf` — 동일한 15페이지를 RGB 이미지로 변환, 텍스트 선택·문서 내 링크 미지원 |
 | 실행 소스·데이터 처리 | `05_src/roadops`, `07_scripts`, `08_dashboard/roadops_map_v0_1` |
 | Prompt·Tool/API·모델 정보 | `config/agent/roadops_agent_contract_v0_1.json`, `config/data_sources.json`, `04_docs/submission_20261120/MODELS_TOOLS_PROMPTS.md` |
 | 설치·실행·사용자 매뉴얼·제약 | 이 README, `04_docs/submission_20261120/USER_MANUAL.md`, `requirements.txt`, `config/.env.example` |

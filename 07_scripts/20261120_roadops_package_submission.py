@@ -96,6 +96,8 @@ def prepare(args):
         (stage / name).chmod(0o755)
     copy_file(TEMPLATES / "launch.html", stage / "web/index.html")
     copy_file(args.proposal, stage / "RoadOps_기획서_권유석.pdf")
+    copy_file(args.compatible_proposal, stage / "web/proposal.pdf")
+    (stage / "web/.nojekyll").write_text("")
     copy_file(args.presentation_snapshot, stage / "demo/presentation_20261119/data.json")
     original_latest_hash = sha256(stage / APP / "src/data.json")
     mark_submission_snapshot(stage / APP / "src/data.json")
@@ -135,7 +137,7 @@ def prepare(args):
 
 def finalize(args):
     stage = args.output / "RoadOps"
-    for required in ["web/latest/index.html", "web/presentation/index.html", "evidence/validation.json"]:
+    for required in ["web/latest/index.html", "web/presentation/index.html", "web/proposal.pdf", "evidence/validation.json"]:
         if not (stage / required).is_file():
             raise SystemExit(f"Required verified build/evidence missing: {required}")
     if json.loads((stage / "evidence/validation.json").read_text()).get("status") != "pass":
@@ -159,10 +161,14 @@ def finalize(args):
     with zipfile.ZipFile(target) as archive:
         assert archive.testzip() is None
     copy_file(stage / "RoadOps_기획서_권유석.pdf", args.output / "RoadOps_기획서_권유석.pdf")
+    copy_file(stage / "web/proposal.pdf", args.output / "RoadOps_기획서_권유석_호환본.pdf")
     (args.output / "제출안내.txt").write_text(
-        "제출 파일은 다음 두 개입니다.\n1. RoadOps_기획서_권유석.pdf — 15페이지\n"
+        "제출 파일은 다음 두 개입니다.\n1. RoadOps_기획서_권유석_호환본.pdf — 동일 디자인 15페이지, 사진 포함\n"
         "2. RoadOps_최종결과물_권유석.zip — 실행본·소스·매뉴얼·데이터 명세·검증 자료\n\n"
+        "시연 링크: https://yuseok-kwon.github.io/RoadOps/\n"
+        "Git 저장소: https://github.com/YuSeok-Kwon/RoadOps\n\n"
         "갤러리 > 기획서 및 최종 결과물 제출\n마감: 2026-11-20 10:00 (한국시간)\n"
+        "원본 PDF도 별도 보관했습니다. 호환본은 텍스트 선택·PDF 내 링크를 지원하지 않습니다.\n"
         "ZIP의 RoadOps 폴더 전체를 압축 해제한 뒤 README.md를 읽어 주세요.\n", encoding="utf-8")
     print(json.dumps({"zip": str(target), "bytes": target.stat().st_size, "sha256": sha256(target), "files": len(files) + 1}, ensure_ascii=False))
 
@@ -171,6 +177,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--proposal", type=Path)
+    parser.add_argument("--compatible-proposal", type=Path)
     parser.add_argument("--presentation-snapshot", type=Path)
     parser.add_argument("--finalize", action="store_true")
     args = parser.parse_args()
@@ -178,6 +185,6 @@ if __name__ == "__main__":
     if args.finalize:
         finalize(args)
     else:
-        if not args.proposal or not args.presentation_snapshot:
-            parser.error("--proposal and --presentation-snapshot are required for preparation")
+        if not args.proposal or not args.compatible_proposal or not args.presentation_snapshot:
+            parser.error("--proposal, --compatible-proposal and --presentation-snapshot are required for preparation")
         prepare(args)
