@@ -1,0 +1,11 @@
+{
+  "name": "vite-plugin-singlefile",
+  "version": "2.3.3",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/richardtallent/vite-plugin-singlefile"
+  },
+  "author": "richard@tallent.us",
+  "homepage": "https://github.com/richardtallent/vite-plugin-singlefile/tree/main/#readme"
+}

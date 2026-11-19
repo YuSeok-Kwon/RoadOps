@@ -1,0 +1,10 @@
+{
+  "name": "lexical",
+  "version": "0.44.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/facebook/lexical.git",
+    "directory": "packages/lexical"
+  }
+}

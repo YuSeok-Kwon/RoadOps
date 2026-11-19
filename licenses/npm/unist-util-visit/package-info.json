@@ -1,0 +1,7 @@
+{
+  "name": "unist-util-visit",
+  "version": "5.1.0",
+  "license": "MIT",
+  "repository": "syntax-tree/unist-util-visit",
+  "author": "Titus Wormer <tituswormer@gmail.com> (https://wooorm.com)"
+}

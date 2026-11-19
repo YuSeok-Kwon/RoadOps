@@ -1,0 +1,148 @@
+{
+  "schema_version": 1,
+  "status": "pass",
+  "travel_time_version": "roadops-road-network-travel-time-v0.1",
+  "route_semantics": "free_flow_speed_limit_estimate_not_live_eta",
+  "resource_validation": {
+    "schema_version": 1,
+    "status": "pass",
+    "scenario_id": "demo-three-teams-two-hours-v0.1",
+    "team_count": 3,
+    "vehicle_count": 3,
+    "total_personnel": 6,
+    "mandatory_link_count": 1,
+    "excluded_link_count": 1,
+    "fixed_assignment_count": 1,
+    "task_override_count": 1,
+    "errors": [],
+    "warnings": []
+  },
+  "graph": {
+    "node_count": 27656,
+    "link_count": 37087,
+    "routable_link_count": 37087,
+    "closed_link_count": 0,
+    "known_closed_link_count": 0,
+    "unknown_closed_link_ids": [],
+    "fallback_speed_link_count": 0,
+    "issue_counts": {}
+  },
+  "origin_count": 12,
+  "destination_count": 9,
+  "expected_route_count": 108,
+  "route_count": 108,
+  "status_counts": {
+    "ok": 108
+  },
+  "source_mode_counts": {
+    "cache_replay": 108
+  },
+  "closed_link_traversal_count": 0,
+  "failed_checks": [],
+  "allocation_baseline_recheck": [
+    {
+      "strategy": "risk_first",
+      "original_travel_time_semantics": "straight_line_constant_speed",
+      "original_total_estimated_travel_minutes": 118.103,
+      "network_total_travel_minutes": 166.941,
+      "maximum_team_elapsed_minutes": 132.302,
+      "shift_exceeded_team_ids": [
+        "team-east"
+      ],
+      "shift_exceeded_team_count": 1,
+      "unavailable_route_leg_count": 0,
+      "team_results": [
+        {
+          "team_id": "team-east",
+          "assignment_count": 3,
+          "travel_minutes": 82.302,
+          "service_minutes": 50.0,
+          "elapsed_minutes": 132.302,
+          "available_minutes": 120.0,
+          "shift_exceeded_minutes": 12.302,
+          "failed_legs": []
+        },
+        {
+          "team_id": "team-north",
+          "assignment_count": 3,
+          "travel_minutes": 21.159,
+          "service_minutes": 45.0,
+          "elapsed_minutes": 66.159,
+          "available_minutes": 120.0,
+          "shift_exceeded_minutes": 0.0,
+          "failed_legs": []
+        },
+        {
+          "team_id": "team-west",
+          "assignment_count": 3,
+          "travel_minutes": 63.48,
+          "service_minutes": 45.0,
+          "elapsed_minutes": 108.48,
+          "available_minutes": 120.0,
+          "shift_exceeded_minutes": 0.0,
+          "failed_legs": []
+        }
+      ]
+    },
+    {
+      "strategy": "nearest",
+      "original_travel_time_semantics": "straight_line_constant_speed",
+      "original_total_estimated_travel_minutes": 107.818,
+      "network_total_travel_minutes": 164.253,
+      "maximum_team_elapsed_minutes": 130.171,
+      "shift_exceeded_team_ids": [
+        "team-east"
+      ],
+      "shift_exceeded_team_count": 1,
+      "unavailable_route_leg_count": 0,
+      "team_results": [
+        {
+          "team_id": "team-east",
+          "assignment_count": 3,
+          "travel_minutes": 80.171,
+          "service_minutes": 50.0,
+          "elapsed_minutes": 130.171,
+          "available_minutes": 120.0,
+          "shift_exceeded_minutes": 10.171,
+          "failed_legs": []
+        },
+        {
+          "team_id": "team-north",
+          "assignment_count": 3,
+          "travel_minutes": 18.386,
+          "service_minutes": 45.0,
+          "elapsed_minutes": 63.386,
+          "available_minutes": 120.0,
+          "shift_exceeded_minutes": 0.0,
+          "failed_legs": []
+        },
+        {
+          "team_id": "team-west",
+          "assignment_count": 3,
+          "travel_minutes": 65.696,
+          "service_minutes": 45.0,
+          "elapsed_minutes": 110.696,
+          "available_minutes": 120.0,
+          "shift_exceeded_minutes": 0.0,
+          "failed_legs": []
+        }
+      ]
+    }
+  ],
+  "cache": {
+    "status": "hit",
+    "key": "2f677decce6409331099e571094bc03bd5c1ff326e2b572aae592fe67a94eab8",
+    "path": "02_outputs/data/travel_time_matrix_v0_1/cache/2f677decce6409331099e571094bc03bd5c1ff326e2b572aae592fe67a94eab8.json"
+  },
+  "inputs": {
+    "resources": "config/resource_scenarios/demo_three_teams_v0_1.json",
+    "allocation": "02_outputs/data/allocation_baselines_v0_1/allocation_baselines.json",
+    "nodes": "02_outputs/interim/molit_nodelink_jeju_20261014/jeju_nodes.csv",
+    "links": "02_outputs/interim/molit_nodelink_jeju_20261014/jeju_links.csv",
+    "closure_state": "02_outputs/data/cits_snapshot_monitor_v0_1/state/jeju_cits_road_close.json"
+  },
+  "outputs": {
+    "travel_time_matrix": "02_outputs/data/travel_time_matrix_v0_1/travel_time_matrix.json",
+    "quality_report": "02_outputs/data/travel_time_matrix_v0_1/quality_report.json"
+  }
+}

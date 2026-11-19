@@ -1,0 +1,10 @@
+{
+  "name": "@preact/signals-core",
+  "version": "1.14.4",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/preactjs/signals"
+  },
+  "homepage": "https://preactjs.com"
+}

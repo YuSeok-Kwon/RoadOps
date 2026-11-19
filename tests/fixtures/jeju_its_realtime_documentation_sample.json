@@ -1,0 +1,35 @@
+{
+  "_metadata": {
+    "source": "https://jejuits.go.kr/open_api/open_apiView.do",
+    "sample_type": "official_documentation_example_not_live_data",
+    "captured_on": "2026-10-26"
+  },
+  "result": "success",
+  "info_cnt": 3,
+  "Info": [
+    {
+      "link_id": "4057193600",
+      "prcn_dt": "20210616030000",
+      "tfvl": "0",
+      "sped": 46,
+      "ocpy_rate": 0,
+      "trvl_hh": 44
+    },
+    {
+      "link_id": "4057055100",
+      "prcn_dt": "20210616030000",
+      "tfvl": "0",
+      "sped": 46,
+      "ocpy_rate": 0,
+      "trvl_hh": 44
+    },
+    {
+      "link_id": "4057003900",
+      "prcn_dt": "20210616030000",
+      "tfvl": "0",
+      "sped": 46,
+      "ocpy_rate": 0,
+      "trvl_hh": 44
+    }
+  ]
+}

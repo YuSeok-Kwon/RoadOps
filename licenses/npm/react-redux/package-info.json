@@ -1,0 +1,8 @@
+{
+  "name": "react-redux",
+  "version": "9.3.0",
+  "license": "MIT",
+  "repository": "github:reduxjs/react-redux",
+  "author": "Dan Abramov <dan.abramov@me.com> (https://github.com/gaearon)",
+  "homepage": "https://github.com/reduxjs/react-redux"
+}

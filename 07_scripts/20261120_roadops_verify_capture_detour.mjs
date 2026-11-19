@@ -1,0 +1,84 @@
+/** Verify the same-basis closure case and capture unmodified, running RoadOps UI. */
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import assert from 'node:assert/strict';
+import {fileURLToPath} from 'node:url';
+import {replanClosure} from '../08_dashboard/roadops_map_v0_1/src/content/dashboard/closure-replanning.js';
+import {createWorkflowState} from '../08_dashboard/roadops_map_v0_1/src/content/dashboard/workflow-policy.js';
+const ROOT=path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+const BUILD=process.env.ROADOPS_CAPTURE_OUTPUT || path.join(ROOT,'999_Temporary/roadops_detour_1213_20261120');
+const CAPTURE=path.join(BUILD,'actual-screens');
+const SNAPSHOT=process.env.ROADOPS_CAPTURE_SNAPSHOT || path.join(ROOT,'demo/presentation_20261119/data.json');
+await fs.mkdir(CAPTURE,{recursive:true});
+const fixture=JSON.parse(await fs.readFile(path.join(ROOT,'tests/fixtures/roadops_sogil_detour.json')));
+const network=JSON.parse(await fs.readFile(path.join(ROOT,'08_dashboard/roadops_map_v0_1/src/content/assets/routing-network.json')));
+const depot={...fixture.resources.teams[0],available_minutes:120,max_tasks_per_team:3,vehicle_personnel_capacity:2,vehicle_equipment:fixture.resources.vehicles[0].equipment};
+const baseRoutes=fixture.base.assignments.map(row=>({...row,alternative_id:'safety_first'}));
+const result=replanClosure({network,depot,baseRoutes,taskRows:fixture.tasks,
+  state:createWorkflowState({teams:[depot],tasks:fixture.tasks,routes:baseRoutes}),
+  closedLinkIds:['4050000302'],completedCount:1,elapsedMinutes:39.8,preserveVisitOrder:true});
+assert.equal(result.status,'pass');
+assert.equal(result.comparison.beforeTotalMinutes,100.57);
+assert.equal(result.totalMinutes,125.613);
+assert.equal(result.overtimeMinutes,5.613);
+assert.equal(result.comparison.changedLegCount,1);
+assert.ok(result.comparison.beforeRoutes[2].route_link_ids.includes('4050000302'));
+assert.ok(result.routes.slice(1).every(r=>!r.route_link_ids.includes('4050000302')));
+assert.deepEqual(result.routes.map(r=>r.task_id),baseRoutes.map(r=>r.task_id));
+await fs.writeFile(path.join(BUILD,'verified-result.json'),JSON.stringify(result,null,2));
+if(process.argv.includes('--verify-only')) {console.log(JSON.stringify({status:'pass',before:100.57,after:125.613,overtime:5.613}));process.exit(0);}
+const {chromium}=await import(process.env.ROADOPS_PLAYWRIGHT_MODULE || 'playwright');
+const browser=await chromium.launch({headless:true,...(process.env.ROADOPS_BROWSER_PATH ? {executablePath:process.env.ROADOPS_BROWSER_PATH} : {})});
+try {
+ const page=await browser.newPage({viewport:{width:1920,height:1000},deviceScaleFactor:3});
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ const snapshot=await fs.readFile(SNAPSHOT,'utf8');
+ if(process.env.ROADOPS_CAPTURE_SNAPSHOT) await page.route('**/snapshot.*.json',r=>r.fulfill({body:snapshot,contentType:'application/json'}));
+ await page.addInitScript(()=>{sessionStorage.setItem('roadops-operation-session-v1',JSON.stringify({phase:'review',selectedDepotId:'team-north'}));localStorage.setItem('roadops-color-mode','light');});
+ await page.goto(process.env.ROADOPS_APP_URL || 'http://127.0.0.1:5173/',{waitUntil:'networkidle'});
+ await page.getByRole('button',{name:'AI 자동선택',exact:true}).click();
+ await page.getByRole('button',{name:'추천 경로 만들기',exact:true}).click();
+ await page.locator('.ai-result-panel').waitFor();
+ const originalText=await page.locator('.ai-result-panel').innerText();
+ await page.getByLabel('통제 구간 번호',{exact:true}).fill('4050000302');
+ await page.locator('.closure-replan-inputs select').selectOption('1');
+ await page.getByLabel('이미 사용한 시간(분)',{exact:true}).fill('39.8');
+ await page.getByLabel('방문 대상·순서를 유지하고 통제 전후 필요 시간 비교',{exact:true}).check();
+ await page.getByRole('button',{name:'대체 경로 자동 계산',exact:true}).click();
+ await page.locator('.closure-comparison').waitFor();
+ const actualResult=await page.locator('.closure-replan-result').innerText();
+ for(const value of ['100.6분','125.6분','25.0분','5.6분 초과'])assert.ok(actualResult.includes(value),value+actualResult);
+ assert.equal(await page.getByRole('button',{name:'출동 조건 검토 필요',exact:true}).isDisabled(),true);
+ const map=page.locator('.roadops-map-wrap');
+ // The app fits both routes together; stage switching retains exactly this viewport.
+ await page.getByRole('button',{name:'통제 전 경로 보기',exact:true}).click();
+ await map.scrollIntoViewIfNeeded();await page.evaluate(()=>document.fonts.ready);
+ await page.waitForTimeout(1200);
+ const beforePaths=await page.locator('.plan-routes .route-line').evaluateAll(es=>es.map(e=>e.getAttribute('d')));
+ const beforeView=await page.locator('svg.roadops-map').getAttribute('viewBox');
+ await map.screenshot({path:path.join(CAPTURE,'01_before_map.png')});
+ await page.locator('.ai-result-panel').screenshot({path:path.join(CAPTURE,'02_before_course.png')});
+ await page.getByRole('button',{name:'통제 후 경로 보기',exact:true}).click();
+ await map.scrollIntoViewIfNeeded();await page.waitForTimeout(400);
+ const afterPaths=await page.locator('.plan-routes .route-line').evaluateAll(es=>es.map(e=>e.getAttribute('d')));
+ const afterView=await page.locator('svg.roadops-map').getAttribute('viewBox');
+ assert.equal(beforeView,afterView);assert.notDeepEqual(beforePaths,afterPaths);
+ assert.equal(beforePaths[0],afterPaths[0]);assert.equal(beforePaths[1],afterPaths[1]);assert.notEqual(beforePaths[2],afterPaths[2]);
+ await map.screenshot({path:path.join(CAPTURE,'03_after_map.png')});
+ await page.locator('.ai-result-panel').screenshot({path:path.join(CAPTURE,'04_after_course.png')});
+ await page.locator('.closure-replan-inputs').screenshot({path:path.join(CAPTURE,'05_inputs.png')});
+ await page.locator('.closure-replan-result').screenshot({path:path.join(CAPTURE,'06_comparison.png')});
+ await page.screenshot({path:path.join(BUILD,'actual-app-context.png'),fullPage:true});
+ const routeText=await page.locator('.ai-result-panel').innerText();
+ await page.getByRole('button',{name:'다크',exact:true}).click();
+ await page.locator('.closure-replan-result').screenshot({path:path.join(BUILD,'dark-result.png')});
+ await page.getByRole('button',{name:'화이트',exact:true}).click();
+ await page.setViewportSize({width:900,height:1200});
+ const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth);
+ assert.equal(overflow,false);
+ await page.locator('.closure-replan-result').screenshot({path:path.join(BUILD,'narrow-result.png')});
+ assert.deepEqual(errors,[]);
+ await fs.writeFile(path.join(BUILD,'capture-evidence.json'),JSON.stringify({capturedAt:new Date().toISOString(),sourceUrl:page.url(),snapshotPath:SNAPSHOT,snapshotSha256:crypto.createHash('sha256').update(snapshot).digest('hex'),method:process.env.ROADOPS_CAPTURE_SNAPSHOT ? 'Actual app controls, Worker calculation and element screenshots. Frozen source response for this isolated browser only; no DOM or screenshot edits.' : 'Packaged application and snapshot served directly; no response interception, DOM or screenshot edits.',closedLinkIds:['4050000302'],completedCount:1,elapsedMinutes:39.8,elapsedMeaning:'시연에서 동일하게 둔 완료 소요시간 가정이며 실측 기록이 아님',budgetMinutes:120,originalText,resultText:actualResult,routeText,beforeView,afterView,visibleRoutePathsChanged:[false,false,true],errors,narrowOverflow:overflow},null,2));
+ console.log(JSON.stringify({captured:CAPTURE,resultText:actualResult,routeText}));
+} finally {await browser.close();}

@@ -1,0 +1,7 @@
+{
+  "name": "psutil",
+  "version": "7.2.2",
+  "license": "BSD-3-Clause",
+  "license_expression": null,
+  "home_page": "https://github.com/giampaolo/psutil"
+}

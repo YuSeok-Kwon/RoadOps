@@ -1,0 +1,11 @@
+{
+  "name": "isomorphic.js",
+  "version": "0.2.5",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dmonad/isomorphic.js.git"
+  },
+  "author": "Kevin Jahns <kevin.jahns@protonmail.com>",
+  "homepage": "https://github.com/dmonad/isomorphic.js#readme"
+}

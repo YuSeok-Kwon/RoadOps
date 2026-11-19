@@ -1,0 +1,22 @@
+
+> prebuild
+> node scripts/verify-protected-runtime.mjs
+
+Protected Data app runtime verified (240 files).
+
+> build
+> node scripts/verify-protected-runtime.mjs && vite build
+
+Protected Data app runtime verified (240 files).
+vite v8.1.5 building client environment for production...
+[2K
+transforming...✓ 1076 modules transformed.
+rendering chunks...
+[plugin vite:singlefile] 
+
+[plugin vite:singlefile] Inlining: index-CHxgNZ6p.js
+[plugin vite:singlefile] Inlining: style-49i6lTmc.css
+computing gzip size...
+dist/index.html  15,977.31 kB │ gzip: 5,156.40 kB
+
+✓ built in 1.34s

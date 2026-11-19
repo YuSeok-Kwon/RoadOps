@@ -1,0 +1,13 @@
+{
+  "prepared_at": "2026-11-19T18:43:24.679252+00:00",
+  "proposal_sha256": "4a769941d63cf201776bc2414a08c5fc94deb5ec9d099febde412882d700c9c0",
+  "presentation_snapshot_sha256": "b29d687f4882d4339cd71b4b97349190d9886916dc562e5e3db1262ad33f28bf",
+  "latest_snapshot_sha256": "d97b8720cdc751bb24988660b41ab3d9461cde02a0b19d079ce697da5a253a92",
+  "snapshot_policy": "Frozen copies with submission/refresh metadata only. Reviewed data rows and timestamps, and the working app input files, are unchanged.",
+  "windows_execution_tested": false,
+  "center_pc_tested": false,
+  "original_latest_snapshot_sha256": "9abf77dcb53c94322314a948bc95bff679aecb1b32da9a816164156db792073a",
+  "original_presentation_snapshot_sha256": "abb1f47d7b712e8dd6f8f0ee5d118992c99050f4c7a1647daca31a8d965e974e",
+  "latest_generated_at": "2026-11-20T03:40:36.129650+09:00",
+  "presentation_generated_at": "2026-11-19T17:40:14.240939+09:00"
+}

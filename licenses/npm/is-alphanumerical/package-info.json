@@ -1,0 +1,7 @@
+{
+  "name": "is-alphanumerical",
+  "version": "2.0.1",
+  "license": "MIT",
+  "repository": "wooorm/is-alphanumerical",
+  "author": "Titus Wormer <tituswormer@gmail.com> (https://wooorm.com)"
+}

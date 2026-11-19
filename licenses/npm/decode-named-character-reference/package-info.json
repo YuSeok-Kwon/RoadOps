@@ -1,0 +1,7 @@
+{
+  "name": "decode-named-character-reference",
+  "version": "1.3.0",
+  "license": "MIT",
+  "repository": "wooorm/decode-named-character-reference",
+  "author": "Titus Wormer <tituswormer@gmail.com> (https://wooorm.com)"
+}

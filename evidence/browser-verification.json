@@ -1,0 +1,26 @@
+{
+  "capturedAt": "2026-11-19T18:47:51.590Z",
+  "sourceUrl": "http://127.0.0.1:8765/presentation/",
+  "snapshotPath": "demo/presentation_20261119/data.json",
+  "snapshotSha256": "b29d687f4882d4339cd71b4b97349190d9886916dc562e5e3db1262ad33f28bf",
+  "method": "Packaged application and snapshot served directly; no response interception, DOM or screenshot edits.",
+  "closedLinkIds": [
+    "4050000302"
+  ],
+  "completedCount": 1,
+  "elapsedMinutes": 39.8,
+  "elapsedMeaning": "시연에서 동일하게 둔 완료 소요시간 가정이며 실측 기록이 아님",
+  "budgetMinutes": 120,
+  "originalText": "AI 추천 순찰코스\n3\n곳 점검\n56.2\n분 이동\n101.2\n분 예상\n1\n제주시 애월읍 광령리 · 평화로 인근\n24.8분 이동 · 15분 점검\n2\n제주시 애월읍 소길리 · 평화로 인근\n6.2분 이동 · 15분 점검\n3\n서귀포시 예래동 1100로 1555\n25.2분 이동 · 15분 점검\n조건 수정\n계획 확정",
+  "resultText": "같은 기준으로 계산한 통제 전후\n\n통제 전 100.6분 / 통제 후 125.6분\n\n추가 예상 시간 25.0분 · 이동 경로 변경 1구간\n\n통제 전 경로 보기\n통제 후 경로 보기\n완료 1곳 유지 · 남은 방문 2곳 · 보류 0곳\n\n사용한 시간 39.8분 + 남은 이동·점검 85.8분 = 총 125.6분\n\n가용 120.0분보다 5.6분 초과 예상\n\n방문을 모두 유지할 때의 검토용 예상치입니다. 담당자가 시간 연장이나 지원 투입 여부를 판단한 뒤 출동 조건을 조정하세요.",
+  "routeText": "통제 후 방문 유지 시 예상 코스\n3\n곳 점검\n80.6\n분 이동\n125.6\n분 예상\n1\n제주시 애월읍 광령리 · 평화로 인근\n완료 · 기존 기록 유지\n2\n제주시 애월읍 소길리 · 평화로 인근\n5.8분 이동 · 15분 점검\n3\n서귀포시 예래동 1100로 1555\n50분 이동 · 15분 점검\n\n통제 후 모든 방문 유지 시 120분보다 5.6분 초과 예상 · 담당자 검토 필요\n\n조건 수정\n출동 조건 검토 필요",
+  "beforeView": "137.9180622607056 64.95734518407684 543.1287336029407 320.445952825735",
+  "afterView": "137.9180622607056 64.95734518407684 543.1287336029407 320.445952825735",
+  "visibleRoutePathsChanged": [
+    false,
+    false,
+    true
+  ],
+  "errors": [],
+  "narrowOverflow": false
+}

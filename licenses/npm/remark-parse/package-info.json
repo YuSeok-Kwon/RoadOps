@@ -1,0 +1,8 @@
+{
+  "name": "remark-parse",
+  "version": "11.0.0",
+  "license": "MIT",
+  "repository": "https://github.com/remarkjs/remark/tree/main/packages/remark-parse",
+  "author": "Titus Wormer <tituswormer@gmail.com> (https://wooorm.com)",
+  "homepage": "https://remark.js.org"
+}

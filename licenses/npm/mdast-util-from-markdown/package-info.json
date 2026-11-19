@@ -1,0 +1,7 @@
+{
+  "name": "mdast-util-from-markdown",
+  "version": "2.0.3",
+  "license": "MIT",
+  "repository": "syntax-tree/mdast-util-from-markdown",
+  "author": "Titus Wormer <tituswormer@gmail.com> (https://wooorm.com)"
+}

@@ -1,0 +1,8 @@
+{
+  "name": "get-nonce",
+  "version": "1.0.1",
+  "license": "MIT",
+  "repository": "git@github.com:theKashey/get-nonce.git",
+  "author": "Anton Korzunov <thekashey@gmail.com>",
+  "homepage": "https://github.com/theKashey/get-nonce"
+}

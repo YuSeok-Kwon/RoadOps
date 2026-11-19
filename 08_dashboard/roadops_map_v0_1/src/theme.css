@@ -1,0 +1,99 @@
+:root {
+  color-scheme: light dark;
+  --adaptive-theme: 1;
+  --font-sans-default: Poppins, "Pretendard Variable", Pretendard, -apple-system-body, ui-sans-serif, -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-sans: var(--vscode-font-family, var(--font-sans-default));
+  --background: var(--color-token-main-surface-primary, var(--color-background-surface, light-dark(#ffffff, #101311)));
+  --surface: var(--color-background-elevated-secondary-opaque, light-dark(#f7f8f5, #171b18));
+  --surface-raised: var(--color-token-dropdown-background, light-dark(#ffffff, #1d221e));
+  --muted: light-dark(#f1f3ef, #202521);
+  --control: var(--color-background-control-opaque, light-dark(#fff, #171b18));
+  --control-hover: light-dark(#e9ede7, #29302a);
+  --interaction-hover: var(--muted);
+  --interaction-active: var(--control-hover);
+  --text: var(--color-token-foreground, var(--color-text-foreground, light-dark(#171a18, #f7faf7)));
+  --secondary: var(--color-token-description-foreground, light-dark(#687168, #aab4aa));
+  --border: var(--color-token-border, var(--color-border, light-dark(#dfe4dc, #303831)));
+  --border-strong: var(--color-border-heavy, light-dark(#c8d0c5, #485249));
+  --accent: var(--color-text-accent, light-dark(#1468b3, #68b7f0));
+  --positive: var(--color-text-success, light-dark(#4f8f21, #8fd45b));
+  --negative: var(--color-text-error, light-dark(#e02e2a, #ff6764));
+  --chart-1: light-dark(#1468b3, #68b7f0);
+  --chart-2: light-dark(#2e3192, #8f94e8);
+  --chart-3: light-dark(#6aa52d, #9bd95d);
+  --chart-4: light-dark(#df8f1d, #f2b95f);
+  --chart-5: light-dark(#ff66ad, #ff8cc1);
+  --chart-6: light-dark(#ffc300, #ffd240);
+  --chart-7: light-dark(#fa423e, #ff6764);
+  --chart-8: light-dark(#8f8f8f, #afafaf);
+  --chart-neutral-fill: color-mix(in srgb, var(--text) 3%, var(--surface));
+  --ranked-list-fill: color-mix(in srgb, var(--chart-1) 16%, var(--surface));
+  --ranked-list-fill-hover: color-mix(in srgb, var(--chart-1) 24%, var(--surface));
+  --movement-positive: color-mix(in srgb, var(--positive) 75%, var(--text));
+  --movement-negative: color-mix(in srgb, var(--negative) 75%, var(--text));
+  --movement-total: var(--secondary);
+  --card-radius: 8px;
+  --data-card-radius: 10px;
+  --data-card-background: var(--background);
+  --control-radius: 7px;
+  --mark-radius: 4;
+  --card-shadow: none;
+  --shadow: 0 12px 32px -18px rgb(0 0 0 / 28%);
+  --data-app-chrome-background: light-dark(#171a18, #0d100e);
+  --data-app-chrome-text: #f7faf7;
+}
+
+:root:not([data-app-theme]),
+:root:is([data-app-theme="original"], [data-app-theme="codex-classic"]) {
+  --dashboard-background: light-dark(color-mix(in srgb, var(--background) 98.6%, var(--text)), var(--background));
+}
+
+:root[data-roadops-color-mode="light"] {
+  color-scheme: light;
+  --background: #ffffff;
+  --surface: #f7f8f5;
+  --surface-raised: #ffffff;
+  --muted: #f1f3ef;
+  --control: #ffffff;
+  --control-hover: #e9ede7;
+  --interaction-hover: #f1f3ef;
+  --interaction-active: #e9ede7;
+  --text: #171a18;
+  --secondary: #687168;
+  --border: #dfe4dc;
+  --border-strong: #c8d0c5;
+  --accent: #1468b3;
+  --positive: #4f8f21;
+  --negative: #e02e2a;
+  --chart-1: #1468b3;
+  --chart-2: #2e3192;
+  --chart-3: #6aa52d;
+  --chart-4: #df8f1d;
+  --data-app-chrome-background: #171a18;
+  --data-app-chrome-text: #f7faf7;
+}
+
+:root[data-roadops-color-mode="dark"] {
+  color-scheme: dark;
+  --background: #080e14;
+  --surface: #101820;
+  --surface-raised: #16212b;
+  --muted: #18232d;
+  --control: #101820;
+  --control-hover: #22313d;
+  --interaction-hover: #18232d;
+  --interaction-active: #22313d;
+  --text: #f4f7fa;
+  --secondary: #9ba9b6;
+  --border: #26333e;
+  --border-strong: #3d4b57;
+  --accent: #68b7f0;
+  --positive: #91d53e;
+  --negative: #ff6764;
+  --chart-1: #68b7f0;
+  --chart-2: #8f94e8;
+  --chart-3: #91d53e;
+  --chart-4: #f2b95f;
+  --data-app-chrome-background: #060b10;
+  --data-app-chrome-text: #f4f7fa;
+}

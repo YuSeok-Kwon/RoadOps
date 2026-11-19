@@ -1,0 +1,14 @@
+{
+  "version": "roadops-operator-priority-v0.2",
+  "method": "available",
+  "weights": {
+    "event": 30,
+    "structural": 20,
+    "weather_road": 20,
+    "traffic": 10,
+    "gateway": 5,
+    "accident_hotspot": 8,
+    "similar_history": 5,
+    "city_safety": 2
+  }
+}

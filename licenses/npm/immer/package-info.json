@@ -1,0 +1,11 @@
+{
+  "name": "immer",
+  "version": "11.1.15",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/immerjs/immer.git"
+  },
+  "author": "Michel Weststrate <info@michel.codes>",
+  "homepage": "https://github.com/immerjs/immer#readme"
+}

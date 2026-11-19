@@ -1,0 +1,8 @@
+{
+  "name": "redux-thunk",
+  "version": "3.1.0",
+  "license": "MIT",
+  "repository": "github:reduxjs/redux-thunk",
+  "author": "Dan Abramov <dan.abramov@me.com>",
+  "homepage": "https://github.com/reduxjs/redux-thunk"
+}

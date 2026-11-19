@@ -1,0 +1,7 @@
+{
+  "name": "remark-rehype",
+  "version": "11.1.2",
+  "license": "MIT",
+  "repository": "remarkjs/remark-rehype",
+  "author": "Titus Wormer <tituswormer@gmail.com> (https://wooorm.com)"
+}

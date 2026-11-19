@@ -1,0 +1,14 @@
+# Runtime / 실행 환경
+httpx>=0.27,<1
+pyproj>=3.7,<4
+pyshp>=2.3,<3
+
+# Development and validation / 개발 및 검증
+pytest>=8,<9
+
+# Reproducible analysis notebooks / 재현 가능한 분석 노트북
+ipykernel>=6,<8
+matplotlib>=3.9,<4
+nbclient>=0.10,<1
+nbconvert>=7,<8
+nbformat>=5,<6

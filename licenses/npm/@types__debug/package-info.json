@@ -1,0 +1,11 @@
+{
+  "name": "@types/debug",
+  "version": "4.1.13",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+    "directory": "types/debug"
+  },
+  "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/debug"
+}

@@ -1,0 +1,68 @@
+{
+  "manifest_id": "roadops-submission-source-v0.1",
+  "scope": "executable_source_and_manual_not_final_zip",
+  "entrypoints": {
+    "posix": "run_demo.sh",
+    "windows_powershell": "run_demo.ps1",
+    "python": "07_scripts/20261113_roadops_run_agent_flow_v0_1.py",
+    "submission_validation": "07_scripts/20261116_roadops_validate_submission_source_v0_1.py"
+  },
+  "required_paths": [
+    "README.md",
+    "requirements.txt",
+    "pyproject.toml",
+    "config/.env.example",
+    "config/data_sources.json",
+    "config/agent/roadops_agent_contract_v0_1.json",
+    "config/execution_profiles/competition_center_v0_1.json",
+    "config/resource_scenarios/demo_three_teams_v0_1.json",
+    "config/submission/data_lineage_v0_1.json",
+    "config/submission/source_manifest_v0_1.json",
+    "demo/cached_inputs_v0_1/manifest.json",
+    "05_src/roadops/agent_flow.py",
+    "05_src/roadops/allocation_baselines.py",
+    "05_src/roadops/allocation_optimizer.py",
+    "05_src/roadops/resources.py",
+    "05_src/roadops/spatial.py",
+    "05_src/roadops/quality.py",
+    "05_src/roadops/cits_snapshot.py",
+    "05_src/roadops/environment_validation.py",
+    "05_src/roadops/data_lineage.py",
+    "05_src/roadops/submission_validation.py",
+    "07_scripts/20261113_roadops_run_agent_flow_v0_1.py",
+    "07_scripts/20261116_roadops_validate_center_environment_v0_1.py",
+    "07_scripts/20261116_roadops_validate_data_lineage_v0_1.py",
+    "07_scripts/20261116_roadops_validate_submission_source_v0_1.py",
+    "tests/test_agent_flow.py",
+    "tests/test_data_lineage.py",
+    "tests/test_submission_validation.py",
+    "08_dashboard/roadops_map_v0_1/package.json",
+    "08_dashboard/roadops_map_v0_1/package-lock.json",
+    "08_dashboard/roadops_map_v0_1/src/data.json",
+    "08_dashboard/roadops_map_v0_1/src/App.jsx",
+    "04_docs/deployment/20261116_roadops_execution_user_manual_v0_1.md",
+    "04_docs/deployment/20261116_roadops_data_usage_lineage_v0_1.md",
+    "run_demo.sh",
+    "run_demo.ps1"
+  ],
+  "excluded_local_paths": [
+    "config/.env",
+    ".venv/",
+    "02_outputs/",
+    "999_Temporary/",
+    "08_dashboard/roadops_map_v0_1/node_modules/",
+    "08_dashboard/roadops_map_v0_1/dist/"
+  ],
+  "declared_api_key_names": [
+    "JEJU_CITS_API_KEY",
+    "JEJU_ITS_API_KEY",
+    "DATA_GO_KR_SERVICE_KEY",
+    "TAAS_API_KEY"
+  ],
+  "default_mode": "cached_demo_without_api_keys",
+  "limitations": [
+    "This manifest validates source completeness but is not the final submission ZIP.",
+    "The cached demo is a frozen reviewed snapshot and is not live road status.",
+    "The web dashboard uses its separately reviewed src/data.json snapshot."
+  ]
+}

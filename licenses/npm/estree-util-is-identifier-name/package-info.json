@@ -1,0 +1,7 @@
+{
+  "name": "estree-util-is-identifier-name",
+  "version": "3.0.0",
+  "license": "MIT",
+  "repository": "syntax-tree/estree-util-is-identifier-name",
+  "author": "Titus Wormer <tituswormer@gmail.com> (https://wooorm.com)"
+}

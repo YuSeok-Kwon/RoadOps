@@ -1,0 +1,7 @@
+{
+  "name": "tornado",
+  "version": "6.6",
+  "license": "Apache-2.0",
+  "license_expression": null,
+  "home_page": "http://www.tornadoweb.org/"
+}

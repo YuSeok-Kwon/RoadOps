@@ -1,0 +1,81 @@
+{
+  "status": "pass",
+  "validated_at": "2026-11-20",
+  "platform": "macOS-27.0-arm64-arm-64bit-Mach-O",
+  "python": "3.14.3",
+  "node": "v22.16.0",
+  "python_tests": {
+    "passed": 241,
+    "failed": 0,
+    "isolated_environment": true
+  },
+  "web_tests": {
+    "passed": 46,
+    "failed": 0
+  },
+  "cli": {
+    "status": "pass_with_limitations",
+    "completed_tools": 7,
+    "api_keys_required": false
+  },
+  "independent_route_check": {
+    "legs": 4,
+    "before_minutes": 100.57,
+    "after_minutes": 125.613,
+    "overtime_minutes": 5.613
+  },
+  "browser": {
+    "real_packaged_data": true,
+    "intercepted_responses": false,
+    "changed_map_legs": [
+      false,
+      false,
+      true
+    ],
+    "same_viewbox": true,
+    "overtime_confirm_blocked": true,
+    "page_errors": [],
+    "narrow_900px_overflow": false,
+    "light_dark_checked": true
+  },
+  "latest_ui": {
+    "status": "pass",
+    "freshUserFlow": true,
+    "savedDataLabel": true,
+    "surfaceMetrics": [
+      7218,
+      226,
+      3.13
+    ],
+    "inspectionApplied": true,
+    "hazardRows": 58,
+    "hubHotspotRows": 36,
+    "pageErrors": []
+  },
+  "source_rebuild": {
+    "npm_ci": "pass",
+    "npm_run_build": "pass",
+    "codex_environment_required": false
+  },
+  "protected_runtime": {
+    "status": "pass",
+    "files": 240
+  },
+  "proposal": {
+    "pages": 15,
+    "all_pages_rendered_and_reviewed": true
+  },
+  "dependency_audit": {
+    "production_findings": 0,
+    "development_findings": 4,
+    "development_high": 3,
+    "development_moderate": 1,
+    "details": "dependency-audit.json",
+    "dev_server_in_delivery_runtime": false
+  },
+  "not_verified": [
+    "Windows actual execution",
+    "Center PC actual performance",
+    "Real field operational effects"
+  ]
+}

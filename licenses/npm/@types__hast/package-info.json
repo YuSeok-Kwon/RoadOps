@@ -1,0 +1,11 @@
+{
+  "name": "@types/hast",
+  "version": "3.0.5",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+    "directory": "types/hast"
+  },
+  "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/hast"
+}

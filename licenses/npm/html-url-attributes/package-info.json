@@ -1,0 +1,7 @@
+{
+  "name": "html-url-attributes",
+  "version": "3.0.1",
+  "license": "MIT",
+  "repository": "https://github.com/rehypejs/rehype-minify/tree/main/packages/html-url-attributes",
+  "author": "Titus Wormer <tituswormer@gmail.com> (https://wooorm.com)"
+}

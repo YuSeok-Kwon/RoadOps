@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "agent_version": "roadops-agent-flow-v0.1",
+  "run_id": "97e5951cd9ed97a9cbf363aec362ad4de5db1a3695d1f014390e0343fa915e1c",
+  "status": "pass_with_limitations",
+  "completed_tool_count": 7,
+  "tool_statuses": {
+    "request_interpreter": "pass",
+    "data_quality_gate": "pass_with_limitations",
+    "risk_task_builder": "pass",
+    "travel_time_gate": "pass",
+    "allocation_optimizer": "pass",
+    "plan_validator": "pass",
+    "result_explainer": "pass"
+  },
+  "failed_checks": [],
+  "quality_status": "pass_with_limitations",
+  "quality_issues": [
+    {
+      "dataset": "integrated_events",
+      "reason": "source_quality_passed_with_limitations"
+    },
+    {
+      "dataset": "risk_forecasts",
+      "reason": "source_quality_passed_with_limitations"
+    }
+  ],
+  "agent_contract": {
+    "contract_id": "roadops-agent-contract-v0.1",
+    "contract_sha256": "32a7eb0e050636b7ce2c89735affe6f7f0a45e13dc733cbbe391b7dcc8c65995",
+    "runtime_mode": "deterministic_python_tools_no_external_llm",
+    "contract_path": "config/agent/roadops_agent_contract_v0_1.json",
+    "expected_tool_ids": [
+      "request_interpreter",
+      "data_quality_gate",
+      "risk_task_builder",
+      "travel_time_gate",
+      "allocation_optimizer",
+      "plan_validator",
+      "result_explainer"
+    ],
+    "observed_tool_ids": [
+      "request_interpreter",
+      "data_quality_gate",
+      "risk_task_builder",
+      "travel_time_gate",
+      "allocation_optimizer",
+      "plan_validator",
+      "result_explainer"
+    ],
+    "execution_status": "pass"
+  },
+  "generated_at": "2026-11-20T03:45:30.406996+09:00",
+  "inputs": {
+    "resources": "config/resource_scenarios/demo_three_teams_v0_1.json",
+    "risk_forecasts": "demo/cached_inputs_v0_1/risk_forecasts.csv",
+    "integrated_events": "demo/cached_inputs_v0_1/integrated_field_events.csv",
+    "travel_time_matrix": "demo/cached_inputs_v0_1/travel_time_matrix.json",
+    "risk_quality": "demo/cached_inputs_v0_1/risk_quality_report.json",
+    "event_quality": "demo/cached_inputs_v0_1/event_quality_report.json",
+    "travel_quality": "demo/cached_inputs_v0_1/travel_quality_report.json"
+  },
+  "outputs": {
+    "agent_result": "02_outputs/data/agent_flow_v0_1/agent_result.json",
+    "quality_report": "02_outputs/data/agent_flow_v0_1/quality_report.json",
+    "tool_trace": "02_outputs/data/agent_flow_v0_1/tool_trace.jsonl"
+  }
+}

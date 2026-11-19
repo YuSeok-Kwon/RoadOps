@@ -1,0 +1,10 @@
+{
+  "name": "debug",
+  "version": "4.4.3",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/debug-js/debug.git"
+  },
+  "author": "Josh Junon (https://github.com/qix-)"
+}

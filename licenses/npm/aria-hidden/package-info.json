@@ -1,0 +1,11 @@
+{
+  "name": "aria-hidden",
+  "version": "1.2.6",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/theKashey/aria-hidden.git"
+  },
+  "author": "Anton Korzunov <thekashey@gmail.com>",
+  "homepage": "https://github.com/theKashey/aria-hidden#readme"
+}

@@ -1,0 +1,286 @@
+TAP version 13
+# Subtest: Sogil detour agrees with independent Python routing and preserves completed work
+ok 1 - Sogil detour agrees with independent Python routing and preserves completed work
+  ---
+  duration_ms: 59.513875
+  type: 'test'
+  ...
+# Subtest: unknown closure does not silently reuse the original route
+ok 2 - unknown closure does not silently reuse the original route
+  ---
+  duration_ms: 7.104667
+  type: 'test'
+  ...
+# Subtest: same-basis comparison reveals a real 1100-road detour and warns about overtime
+ok 3 - same-basis comparison reveals a real 1100-road detour and warns about overtime
+  ---
+  duration_ms: 57.768917
+  type: 'test'
+  ...
+# Subtest: comparison does not attribute an unchanged route to an irrelevant closure
+ok 4 - comparison does not attribute an unchanged route to an irrelevant closure
+  ---
+  duration_ms: 69.585583
+  type: 'test'
+  ...
+# Subtest: visit-preserving preview never fabricates access to a closed destination
+ok 5 - visit-preserving preview never fabricates access to a closed destination
+  ---
+  duration_ms: 79.87875
+  type: 'test'
+  ...
+# Subtest: closed destination is withheld while the required Yerae visit remains
+ok 6 - closed destination is withheld while the required Yerae visit remains
+  ---
+  duration_ms: 28.041541
+  type: 'test'
+  ...
+# Subtest: infeasible required visit fails instead of presenting an incomplete approved plan
+ok 7 - infeasible required visit fails instead of presenting an incomplete approved plan
+  ---
+  duration_ms: 25.819541
+  type: 'test'
+  ...
+# Subtest: remaining budget accounts for actual elapsed time, including completed work
+ok 8 - remaining budget accounts for actual elapsed time, including completed work
+  ---
+  duration_ms: 81.740292
+  type: 'test'
+  ...
+# Subtest: fixed team and mandatory constraints survive replanning
+ok 9 - fixed team and mandatory constraints survive replanning
+  ---
+  duration_ms: 0.306417
+  type: 'test'
+  ...
+# Subtest: invalid progress, missing time, and resource changes invalidate the proposed routes
+ok 10 - invalid progress, missing time, and resource changes invalidate the proposed routes
+  ---
+  duration_ms: 0.42275
+  type: 'test'
+  ...
+# Subtest: all completed visits stay intact; no fictitious new travel is added
+ok 11 - all completed visits stay intact; no fictitious new travel is added
+  ---
+  duration_ms: 13.924667
+  type: 'test'
+  ...
+# Subtest: directed shortest path searches a new detour and never reverses a one-way road
+ok 12 - directed shortest path searches a new detour and never reverses a one-way road
+  ---
+  duration_ms: 0.16075
+  type: 'test'
+  ...
+# Subtest: rates use pooled accidents and preserve missing years
+ok 13 - rates use pooled accidents and preserve missing years
+  ---
+  duration_ms: 0.7775
+  type: 'test'
+  ...
+# Subtest: released Gwangnyeong is excluded and regional matches never become closures
+ok 14 - released Gwangnyeong is excluded and regional matches never become closures
+  ---
+  duration_ms: 0.642084
+  type: 'test'
+  ...
+# Subtest: unknown surface creates no fabricated surface evidence
+ok 15 - unknown surface creates no fabricated surface evidence
+  ---
+  duration_ms: 0.476
+  type: 'test'
+  ...
+# Subtest: different years stay separate on map
+ok 16 - different years stay separate on map
+  ---
+  duration_ms: 0.106083
+  type: 'test'
+  ...
+# Subtest: inspection evidence changes confirmation fingerprint and is retained in approval
+ok 17 - inspection evidence changes confirmation fingerprint and is retained in approval
+  ---
+  duration_ms: 0.883875
+  type: 'test'
+  ...
+# Subtest: finds depot candidates without preselecting a route
+ok 18 - finds depot candidates without preselecting a route
+  ---
+  duration_ms: 0.583084
+  type: 'test'
+  ...
+# Subtest: builds a manual route in the official's click order
+ok 19 - builds a manual route in the official's click order
+  ---
+  duration_ms: 0.409333
+  type: 'test'
+  ...
+# Subtest: sorts evidence by distance and labels similar-event places
+ok 20 - sorts evidence by distance and labels similar-event places
+  ---
+  duration_ms: 0.217208
+  type: 'test'
+  ...
+# Subtest: browser and batch defaults use the same operator policy
+ok 21 - browser and batch defaults use the same operator policy
+  ---
+  duration_ms: 0.686792
+  type: 'test'
+  ...
+# Subtest: weights, missing data, zero and complete-evidence selection
+ok 22 - weights, missing data, zero and complete-evidence selection
+  ---
+  duration_ms: 0.53225
+  type: 'test'
+  ...
+# Subtest: score representative changes with weights and AI receives the same score
+ok 23 - score representative changes with weights and AI receives the same score
+  ---
+  duration_ms: 0.421875
+  type: 'test'
+  ...
+# Subtest: accident overlap is conditional on including structural risk
+ok 24 - accident overlap is conditional on including structural risk
+  ---
+  duration_ms: 0.074792
+  type: 'test'
+  ...
+# Subtest: a changed policy invalidates approval even when numerical scores tie
+ok 25 - a changed policy invalidates approval even when numerical scores tie
+  ---
+  duration_ms: 1.333
+  type: 'test'
+  ...
+# Subtest: rescoring preserves operator constraints but resets acknowledgement
+ok 26 - rescoring preserves operator constraints but resets acknowledgement
+  ---
+  duration_ms: 0.233541
+  type: 'test'
+  ...
+# Subtest: 516 road explains the score with sensor, speed and accident evidence
+ok 27 - 516 road explains the score with sensor, speed and accident evidence
+  ---
+  duration_ms: 1.250709
+  type: 'test'
+  ...
+# Subtest: a multi-event road uses the score's own drivers, not the union
+ok 28 - a multi-event road uses the score's own drivers, not the union
+  ---
+  duration_ms: 0.210084
+  type: 'test'
+  ...
+# Subtest: missing and invalid evidence never becomes a zero-point explanation
+ok 29 - missing and invalid evidence never becomes a zero-point explanation
+  ---
+  duration_ms: 0.09325
+  type: 'test'
+  ...
+# Subtest: rounding and the model's 100-point cap are explicit
+ok 30 - rounding and the model's 100-point cap are explicit
+  ---
+  duration_ms: 0.058292
+  type: 'test'
+  ...
+# Subtest: changing the horizon changes the summary and missing evidence is explicit
+ok 31 - changing the horizon changes the summary and missing evidence is explicit
+  ---
+  duration_ms: 0.201834
+  type: 'test'
+  ...
+# Subtest: rain, snow, freezing and dry suggestions use actual inputs
+ok 32 - rain, snow, freezing and dry suggestions use actual inputs
+  ---
+  duration_ms: 0.619125
+  type: 'test'
+  ...
+# Subtest: missing, invalid and stale weather never imply dry conditions
+ok 33 - missing, invalid and stale weather never imply dry conditions
+  ---
+  duration_ms: 0.096792
+  type: 'test'
+  ...
+# Subtest: future weather must be forecast for the requested horizon
+ok 34 - future weather must be forecast for the requested horizon
+  ---
+  duration_ms: 0.059
+  type: 'test'
+  ...
+# Subtest: manual overrides survive new weather, unknown weather and session serialization; reset uses latest recommendation
+ok 35 - manual overrides survive new weather, unknown weather and session serialization; reset uses latest recommendation
+  ---
+  duration_ms: 0.774959
+  type: 'test'
+  ...
+# Subtest: weather provenance and manual decision reach approval without changing score or closure
+ok 36 - weather provenance and manual decision reach approval without changing score or closure
+  ---
+  duration_ms: 0.757875
+  type: 'test'
+  ...
+# Subtest: browser exact solver reproduces the reviewed Python baseline
+ok 37 - browser exact solver reproduces the reviewed Python baseline
+  ---
+  duration_ms: 9.765875
+  type: 'test'
+  ...
+# Subtest: unavailable fixed team returns an explainable infeasible result
+ok 38 - unavailable fixed team returns an explainable infeasible result
+  ---
+  duration_ms: 0.420042
+  type: 'test'
+  ...
+# Subtest: manual priority is included in a fresh feasible optimization
+ok 39 - manual priority is included in a fresh feasible optimization
+  ---
+  duration_ms: 3.652958
+  type: 'test'
+  ...
+# Subtest: validated snapshot becomes approval-ready only after acknowledgements and identity
+ok 40 - validated snapshot becomes approval-ready only after acknowledgements and identity
+  ---
+  duration_ms: 0.598458
+  type: 'test'
+  ...
+# Subtest: resource edits block approval only while automatic optimization is pending
+ok 41 - resource edits block approval only while automatic optimization is pending
+  ---
+  duration_ms: 0.339625
+  type: 'test'
+  ...
+# Subtest: mandatory task exclusion and route mismatch block approval
+ok 42 - mandatory task exclusion and route mismatch block approval
+  ---
+  duration_ms: 0.096541
+  type: 'test'
+  ...
+# Subtest: manual priority overrides require an operator reason
+ok 43 - manual priority overrides require an operator reason
+  ---
+  duration_ms: 0.070625
+  type: 'test'
+  ...
+# Subtest: switching to another validated plan preserves operator constraints
+ok 44 - switching to another validated plan preserves operator constraints
+  ---
+  duration_ms: 0.12875
+  type: 'test'
+  ...
+# Subtest: workflow fingerprint is deterministic and approval captures it
+ok 45 - workflow fingerprint is deterministic and approval captures it
+  ---
+  duration_ms: 0.41675
+  type: 'test'
+  ...
+# Subtest: audit entries are ordered and retain action details
+ok 46 - audit entries are ordered and retain action details
+  ---
+  duration_ms: 0.101042
+  type: 'test'
+  ...
+1..46
+# tests 46
+# suites 0
+# pass 46
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 543.914833

@@ -1,0 +1,329 @@
+{
+  "schema_version": 1,
+  "dataset": "roadops_integrated_field_events",
+  "generated_at": "2026-11-12T22:11:13.394277+09:00",
+  "grain": "one row per C-ITS record in one selected source snapshot",
+  "status": "pass_with_limitations",
+  "input_event_rows": 22,
+  "output_event_rows": 22,
+  "unique_event_ids": 22,
+  "integration_class_counts": {
+    "exact_link_id": 7,
+    "excluded": 7,
+    "spatial_fallback": 8
+  },
+  "source_class_counts": {
+    "jeju_cits_road_event": {
+      "exact_link_id": 7,
+      "excluded": 1,
+      "spatial_fallback": 1
+    },
+    "jeju_cits_road_weather": {
+      "excluded": 5,
+      "spatial_fallback": 7
+    },
+    "jeju_cits_road_work": {
+      "excluded": 1
+    }
+  },
+  "reference": {
+    "link_rows": 37087,
+    "duplicate_link_rows": 0
+  },
+  "enrichment_coverage": {
+    "traffic": {
+      "matched_rows": 12,
+      "eligible_rows": 15,
+      "rate": 0.8,
+      "matched_distinct_links": 8,
+      "eligible_distinct_links": 11,
+      "distinct_link_rate": 0.727273
+    },
+    "weather": {
+      "matched_rows": 21,
+      "valid_coordinate_rows": 21,
+      "rate": 1.0,
+      "matched_grids": 13,
+      "required_grids": 13,
+      "grid_rate": 1.0
+    },
+    "jeju_datahub_geometry_prior": {
+      "matched_rows": 15,
+      "eligible_rows": 15,
+      "rate": 1.0,
+      "matched_distinct_links": 11,
+      "eligible_distinct_links": 11,
+      "distinct_link_rate": 1.0
+    },
+    "taas": {
+      "matched_rows": 14,
+      "eligible_rows": 15,
+      "rate": 0.933333,
+      "matched_distinct_links": 10,
+      "eligible_distinct_links": 11,
+      "distinct_link_rate": 0.909091
+    },
+    "all_three_features": {
+      "matched_rows": 12,
+      "eligible_rows": 15,
+      "rate": 0.8,
+      "matched_distinct_links": 8,
+      "eligible_distinct_links": 11,
+      "distinct_link_rate": 0.727273
+    },
+    "all_four_features": {
+      "matched_rows": 12,
+      "eligible_rows": 15,
+      "rate": 0.8,
+      "matched_distinct_links": 8,
+      "eligible_distinct_links": 11,
+      "distinct_link_rate": 0.727273
+    }
+  },
+  "profiles": {
+    "traffic": {
+      "source_rows": 12081,
+      "valid_latest_link_rows": 12081,
+      "invalid_link_rows": 0,
+      "invalid_timestamp_rows": 0,
+      "duplicate_link_timestamp_rows": 0,
+      "earliest_observed_at": "2026-11-12T22:10:00+09:00",
+      "latest_observed_at": "2026-11-12T22:10:00+09:00"
+    },
+    "taas": {
+      "result_rows": 11,
+      "unique_link_rows": 11,
+      "duplicate_link_rows": 0,
+      "status_counts": {
+        "api_error": 1,
+        "ok": 10
+      }
+    },
+    "jeju_datahub_geometry_prior": {
+      "source_rows": 37087,
+      "unique_link_rows": 37087,
+      "duplicate_link_rows": 0,
+      "invalid_link_rows": 0
+    },
+    "weather_grid_count": 13
+  },
+  "temporal": {
+    "snapshot_age_minutes_at_build": {
+      "count": 22,
+      "minimum": 0.158,
+      "median": 0.158,
+      "maximum": 0.158
+    },
+    "traffic_age_minutes_at_build": {
+      "count": 12,
+      "minimum": 1.223,
+      "median": 1.223,
+      "maximum": 1.223
+    },
+    "weather_valid_time_offset_minutes_at_build": {
+      "count": 21,
+      "minimum": -11.223,
+      "median": -11.223,
+      "maximum": -11.223
+    }
+  },
+  "checks": [
+    {
+      "check_id": "one_output_row_per_input_event",
+      "passed": true,
+      "numerator": 22,
+      "denominator": 22
+    },
+    {
+      "check_id": "event_id_uniqueness",
+      "passed": true,
+      "numerator": 22,
+      "denominator": 22
+    },
+    {
+      "check_id": "integration_class_validity",
+      "passed": true,
+      "observed_values": [
+        "exact_link_id",
+        "excluded",
+        "spatial_fallback"
+      ],
+      "allowed_values": [
+        "exact_link_id",
+        "spatial_fallback",
+        "excluded"
+      ]
+    },
+    {
+      "check_id": "eligible_effective_link_completeness",
+      "passed": true,
+      "numerator": 15,
+      "denominator": 15
+    },
+    {
+      "check_id": "excluded_effective_link_is_null",
+      "passed": true,
+      "numerator": 7,
+      "denominator": 7
+    },
+    {
+      "check_id": "effective_link_reference_integrity",
+      "passed": true,
+      "numerator": 15,
+      "denominator": 15
+    },
+    {
+      "check_id": "reference_link_uniqueness",
+      "passed": true,
+      "duplicate_rows": 0
+    },
+    {
+      "check_id": "traffic_latest_link_uniqueness",
+      "passed": true,
+      "duplicate_rows": 0
+    },
+    {
+      "check_id": "taas_link_uniqueness",
+      "passed": true,
+      "duplicate_rows": 0
+    },
+    {
+      "check_id": "hub_geometry_prior_link_uniqueness",
+      "passed": true,
+      "duplicate_rows": 0
+    }
+  ],
+  "failed_checks": [],
+  "issue_samples": [
+    {
+      "event_id": "c0c6a56e2160ecc02c126cf1111660c2cf31583da522aead537a84bb9cb56b90",
+      "event_type": "road_event",
+      "integration_class": "spatial_fallback",
+      "effective_link_id": "4050429802",
+      "hub_geometry_prior_status": "matched",
+      "traffic_status": "missing_link",
+      "weather_status": "matched",
+      "taas_status": "ok",
+      "quality_flags": "cits_source_timestamp_unavailable|traffic:missing_link"
+    },
+    {
+      "event_id": "f2a7a103c1cc6b86886575f4a9880986ff282ca7f1263f0a815095258682fba0",
+      "event_type": "road_event",
+      "integration_class": "excluded",
+      "effective_link_id": null,
+      "hub_geometry_prior_status": "not_applicable_excluded",
+      "traffic_status": "not_applicable_excluded",
+      "weather_status": "matched",
+      "taas_status": "not_applicable_excluded",
+      "quality_flags": "cits_source_timestamp_unavailable|excluded:coordinate_exceeds_exact_link_threshold|hub_geometry_prior:not_applicable_excluded|traffic:not_applicable_excluded|taas:not_applicable_excluded"
+    },
+    {
+      "event_id": "5719db2622fee45ef454f9ba02652fc5459672f48d15fce5bf1013c1f9fe144e",
+      "event_type": "road_work",
+      "integration_class": "excluded",
+      "effective_link_id": null,
+      "hub_geometry_prior_status": "not_applicable_excluded",
+      "traffic_status": "not_applicable_excluded",
+      "weather_status": "invalid_coordinate",
+      "taas_status": "not_applicable_excluded",
+      "quality_flags": "cits_source_timestamp_unavailable|excluded:missing_or_invalid_coordinate|hub_geometry_prior:not_applicable_excluded|traffic:not_applicable_excluded|weather:invalid_coordinate|taas:not_applicable_excluded"
+    },
+    {
+      "event_id": "ab66806f97e455ed4cfdd9f40e0f013557f10279889ebfc04806813598e79896",
+      "event_type": "road_weather",
+      "integration_class": "excluded",
+      "effective_link_id": null,
+      "hub_geometry_prior_status": "not_applicable_excluded",
+      "traffic_status": "not_applicable_excluded",
+      "weather_status": "matched",
+      "taas_status": "not_applicable_excluded",
+      "quality_flags": "cits_source_timestamp_unavailable|excluded:nearest_candidates_inside_minimum_margin|hub_geometry_prior:not_applicable_excluded|traffic:not_applicable_excluded|taas:not_applicable_excluded"
+    },
+    {
+      "event_id": "f49718e508f96865ba06c3c40b23790b8d33548d7db58089e217abd3d1daaa5a",
+      "event_type": "road_weather",
+      "integration_class": "spatial_fallback",
+      "effective_link_id": "4060438807",
+      "hub_geometry_prior_status": "matched",
+      "traffic_status": "missing_link",
+      "weather_status": "matched",
+      "taas_status": "ok",
+      "quality_flags": "cits_source_timestamp_unavailable|traffic:missing_link"
+    },
+    {
+      "event_id": "782504ce732b65c5e3862cb110ff04851b9fd6f33de8856de516f09bd286fd5a",
+      "event_type": "road_weather",
+      "integration_class": "excluded",
+      "effective_link_id": null,
+      "hub_geometry_prior_status": "not_applicable_excluded",
+      "traffic_status": "not_applicable_excluded",
+      "weather_status": "matched",
+      "taas_status": "not_applicable_excluded",
+      "quality_flags": "cits_source_timestamp_unavailable|excluded:nearest_candidates_inside_minimum_margin|hub_geometry_prior:not_applicable_excluded|traffic:not_applicable_excluded|taas:not_applicable_excluded"
+    },
+    {
+      "event_id": "f804401c05d00d642d979a3b116a4db2325662c2e9b7b4d27f1f20f1bd5ea43d",
+      "event_type": "road_weather",
+      "integration_class": "excluded",
+      "effective_link_id": null,
+      "hub_geometry_prior_status": "not_applicable_excluded",
+      "traffic_status": "not_applicable_excluded",
+      "weather_status": "matched",
+      "taas_status": "not_applicable_excluded",
+      "quality_flags": "cits_source_timestamp_unavailable|excluded:nearest_candidates_inside_minimum_margin|hub_geometry_prior:not_applicable_excluded|traffic:not_applicable_excluded|taas:not_applicable_excluded"
+    },
+    {
+      "event_id": "ecc166636f4c67793cbc6dc9ffa6f2b5ddb1896bb51f29beaf38deb8f3b92d24",
+      "event_type": "road_weather",
+      "integration_class": "spatial_fallback",
+      "effective_link_id": "4050438101",
+      "hub_geometry_prior_status": "matched",
+      "traffic_status": "missing_link",
+      "weather_status": "matched",
+      "taas_status": "api_error",
+      "quality_flags": "cits_source_timestamp_unavailable|traffic:missing_link|taas:api_error"
+    },
+    {
+      "event_id": "0cbe296ec2394e42f38e0674d6334f5a3984e26974c7b3234b635fbb3c81a29b",
+      "event_type": "road_weather",
+      "integration_class": "excluded",
+      "effective_link_id": null,
+      "hub_geometry_prior_status": "not_applicable_excluded",
+      "traffic_status": "not_applicable_excluded",
+      "weather_status": "matched",
+      "taas_status": "not_applicable_excluded",
+      "quality_flags": "cits_source_timestamp_unavailable|excluded:nearest_candidates_inside_minimum_margin|hub_geometry_prior:not_applicable_excluded|traffic:not_applicable_excluded|taas:not_applicable_excluded"
+    },
+    {
+      "event_id": "133d6196b872bbb003917ebca9111d7e9cf248d2ca02e85b3aa34b31345c9b40",
+      "event_type": "road_weather",
+      "integration_class": "excluded",
+      "effective_link_id": null,
+      "hub_geometry_prior_status": "not_applicable_excluded",
+      "traffic_status": "not_applicable_excluded",
+      "weather_status": "matched",
+      "taas_status": "not_applicable_excluded",
+      "quality_flags": "cits_source_timestamp_unavailable|excluded:nearest_candidates_inside_minimum_margin|hub_geometry_prior:not_applicable_excluded|traffic:not_applicable_excluded|taas:not_applicable_excluded"
+    }
+  ],
+  "limitations": [
+    "C-ITS records have no provider observation timestamp; snapshot time is ingestion time.",
+    "TAAS is structural prior risk and is not a real-time incident measure.",
+    "Jeju Data Hub dataset 1027 covers 2018-2020 and supplies conditional crash severity by a RoadOps straight/curve geometry proxy, not per-link crash incidence.",
+    "Dataset 1027 is sourced from TAAS; the future scoring rule must prevent independent additive double counting with TAAS link risk.",
+    "Missing enrichment values remain null with an explicit status and are never imputed as zero.",
+    "Excluded events retain evidence but have no effective_link_id and cannot receive link-level geometry-prior, traffic, or TAAS features."
+  ],
+  "inputs": {
+    "joined_records": "02_outputs/data/cits_spatial_join_audit_v0_1/joined_records.jsonl",
+    "reference_links": "02_outputs/interim/molit_nodelink_jeju_20261014/jeju_links.csv",
+    "jeju_datahub_geometry_priors": "02_outputs/data/jeju_datahub_geometry_severity_prior_v0_1/link_geometry_severity_priors.csv",
+    "traffic_enrichment": "02_outputs/data/integrated_field_events_v0_1/enrichments/jeju_its_realtime_traffic.json",
+    "weather_enrichment": "02_outputs/data/integrated_field_events_v0_1/enrichments/kma_ultra_short_forecast.json",
+    "taas_enrichment": "02_outputs/data/integrated_field_events_v0_1/enrichments/taas_event_links.json"
+  },
+  "outputs": {
+    "integrated_table": "02_outputs/data/integrated_field_events_v0_1/integrated_field_events.csv",
+    "quality_report": "02_outputs/data/integrated_field_events_v0_1/quality_report.json"
+  }
+}

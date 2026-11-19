@@ -1,0 +1,7 @@
+{
+  "name": "unist-util-visit-parents",
+  "version": "6.0.2",
+  "license": "MIT",
+  "repository": "syntax-tree/unist-util-visit-parents",
+  "author": "Titus Wormer <tituswormer@gmail.com> (https://wooorm.com)"
+}

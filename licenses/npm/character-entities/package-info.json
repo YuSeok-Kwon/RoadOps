@@ -1,0 +1,7 @@
+{
+  "name": "character-entities",
+  "version": "2.0.2",
+  "license": "MIT",
+  "repository": "wooorm/character-entities",
+  "author": "Titus Wormer <tituswormer@gmail.com> (https://wooorm.com)"
+}

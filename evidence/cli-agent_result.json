@@ -1,0 +1,1951 @@
+{
+  "schema_version": 1,
+  "agent_version": "roadops-agent-flow-v0.1",
+  "run_id": "97e5951cd9ed97a9cbf363aec362ad4de5db1a3695d1f014390e0343fa915e1c",
+  "status": "pass_with_limitations",
+  "execution_mode": "cached_demo",
+  "request_text": "팀 3개와 차량 3대로 2시간 안에 현재 위험 기준 순찰계획을 만들어줘. 안전 우선과 업무 균형을 비교해줘.",
+  "parsed_request": {
+    "normalized_request": "팀 3개와 차량 3대로 2시간 안에 현재 위험 기준 순찰계획을 만들어줘. 안전 우선과 업무 균형을 비교해줘.",
+    "team_count": 3,
+    "vehicle_count": 3,
+    "duration_hours": 2,
+    "horizon_hours": 0,
+    "requested_alternative_ids": [
+      "safety_first",
+      "balanced_operations"
+    ],
+    "manual_approval_required": true,
+    "parser_semantics": "deterministic_korean_demo_grammar_not_general_llm"
+  },
+  "scenario_id": "demo-three-teams-two-hours-v0.1",
+  "field_tasks": [
+    {
+      "task_id": "link:4050418600:h0",
+      "link_id": "4050418600",
+      "horizon_hours": 0,
+      "road_name": "516로",
+      "priority_score": 58.462,
+      "score_lower_bound": 58.462,
+      "score_upper_bound": 58.462,
+      "risk_level": "high",
+      "latitude": 33.3848369,
+      "longitude": 126.6206339,
+      "event_count": 1,
+      "event_ids": [
+        "006dd68b98b513a02710801c49678fe44b7767ca151b16cd42e3622865240ee5"
+      ],
+      "source_ids": [
+        "jeju_cits_road_weather"
+      ],
+      "event_types": [
+        "road_weather"
+      ],
+      "mandatory": false,
+      "excluded": false,
+      "fixed_team_id": "team-east",
+      "service_minutes": 20.0,
+      "required_skills": [
+        "general_patrol"
+      ],
+      "required_equipment": [
+        "road_weather_kit"
+      ],
+      "managing_agency_id": "jeju-province-road-management",
+      "managing_agency_name": "제주특별자치도 도로관리과",
+      "administrative_city_agency_id": "seogwipo-city-road-management",
+      "administrative_city_agency_name": "서귀포시 건설과",
+      "road_jurisdiction": "jeju-provincial-road-1131",
+      "jurisdiction_basis": "국가표준링크 지방도 1131호·SGIS 서귀포시 남원읍; 읍면장 위임 중 가로등·가로수 외 현장대응은 도 운영기관 기준",
+      "road_rank": "106",
+      "road_class": "지방도",
+      "road_number": "1131",
+      "administrative_city_code": "39020",
+      "administrative_city": "서귀포시",
+      "administrative_unit_code": "39020120",
+      "administrative_unit": "남원읍",
+      "administrative_unit_type": "읍",
+      "authority_status": "official_provincial_road_scope",
+      "authority_source_ids": [
+        "its_standard_link_spec",
+        "jeju_delegation_ordinance_20260807",
+        "jeju_special_act_article_412",
+        "molit_nodelink_20261014",
+        "sgis_admin_boundary_20250630"
+      ],
+      "dispatch_approval_required": true,
+      "dispatch_approver_id": "province-road-operator-designate",
+      "dispatch_approver_role": "도로관리과 운영기관 지정 승인권자",
+      "dispatch_approver_display_name": "운영기관 지정 필요",
+      "dispatch_approver_verification_status": "operator_configuration_required",
+      "dispatch_approval_status": "pending",
+      "response_mode": "joint_response",
+      "road_team_dispatch_eligible": true,
+      "handoff_actions": [
+        {
+          "handoff_type": "police",
+          "level": "coordinate",
+          "channel_id": "jeju-police-traffic-coordination",
+          "target_agency_id": "jeju-police",
+          "target_agency_name": "제주경찰청",
+          "contact_method": "교통통제 협조 요청(긴급 112 / 민원 182)",
+          "automation_status": "manual_operator_handoff",
+          "status": "pending"
+        }
+      ],
+      "handoff_statuses": [
+        {
+          "handoff_type": "police",
+          "level": "coordinate",
+          "channel_id": "jeju-police-traffic-coordination",
+          "channel_status": "active",
+          "target_agency_id": "jeju-police",
+          "target_agency_name": "제주경찰청",
+          "contact_method": "교통통제 협조 요청(긴급 112 / 민원 182)",
+          "automation_status": "manual_operator_handoff",
+          "status": "pending"
+        },
+        {
+          "handoff_type": "fire",
+          "level": "none",
+          "channel_id": "jeju-fire-119-coordination",
+          "channel_status": "active",
+          "target_agency_id": "jeju-fire",
+          "target_agency_name": "제주소방안전본부 119종합상황실",
+          "contact_method": "119 긴급 신고·인계",
+          "automation_status": "manual_operator_handoff",
+          "status": "not_requested"
+        }
+      ]
+    },
+    {
+      "task_id": "link:4060024900:h0",
+      "link_id": "4060024900",
+      "horizon_hours": 0,
+      "road_name": "1100로",
+      "priority_score": 35.385,
+      "score_lower_bound": 35.385,
+      "score_upper_bound": 35.385,
+      "risk_level": "moderate",
+      "latitude": 33.358829,
+      "longitude": 126.463091,
+      "event_count": 1,
+      "event_ids": [
+        "4bd504c6e0bb4fcb04be6b5788e65cbc7e1981d509f9deb150a61887b13f87b5"
+      ],
+      "source_ids": [
+        "jeju_cits_road_weather"
+      ],
+      "event_types": [
+        "road_weather"
+      ],
+      "mandatory": true,
+      "excluded": false,
+      "fixed_team_id": null,
+      "service_minutes": 15.0,
+      "required_skills": [],
+      "required_equipment": [],
+      "managing_agency_id": "jeju-province-road-management",
+      "managing_agency_name": "제주특별자치도 도로관리과",
+      "administrative_city_agency_id": "seogwipo-city-road-management",
+      "administrative_city_agency_name": "서귀포시 건설과",
+      "road_jurisdiction": "jeju-provincial-road-1139",
+      "jurisdiction_basis": "국가표준링크 지방도 1139호·SGIS 서귀포시 예래동; 동 지역 도시지역 위임 해당 여부는 출동 전 확인",
+      "road_rank": "106",
+      "road_class": "지방도",
+      "road_number": "1139",
+      "administrative_city_code": "39020",
+      "administrative_city": "서귀포시",
+      "administrative_unit_code": "39020620",
+      "administrative_unit": "예래동",
+      "administrative_unit_type": "동",
+      "authority_status": "admin_city_delegation_review_required",
+      "authority_source_ids": [
+        "its_standard_link_spec",
+        "jeju_delegation_ordinance_20260807",
+        "jeju_special_act_article_412",
+        "molit_nodelink_20261014",
+        "sgis_admin_boundary_20250630"
+      ],
+      "dispatch_approval_required": true,
+      "dispatch_approver_id": "province-road-operator-designate",
+      "dispatch_approver_role": "도로관리과 운영기관 지정 승인권자",
+      "dispatch_approver_display_name": "운영기관 지정 필요",
+      "dispatch_approver_verification_status": "operator_configuration_required",
+      "dispatch_approval_status": "pending",
+      "response_mode": "road_team_dispatch",
+      "road_team_dispatch_eligible": true,
+      "handoff_actions": [],
+      "handoff_statuses": [
+        {
+          "handoff_type": "police",
+          "level": "none",
+          "channel_id": "jeju-police-traffic-coordination",
+          "channel_status": "active",
+          "target_agency_id": "jeju-police",
+          "target_agency_name": "제주경찰청",
+          "contact_method": "교통통제 협조 요청(긴급 112 / 민원 182)",
+          "automation_status": "manual_operator_handoff",
+          "status": "not_requested"
+        },
+        {
+          "handoff_type": "fire",
+          "level": "none",
+          "channel_id": "jeju-fire-119-coordination",
+          "channel_status": "active",
+          "target_agency_id": "jeju-fire",
+          "target_agency_name": "제주소방안전본부 119종합상황실",
+          "contact_method": "119 긴급 신고·인계",
+          "automation_status": "manual_operator_handoff",
+          "status": "not_requested"
+        }
+      ]
+    },
+    {
+      "task_id": "link:4050396600:h0",
+      "link_id": "4050396600",
+      "horizon_hours": 0,
+      "road_name": "평화로",
+      "priority_score": 34.5,
+      "score_lower_bound": 34.5,
+      "score_upper_bound": 34.5,
+      "risk_level": "moderate",
+      "latitude": 33.353955,
+      "longitude": 126.360122,
+      "event_count": 1,
+      "event_ids": [
+        "4edf99737c639a263d26795f328a98a846d168dd1a228af2e9f204355c73569a"
+      ],
+      "source_ids": [
+        "jeju_cits_road_event"
+      ],
+      "event_types": [
+        "road_event"
+      ],
+      "mandatory": false,
+      "excluded": false,
+      "fixed_team_id": null,
+      "service_minutes": 15.0,
+      "required_skills": [],
+      "required_equipment": [],
+      "managing_agency_id": "jeju-province-road-management",
+      "managing_agency_name": "제주특별자치도 도로관리과",
+      "administrative_city_agency_id": "jeju-city-road-management",
+      "administrative_city_agency_name": "제주시 건설과",
+      "road_jurisdiction": "jeju-provincial-road-1135",
+      "jurisdiction_basis": "국가표준링크 지방도 1135호·SGIS 제주시 애월읍; 읍면장 위임 중 가로등·가로수 외 현장대응은 도 운영기관 기준",
+      "road_rank": "106",
+      "road_class": "지방도",
+      "road_number": "1135",
+      "administrative_city_code": "39010",
+      "administrative_city": "제주시",
+      "administrative_unit_code": "39010120",
+      "administrative_unit": "애월읍",
+      "administrative_unit_type": "읍",
+      "authority_status": "official_provincial_road_scope",
+      "authority_source_ids": [
+        "its_standard_link_spec",
+        "jeju_delegation_ordinance_20260807",
+        "jeju_special_act_article_412",
+        "molit_nodelink_20261014",
+        "sgis_admin_boundary_20250630"
+      ],
+      "dispatch_approval_required": true,
+      "dispatch_approver_id": "province-road-operator-designate",
+      "dispatch_approver_role": "도로관리과 운영기관 지정 승인권자",
+      "dispatch_approver_display_name": "운영기관 지정 필요",
+      "dispatch_approver_verification_status": "operator_configuration_required",
+      "dispatch_approval_status": "pending",
+      "response_mode": "road_team_dispatch",
+      "road_team_dispatch_eligible": true,
+      "handoff_actions": [],
+      "handoff_statuses": [
+        {
+          "handoff_type": "police",
+          "level": "none",
+          "channel_id": "jeju-police-traffic-coordination",
+          "channel_status": "active",
+          "target_agency_id": "jeju-police",
+          "target_agency_name": "제주경찰청",
+          "contact_method": "교통통제 협조 요청(긴급 112 / 민원 182)",
+          "automation_status": "manual_operator_handoff",
+          "status": "not_requested"
+        },
+        {
+          "handoff_type": "fire",
+          "level": "none",
+          "channel_id": "jeju-fire-119-coordination",
+          "channel_status": "active",
+          "target_agency_id": "jeju-fire",
+          "target_agency_name": "제주소방안전본부 119종합상황실",
+          "contact_method": "119 긴급 신고·인계",
+          "automation_status": "manual_operator_handoff",
+          "status": "not_requested"
+        }
+      ]
+    },
+    {
+      "task_id": "link:4050484600:h0",
+      "link_id": "4050484600",
+      "horizon_hours": 0,
+      "road_name": "평화로",
+      "priority_score": 34.5,
+      "score_lower_bound": 34.5,
+      "score_upper_bound": 34.5,
+      "risk_level": "moderate",
+      "latitude": 33.4398882,
+      "longitude": 126.4286981,
+      "event_count": 3,
+      "event_ids": [
+        "143a0e6179bb5eac429697dcd7191ce35906bcca0d35dfa5a97efcec0f7cc57a",
+        "2ffdd6ee748e83a1f02ab5f36999783e1ac0a2edf2f0c2cf2dcab5c463e61d65",
+        "81e21b529df3aa337ebb06cbbbd7c4e2af436ad105cf014d59f84d97e9b4dd43"
+      ],
+      "source_ids": [
+        "jeju_cits_road_event"
+      ],
+      "event_types": [
+        "road_event"
+      ],
+      "mandatory": false,
+      "excluded": false,
+      "fixed_team_id": null,
+      "service_minutes": 15.0,
+      "required_skills": [],
+      "required_equipment": [],
+      "managing_agency_id": "jeju-province-road-management",
+      "managing_agency_name": "제주특별자치도 도로관리과",
+      "administrative_city_agency_id": "jeju-city-road-management",
+      "administrative_city_agency_name": "제주시 건설과",
+      "road_jurisdiction": "jeju-provincial-road-1135",
+      "jurisdiction_basis": "국가표준링크 지방도 1135호·SGIS 제주시 애월읍; 읍면장 위임 중 가로등·가로수 외 현장대응은 도 운영기관 기준",
+      "road_rank": "106",
+      "road_class": "지방도",
+      "road_number": "1135",
+      "administrative_city_code": "39010",
+      "administrative_city": "제주시",
+      "administrative_unit_code": "39010120",
+      "administrative_unit": "애월읍",
+      "administrative_unit_type": "읍",
+      "authority_status": "official_provincial_road_scope",
+      "authority_source_ids": [
+        "its_standard_link_spec",
+        "jeju_delegation_ordinance_20260807",
+        "jeju_special_act_article_412",
+        "molit_nodelink_20261014",
+        "sgis_admin_boundary_20250630"
+      ],
+      "dispatch_approval_required": true,
+      "dispatch_approver_id": "province-road-operator-designate",
+      "dispatch_approver_role": "도로관리과 운영기관 지정 승인권자",
+      "dispatch_approver_display_name": "운영기관 지정 필요",
+      "dispatch_approver_verification_status": "operator_configuration_required",
+      "dispatch_approval_status": "pending",
+      "response_mode": "road_team_dispatch",
+      "road_team_dispatch_eligible": true,
+      "handoff_actions": [],
+      "handoff_statuses": [
+        {
+          "handoff_type": "police",
+          "level": "none",
+          "channel_id": "jeju-police-traffic-coordination",
+          "channel_status": "active",
+          "target_agency_id": "jeju-police",
+          "target_agency_name": "제주경찰청",
+          "contact_method": "교통통제 협조 요청(긴급 112 / 민원 182)",
+          "automation_status": "manual_operator_handoff",
+          "status": "not_requested"
+        },
+        {
+          "handoff_type": "fire",
+          "level": "none",
+          "channel_id": "jeju-fire-119-coordination",
+          "channel_status": "active",
+          "target_agency_id": "jeju-fire",
+          "target_agency_name": "제주소방안전본부 119종합상황실",
+          "contact_method": "119 긴급 신고·인계",
+          "automation_status": "manual_operator_handoff",
+          "status": "not_requested"
+        }
+      ]
+    },
+    {
+      "task_id": "link:4050484700:h0",
+      "link_id": "4050484700",
+      "horizon_hours": 0,
+      "road_name": "평화로",
+      "priority_score": 34.5,
+      "score_lower_bound": 34.5,
+      "score_upper_bound": 34.5,
+      "risk_level": "moderate",
+      "latitude": 33.4398882,
+      "longitude": 126.4286981,
+      "event_count": 3,
+      "event_ids": [
+        "03bd09cf9051c5a5762422586ef71afdd0a107f162e9e1ced5e4934999a542ed",
+        "06068e1eb1a584e27370783d8d125335e434afc51912c658ff4ec8c22e080fd1",
+        "70534b0d8280ade192980877588202f1e2f63e51c10f6cb8ea9485b5a6e583de"
+      ],
+      "source_ids": [
+        "jeju_cits_road_event"
+      ],
+      "event_types": [
+        "road_event"
+      ],
+      "mandatory": false,
+      "excluded": false,
+      "fixed_team_id": null,
+      "service_minutes": 15.0,
+      "required_skills": [],
+      "required_equipment": [],
+      "managing_agency_id": "jeju-province-road-management",
+      "managing_agency_name": "제주특별자치도 도로관리과",
+      "administrative_city_agency_id": "jeju-city-road-management",
+      "administrative_city_agency_name": "제주시 건설과",
+      "road_jurisdiction": "jeju-provincial-road-1135",
+      "jurisdiction_basis": "국가표준링크 지방도 1135호·SGIS 제주시 애월읍; 읍면장 위임 중 가로등·가로수 외 현장대응은 도 운영기관 기준",
+      "road_rank": "106",
+      "road_class": "지방도",
+      "road_number": "1135",
+      "administrative_city_code": "39010",
+      "administrative_city": "제주시",
+      "administrative_unit_code": "39010120",
+      "administrative_unit": "애월읍",
+      "administrative_unit_type": "읍",
+      "authority_status": "official_provincial_road_scope",
+      "authority_source_ids": [
+        "its_standard_link_spec",
+        "jeju_delegation_ordinance_20260807",
+        "jeju_special_act_article_412",
+        "molit_nodelink_20261014",
+        "sgis_admin_boundary_20250630"
+      ],
+      "dispatch_approval_required": true,
+      "dispatch_approver_id": "province-road-operator-designate",
+      "dispatch_approver_role": "도로관리과 운영기관 지정 승인권자",
+      "dispatch_approver_display_name": "운영기관 지정 필요",
+      "dispatch_approver_verification_status": "operator_configuration_required",
+      "dispatch_approval_status": "pending",
+      "response_mode": "road_team_dispatch",
+      "road_team_dispatch_eligible": true,
+      "handoff_actions": [],
+      "handoff_statuses": [
+        {
+          "handoff_type": "police",
+          "level": "none",
+          "channel_id": "jeju-police-traffic-coordination",
+          "channel_status": "active",
+          "target_agency_id": "jeju-police",
+          "target_agency_name": "제주경찰청",
+          "contact_method": "교통통제 협조 요청(긴급 112 / 민원 182)",
+          "automation_status": "manual_operator_handoff",
+          "status": "not_requested"
+        },
+        {
+          "handoff_type": "fire",
+          "level": "none",
+          "channel_id": "jeju-fire-119-coordination",
+          "channel_status": "active",
+          "target_agency_id": "jeju-fire",
+          "target_agency_name": "제주소방안전본부 119종합상황실",
+          "contact_method": "119 긴급 신고·인계",
+          "automation_status": "manual_operator_handoff",
+          "status": "not_requested"
+        }
+      ]
+    },
+    {
+      "task_id": "link:4050429802:h0",
+      "link_id": "4050429802",
+      "horizon_hours": 0,
+      "road_name": "평화로",
+      "priority_score": 30.882,
+      "score_lower_bound": 26.25,
+      "score_upper_bound": 41.25,
+      "risk_level": "moderate",
+      "latitude": 33.402162,
+      "longitude": 126.38075,
+      "event_count": 1,
+      "event_ids": [
+        "c0c6a56e2160ecc02c126cf1111660c2cf31583da522aead537a84bb9cb56b90"
+      ],
+      "source_ids": [
+        "jeju_cits_road_event"
+      ],
+      "event_types": [
+        "road_event"
+      ],
+      "mandatory": false,
+      "excluded": false,
+      "fixed_team_id": null,
+      "service_minutes": 15.0,
+      "required_skills": [],
+      "required_equipment": [],
+      "managing_agency_id": "jeju-province-road-management",
+      "managing_agency_name": "제주특별자치도 도로관리과",
+      "administrative_city_agency_id": "jeju-city-road-management",
+      "administrative_city_agency_name": "제주시 건설과",
+      "road_jurisdiction": "jeju-provincial-road-1135",
+      "jurisdiction_basis": "국가표준링크 지방도 1135호·SGIS 제주시 애월읍; 읍면장 위임 중 가로등·가로수 외 현장대응은 도 운영기관 기준",
+      "road_rank": "106",
+      "road_class": "지방도",
+      "road_number": "1135",
+      "administrative_city_code": "39010",
+      "administrative_city": "제주시",
+      "administrative_unit_code": "39010120",
+      "administrative_unit": "애월읍",
+      "administrative_unit_type": "읍",
+      "authority_status": "official_provincial_road_scope",
+      "authority_source_ids": [
+        "its_standard_link_spec",
+        "jeju_delegation_ordinance_20260807",
+        "jeju_special_act_article_412",
+        "molit_nodelink_20261014",
+        "sgis_admin_boundary_20250630"
+      ],
+      "dispatch_approval_required": true,
+      "dispatch_approver_id": "province-road-operator-designate",
+      "dispatch_approver_role": "도로관리과 운영기관 지정 승인권자",
+      "dispatch_approver_display_name": "운영기관 지정 필요",
+      "dispatch_approver_verification_status": "operator_configuration_required",
+      "dispatch_approval_status": "pending",
+      "response_mode": "road_team_dispatch",
+      "road_team_dispatch_eligible": true,
+      "handoff_actions": [],
+      "handoff_statuses": [
+        {
+          "handoff_type": "police",
+          "level": "none",
+          "channel_id": "jeju-police-traffic-coordination",
+          "channel_status": "active",
+          "target_agency_id": "jeju-police",
+          "target_agency_name": "제주경찰청",
+          "contact_method": "교통통제 협조 요청(긴급 112 / 민원 182)",
+          "automation_status": "manual_operator_handoff",
+          "status": "not_requested"
+        },
+        {
+          "handoff_type": "fire",
+          "level": "none",
+          "channel_id": "jeju-fire-119-coordination",
+          "channel_status": "active",
+          "target_agency_id": "jeju-fire",
+          "target_agency_name": "제주소방안전본부 119종합상황실",
+          "contact_method": "119 긴급 신고·인계",
+          "automation_status": "manual_operator_handoff",
+          "status": "not_requested"
+        }
+      ]
+    },
+    {
+      "task_id": "link:4050456800:h0",
+      "link_id": "4050456800",
+      "horizon_hours": 0,
+      "road_name": "평화로",
+      "priority_score": 23.999,
+      "score_lower_bound": 23.999,
+      "score_upper_bound": 23.999,
+      "risk_level": "low",
+      "latitude": 33.419426,
+      "longitude": 126.406067,
+      "event_count": 1,
+      "event_ids": [
+        "14df73f1e9e81a11ee8552e547e458065d937157fbee4e19d0b4cc89d3a19dd0"
+      ],
+      "source_ids": [
+        "jeju_cits_road_weather"
+      ],
+      "event_types": [
+        "road_weather"
+      ],
+      "mandatory": false,
+      "excluded": false,
+      "fixed_team_id": null,
+      "service_minutes": 15.0,
+      "required_skills": [],
+      "required_equipment": [],
+      "managing_agency_id": "jeju-province-road-management",
+      "managing_agency_name": "제주특별자치도 도로관리과",
+      "administrative_city_agency_id": "jeju-city-road-management",
+      "administrative_city_agency_name": "제주시 건설과",
+      "road_jurisdiction": "jeju-provincial-road-1135",
+      "jurisdiction_basis": "국가표준링크 지방도 1135호·SGIS 제주시 애월읍; 읍면장 위임 중 가로등·가로수 외 현장대응은 도 운영기관 기준",
+      "road_rank": "106",
+      "road_class": "지방도",
+      "road_number": "1135",
+      "administrative_city_code": "39010",
+      "administrative_city": "제주시",
+      "administrative_unit_code": "39010120",
+      "administrative_unit": "애월읍",
+      "administrative_unit_type": "읍",
+      "authority_status": "official_provincial_road_scope",
+      "authority_source_ids": [
+        "its_standard_link_spec",
+        "jeju_delegation_ordinance_20260807",
+        "jeju_special_act_article_412",
+        "molit_nodelink_20261014",
+        "sgis_admin_boundary_20250630"
+      ],
+      "dispatch_approval_required": true,
+      "dispatch_approver_id": "province-road-operator-designate",
+      "dispatch_approver_role": "도로관리과 운영기관 지정 승인권자",
+      "dispatch_approver_display_name": "운영기관 지정 필요",
+      "dispatch_approver_verification_status": "operator_configuration_required",
+      "dispatch_approval_status": "pending",
+      "response_mode": "road_team_dispatch",
+      "road_team_dispatch_eligible": true,
+      "handoff_actions": [],
+      "handoff_statuses": [
+        {
+          "handoff_type": "police",
+          "level": "none",
+          "channel_id": "jeju-police-traffic-coordination",
+          "channel_status": "active",
+          "target_agency_id": "jeju-police",
+          "target_agency_name": "제주경찰청",
+          "contact_method": "교통통제 협조 요청(긴급 112 / 민원 182)",
+          "automation_status": "manual_operator_handoff",
+          "status": "not_requested"
+        },
+        {
+          "handoff_type": "fire",
+          "level": "none",
+          "channel_id": "jeju-fire-119-coordination",
+          "channel_status": "active",
+          "target_agency_id": "jeju-fire",
+          "target_agency_name": "제주소방안전본부 119종합상황실",
+          "contact_method": "119 긴급 신고·인계",
+          "automation_status": "manual_operator_handoff",
+          "status": "not_requested"
+        }
+      ]
+    },
+    {
+      "task_id": "link:4060438807:h0",
+      "link_id": "4060438807",
+      "horizon_hours": 0,
+      "road_name": "516로",
+      "priority_score": 22.199,
+      "score_lower_bound": 17.076,
+      "score_upper_bound": 40.153,
+      "risk_level": "low",
+      "latitude": 33.3179211,
+      "longitude": 126.5985929,
+      "event_count": 1,
+      "event_ids": [
+        "f49718e508f96865ba06c3c40b23790b8d33548d7db58089e217abd3d1daaa5a"
+      ],
+      "source_ids": [
+        "jeju_cits_road_weather"
+      ],
+      "event_types": [
+        "road_weather"
+      ],
+      "mandatory": false,
+      "excluded": false,
+      "fixed_team_id": null,
+      "service_minutes": 15.0,
+      "required_skills": [],
+      "required_equipment": [],
+      "managing_agency_id": "jeju-province-road-management",
+      "managing_agency_name": "제주특별자치도 도로관리과",
+      "administrative_city_agency_id": "seogwipo-city-road-management",
+      "administrative_city_agency_name": "서귀포시 건설과",
+      "road_jurisdiction": "jeju-provincial-road-1131",
+      "jurisdiction_basis": "국가표준링크 지방도 1131호·SGIS 서귀포시 남원읍; 읍면장 위임 중 가로등·가로수 외 현장대응은 도 운영기관 기준",
+      "road_rank": "106",
+      "road_class": "지방도",
+      "road_number": "1131",
+      "administrative_city_code": "39020",
+      "administrative_city": "서귀포시",
+      "administrative_unit_code": "39020120",
+      "administrative_unit": "남원읍",
+      "administrative_unit_type": "읍",
+      "authority_status": "official_provincial_road_scope",
+      "authority_source_ids": [
+        "its_standard_link_spec",
+        "jeju_delegation_ordinance_20260807",
+        "jeju_special_act_article_412",
+        "molit_nodelink_20261014",
+        "sgis_admin_boundary_20250630"
+      ],
+      "dispatch_approval_required": true,
+      "dispatch_approver_id": "province-road-operator-designate",
+      "dispatch_approver_role": "도로관리과 운영기관 지정 승인권자",
+      "dispatch_approver_display_name": "운영기관 지정 필요",
+      "dispatch_approver_verification_status": "operator_configuration_required",
+      "dispatch_approval_status": "pending",
+      "response_mode": "road_team_dispatch",
+      "road_team_dispatch_eligible": true,
+      "handoff_actions": [],
+      "handoff_statuses": [
+        {
+          "handoff_type": "police",
+          "level": "none",
+          "channel_id": "jeju-police-traffic-coordination",
+          "channel_status": "active",
+          "target_agency_id": "jeju-police",
+          "target_agency_name": "제주경찰청",
+          "contact_method": "교통통제 협조 요청(긴급 112 / 민원 182)",
+          "automation_status": "manual_operator_handoff",
+          "status": "not_requested"
+        },
+        {
+          "handoff_type": "fire",
+          "level": "none",
+          "channel_id": "jeju-fire-119-coordination",
+          "channel_status": "active",
+          "target_agency_id": "jeju-fire",
+          "target_agency_name": "제주소방안전본부 119종합상황실",
+          "contact_method": "119 긴급 신고·인계",
+          "automation_status": "manual_operator_handoff",
+          "status": "not_requested"
+        }
+      ]
+    },
+    {
+      "task_id": "link:4050005521:h0",
+      "link_id": "4050005521",
+      "horizon_hours": 0,
+      "road_name": "중앙로",
+      "priority_score": 20.0,
+      "score_lower_bound": 20.0,
+      "score_upper_bound": 20.0,
+      "risk_level": "low",
+      "latitude": 33.4562213,
+      "longitude": 126.5512213,
+      "event_count": 1,
+      "event_ids": [
+        "698ac0be87cfd488fdb8ffea7b310013a98688efa52ea2cd74097aeb2d7ba43d"
+      ],
+      "source_ids": [
+        "jeju_cits_road_weather"
+      ],
+      "event_types": [
+        "road_weather"
+      ],
+      "mandatory": false,
+      "excluded": false,
+      "fixed_team_id": null,
+      "service_minutes": 15.0,
+      "required_skills": [],
+      "required_equipment": [],
+      "managing_agency_id": "jeju-province-road-management",
+      "managing_agency_name": "제주특별자치도 도로관리과",
+      "administrative_city_agency_id": "jeju-city-road-management",
+      "administrative_city_agency_name": "제주시 건설과",
+      "road_jurisdiction": "jeju-provincial-road-1131",
+      "jurisdiction_basis": "국가표준링크 지방도 1131호·SGIS 제주시 아라동; 동 지역 도시지역 위임 해당 여부는 출동 전 확인",
+      "road_rank": "106",
+      "road_class": "지방도",
+      "road_number": "1131",
+      "administrative_city_code": "39010",
+      "administrative_city": "제주시",
+      "administrative_unit_code": "39010630",
+      "administrative_unit": "아라동",
+      "administrative_unit_type": "동",
+      "authority_status": "admin_city_delegation_review_required",
+      "authority_source_ids": [
+        "its_standard_link_spec",
+        "jeju_delegation_ordinance_20260807",
+        "jeju_special_act_article_412",
+        "molit_nodelink_20261014",
+        "sgis_admin_boundary_20250630"
+      ],
+      "dispatch_approval_required": true,
+      "dispatch_approver_id": "province-road-operator-designate",
+      "dispatch_approver_role": "도로관리과 운영기관 지정 승인권자",
+      "dispatch_approver_display_name": "운영기관 지정 필요",
+      "dispatch_approver_verification_status": "operator_configuration_required",
+      "dispatch_approval_status": "pending",
+      "response_mode": "road_team_dispatch",
+      "road_team_dispatch_eligible": true,
+      "handoff_actions": [],
+      "handoff_statuses": [
+        {
+          "handoff_type": "police",
+          "level": "none",
+          "channel_id": "jeju-police-traffic-coordination",
+          "channel_status": "active",
+          "target_agency_id": "jeju-police",
+          "target_agency_name": "제주경찰청",
+          "contact_method": "교통통제 협조 요청(긴급 112 / 민원 182)",
+          "automation_status": "manual_operator_handoff",
+          "status": "not_requested"
+        },
+        {
+          "handoff_type": "fire",
+          "level": "none",
+          "channel_id": "jeju-fire-119-coordination",
+          "channel_status": "active",
+          "target_agency_id": "jeju-fire",
+          "target_agency_name": "제주소방안전본부 119종합상황실",
+          "contact_method": "119 긴급 신고·인계",
+          "automation_status": "manual_operator_handoff",
+          "status": "not_requested"
+        }
+      ]
+    },
+    {
+      "task_id": "link:4060456800:h0",
+      "link_id": "4060456800",
+      "horizon_hours": 0,
+      "road_name": "평화로",
+      "priority_score": 10.769,
+      "score_lower_bound": 10.769,
+      "score_upper_bound": 10.769,
+      "risk_level": "low",
+      "latitude": 33.3309372,
+      "longitude": 126.3549235,
+      "event_count": 1,
+      "event_ids": [
+        "ee23bdbb02b2654172290deb14c75f02b9997bf20a41c81fecb4a7f0b8452e2b"
+      ],
+      "source_ids": [
+        "jeju_cits_road_weather"
+      ],
+      "event_types": [
+        "road_weather"
+      ],
+      "mandatory": false,
+      "excluded": true,
+      "fixed_team_id": null,
+      "service_minutes": 15.0,
+      "required_skills": [],
+      "required_equipment": [],
+      "managing_agency_id": "jeju-province-road-management",
+      "managing_agency_name": "제주특별자치도 도로관리과",
+      "administrative_city_agency_id": "seogwipo-city-road-management",
+      "administrative_city_agency_name": "서귀포시 건설과",
+      "road_jurisdiction": "jeju-provincial-road-1135",
+      "jurisdiction_basis": "국가표준링크 지방도 1135호·SGIS 서귀포시 안덕면; 읍면장 위임 중 가로등·가로수 외 현장대응은 도 운영기관 기준",
+      "road_rank": "106",
+      "road_class": "지방도",
+      "road_number": "1135",
+      "administrative_city_code": "39020",
+      "administrative_city": "서귀포시",
+      "administrative_unit_code": "39020310",
+      "administrative_unit": "안덕면",
+      "administrative_unit_type": "면",
+      "authority_status": "official_provincial_road_scope",
+      "authority_source_ids": [
+        "its_standard_link_spec",
+        "jeju_delegation_ordinance_20260807",
+        "jeju_special_act_article_412",
+        "molit_nodelink_20261014",
+        "sgis_admin_boundary_20250630"
+      ],
+      "dispatch_approval_required": true,
+      "dispatch_approver_id": "province-road-operator-designate",
+      "dispatch_approver_role": "도로관리과 운영기관 지정 승인권자",
+      "dispatch_approver_display_name": "운영기관 지정 필요",
+      "dispatch_approver_verification_status": "operator_configuration_required",
+      "dispatch_approval_status": "pending",
+      "response_mode": "road_team_dispatch",
+      "road_team_dispatch_eligible": true,
+      "handoff_actions": [],
+      "handoff_statuses": [
+        {
+          "handoff_type": "police",
+          "level": "none",
+          "channel_id": "jeju-police-traffic-coordination",
+          "channel_status": "active",
+          "target_agency_id": "jeju-police",
+          "target_agency_name": "제주경찰청",
+          "contact_method": "교통통제 협조 요청(긴급 112 / 민원 182)",
+          "automation_status": "manual_operator_handoff",
+          "status": "not_requested"
+        },
+        {
+          "handoff_type": "fire",
+          "level": "none",
+          "channel_id": "jeju-fire-119-coordination",
+          "channel_status": "active",
+          "target_agency_id": "jeju-fire",
+          "target_agency_name": "제주소방안전본부 119종합상황실",
+          "contact_method": "119 긴급 신고·인계",
+          "automation_status": "manual_operator_handoff",
+          "status": "not_requested"
+        }
+      ]
+    }
+  ],
+  "allocation": {
+    "schema_version": 1,
+    "optimizer_version": "roadops-constraint-allocation-v0.1",
+    "scenario_id": "demo-three-teams-two-hours-v0.1",
+    "status": "pass",
+    "solver": {
+      "method": "deterministic_exact_route_enumeration_and_set_packing",
+      "maximum_supported_task_count": 10,
+      "candidate_combination_count": 15755,
+      "balanced_min_safety_ratio": 0.95,
+      "alternative_collapsed": false
+    },
+    "hard_constraints": [
+      "one_team_per_task",
+      "mandatory_tasks_assigned",
+      "fixed_team_assignments_honored",
+      "team_skill_and_equipment_requirements",
+      "managing_agency_and_road_jurisdiction_authority",
+      "maximum_tasks_per_team",
+      "shift_time_with_network_travel_and_service",
+      "unavailable_or_closed_routes_not_used"
+    ],
+    "handoff_queue": [],
+    "manual_approval_required": true,
+    "alternatives": [
+      {
+        "alternative_id": "safety_first",
+        "objective": "maximize_risk_coverage_then_minimize_network_travel_time",
+        "plan_fingerprint": "fd176560a36ea0479def9491168e8020f0824f8e980b117dda5f888b018ecfbc",
+        "assignments": [
+          {
+            "team_id": "team-east",
+            "sequence": 1,
+            "task_id": "link:4060438807:h0",
+            "link_id": "4060438807",
+            "road_name": "516로",
+            "priority_score": 22.199,
+            "mandatory": false,
+            "fixed_assignment": false,
+            "managing_agency_id": "jeju-province-road-management",
+            "road_jurisdiction": "jeju-provincial-road-1131",
+            "jurisdiction_basis": "국가표준링크 지방도 1131호·SGIS 서귀포시 남원읍; 읍면장 위임 중 가로등·가로수 외 현장대응은 도 운영기관 기준",
+            "dispatch_approval_required": true,
+            "dispatch_approver_id": "province-road-operator-designate",
+            "dispatch_approval_status": "pending",
+            "response_mode": "road_team_dispatch",
+            "handoff_actions": [],
+            "origin_id": "team-east",
+            "destination_task_id": "link:4060438807:h0",
+            "route_id": "cd0a91dc615742769febb6316ce4ad2017abc8dddd78787248a2742dbeb9c461",
+            "route_status": "ok",
+            "travel_minutes": 9.895,
+            "distance_km": 6.384,
+            "service_minutes": 15.0,
+            "cumulative_minutes": 24.895,
+            "route_link_ids": []
+          },
+          {
+            "team_id": "team-east",
+            "sequence": 2,
+            "task_id": "link:4050418600:h0",
+            "link_id": "4050418600",
+            "road_name": "516로",
+            "priority_score": 58.462,
+            "mandatory": false,
+            "fixed_assignment": true,
+            "managing_agency_id": "jeju-province-road-management",
+            "road_jurisdiction": "jeju-provincial-road-1131",
+            "jurisdiction_basis": "국가표준링크 지방도 1131호·SGIS 서귀포시 남원읍; 읍면장 위임 중 가로등·가로수 외 현장대응은 도 운영기관 기준",
+            "dispatch_approval_required": true,
+            "dispatch_approver_id": "province-road-operator-designate",
+            "dispatch_approval_status": "pending",
+            "response_mode": "joint_response",
+            "handoff_actions": [
+              {
+                "handoff_type": "police",
+                "level": "coordinate",
+                "channel_id": "jeju-police-traffic-coordination",
+                "target_agency_id": "jeju-police",
+                "target_agency_name": "제주경찰청",
+                "contact_method": "교통통제 협조 요청(긴급 112 / 민원 182)",
+                "automation_status": "manual_operator_handoff",
+                "status": "pending"
+              }
+            ],
+            "origin_id": "link:4060438807:h0",
+            "destination_task_id": "link:4050418600:h0",
+            "route_id": "7c6466e11fef93ea28ce8c2e70555d97a620c1a8983b81a21fd0ab7ae83cc7af",
+            "route_status": "ok",
+            "travel_minutes": 16.127,
+            "distance_km": 10.774,
+            "service_minutes": 20.0,
+            "cumulative_minutes": 61.022,
+            "route_link_ids": []
+          },
+          {
+            "team_id": "team-east",
+            "sequence": 3,
+            "task_id": "link:4050005521:h0",
+            "link_id": "4050005521",
+            "road_name": "중앙로",
+            "priority_score": 20.0,
+            "mandatory": false,
+            "fixed_assignment": false,
+            "managing_agency_id": "jeju-province-road-management",
+            "road_jurisdiction": "jeju-provincial-road-1131",
+            "jurisdiction_basis": "국가표준링크 지방도 1131호·SGIS 제주시 아라동; 동 지역 도시지역 위임 해당 여부는 출동 전 확인",
+            "dispatch_approval_required": true,
+            "dispatch_approver_id": "province-road-operator-designate",
+            "dispatch_approval_status": "pending",
+            "response_mode": "road_team_dispatch",
+            "handoff_actions": [],
+            "origin_id": "link:4050418600:h0",
+            "destination_task_id": "link:4050005521:h0",
+            "route_id": "930f5b80abbed4c412f9198ef1d8a08b2d943164a37128cb062d3f10fb920ac5",
+            "route_status": "ok",
+            "travel_minutes": 15.175,
+            "distance_km": 12.646,
+            "service_minutes": 15.0,
+            "cumulative_minutes": 91.197,
+            "route_link_ids": []
+          },
+          {
+            "team_id": "team-north",
+            "sequence": 1,
+            "task_id": "link:4050484700:h0",
+            "link_id": "4050484700",
+            "road_name": "평화로",
+            "priority_score": 34.5,
+            "mandatory": false,
+            "fixed_assignment": false,
+            "managing_agency_id": "jeju-province-road-management",
+            "road_jurisdiction": "jeju-provincial-road-1135",
+            "jurisdiction_basis": "국가표준링크 지방도 1135호·SGIS 제주시 애월읍; 읍면장 위임 중 가로등·가로수 외 현장대응은 도 운영기관 기준",
+            "dispatch_approval_required": true,
+            "dispatch_approver_id": "province-road-operator-designate",
+            "dispatch_approval_status": "pending",
+            "response_mode": "road_team_dispatch",
+            "handoff_actions": [],
+            "origin_id": "team-north",
+            "destination_task_id": "link:4050484700:h0",
+            "route_id": "e99485653320d57426c5f05a37562d0a0423aa8571008c9fa9771b7c5bbb8226",
+            "route_status": "ok",
+            "travel_minutes": 13.306,
+            "distance_km": 12.498,
+            "service_minutes": 15.0,
+            "cumulative_minutes": 28.306,
+            "route_link_ids": []
+          },
+          {
+            "team_id": "team-north",
+            "sequence": 2,
+            "task_id": "link:4050484600:h0",
+            "link_id": "4050484600",
+            "road_name": "평화로",
+            "priority_score": 34.5,
+            "mandatory": false,
+            "fixed_assignment": false,
+            "managing_agency_id": "jeju-province-road-management",
+            "road_jurisdiction": "jeju-provincial-road-1135",
+            "jurisdiction_basis": "국가표준링크 지방도 1135호·SGIS 제주시 애월읍; 읍면장 위임 중 가로등·가로수 외 현장대응은 도 운영기관 기준",
+            "dispatch_approval_required": true,
+            "dispatch_approver_id": "province-road-operator-designate",
+            "dispatch_approval_status": "pending",
+            "response_mode": "road_team_dispatch",
+            "handoff_actions": [],
+            "origin_id": "link:4050484700:h0",
+            "destination_task_id": "link:4050484600:h0",
+            "route_id": "ada4a710d6cff4cdebb66074e7a27a62a729aa2e4850e73e471fec17210293e7",
+            "route_status": "ok",
+            "travel_minutes": 0.131,
+            "distance_km": 0.175,
+            "service_minutes": 15.0,
+            "cumulative_minutes": 43.437,
+            "route_link_ids": []
+          },
+          {
+            "team_id": "team-north",
+            "sequence": 3,
+            "task_id": "link:4060024900:h0",
+            "link_id": "4060024900",
+            "road_name": "1100로",
+            "priority_score": 35.385,
+            "mandatory": true,
+            "fixed_assignment": false,
+            "managing_agency_id": "jeju-province-road-management",
+            "road_jurisdiction": "jeju-provincial-road-1139",
+            "jurisdiction_basis": "국가표준링크 지방도 1139호·SGIS 서귀포시 예래동; 동 지역 도시지역 위임 해당 여부는 출동 전 확인",
+            "dispatch_approval_required": true,
+            "dispatch_approver_id": "province-road-operator-designate",
+            "dispatch_approval_status": "pending",
+            "response_mode": "road_team_dispatch",
+            "handoff_actions": [],
+            "origin_id": "link:4050484600:h0",
+            "destination_task_id": "link:4060024900:h0",
+            "route_id": "1a92d4b066f487b985ecf7474b2ebcf45f04d64d1b8d5cc90d76d96500713910",
+            "route_status": "ok",
+            "travel_minutes": 25.181,
+            "distance_km": 22.07,
+            "service_minutes": 15.0,
+            "cumulative_minutes": 83.618,
+            "route_link_ids": []
+          },
+          {
+            "team_id": "team-west",
+            "sequence": 1,
+            "task_id": "link:4050396600:h0",
+            "link_id": "4050396600",
+            "road_name": "평화로",
+            "priority_score": 34.5,
+            "mandatory": false,
+            "fixed_assignment": false,
+            "managing_agency_id": "jeju-province-road-management",
+            "road_jurisdiction": "jeju-provincial-road-1135",
+            "jurisdiction_basis": "국가표준링크 지방도 1135호·SGIS 제주시 애월읍; 읍면장 위임 중 가로등·가로수 외 현장대응은 도 운영기관 기준",
+            "dispatch_approval_required": true,
+            "dispatch_approver_id": "province-road-operator-designate",
+            "dispatch_approval_status": "pending",
+            "response_mode": "road_team_dispatch",
+            "handoff_actions": [],
+            "origin_id": "team-west",
+            "destination_task_id": "link:4050396600:h0",
+            "route_id": "b47b9e626bba8926db04292308e4ec5457150894eb3032432444aa91b5d0ff0c",
+            "route_status": "ok",
+            "travel_minutes": 3.749,
+            "distance_km": 4.763,
+            "service_minutes": 15.0,
+            "cumulative_minutes": 18.749,
+            "route_link_ids": []
+          },
+          {
+            "team_id": "team-west",
+            "sequence": 2,
+            "task_id": "link:4050429802:h0",
+            "link_id": "4050429802",
+            "road_name": "평화로",
+            "priority_score": 30.882,
+            "mandatory": false,
+            "fixed_assignment": false,
+            "managing_agency_id": "jeju-province-road-management",
+            "road_jurisdiction": "jeju-provincial-road-1135",
+            "jurisdiction_basis": "국가표준링크 지방도 1135호·SGIS 제주시 애월읍; 읍면장 위임 중 가로등·가로수 외 현장대응은 도 운영기관 기준",
+            "dispatch_approval_required": true,
+            "dispatch_approver_id": "province-road-operator-designate",
+            "dispatch_approval_status": "pending",
+            "response_mode": "road_team_dispatch",
+            "handoff_actions": [],
+            "origin_id": "link:4050396600:h0",
+            "destination_task_id": "link:4050429802:h0",
+            "route_id": "8714c4ba782fc420fe735643e157bf6d373c8be1559d5d8dee250ae41674df32",
+            "route_status": "ok",
+            "travel_minutes": 4.308,
+            "distance_km": 5.744,
+            "service_minutes": 15.0,
+            "cumulative_minutes": 38.057,
+            "route_link_ids": []
+          },
+          {
+            "team_id": "team-west",
+            "sequence": 3,
+            "task_id": "link:4050456800:h0",
+            "link_id": "4050456800",
+            "road_name": "평화로",
+            "priority_score": 23.999,
+            "mandatory": false,
+            "fixed_assignment": false,
+            "managing_agency_id": "jeju-province-road-management",
+            "road_jurisdiction": "jeju-provincial-road-1135",
+            "jurisdiction_basis": "국가표준링크 지방도 1135호·SGIS 제주시 애월읍; 읍면장 위임 중 가로등·가로수 외 현장대응은 도 운영기관 기준",
+            "dispatch_approval_required": true,
+            "dispatch_approver_id": "province-road-operator-designate",
+            "dispatch_approval_status": "pending",
+            "response_mode": "road_team_dispatch",
+            "handoff_actions": [],
+            "origin_id": "link:4050429802:h0",
+            "destination_task_id": "link:4050456800:h0",
+            "route_id": "6ffb635826f5575ffb47f8a62f0641dc44535828c6575263c58371c3acb68030",
+            "route_status": "ok",
+            "travel_minutes": 2.295,
+            "distance_km": 3.046,
+            "service_minutes": 15.0,
+            "cumulative_minutes": 55.352,
+            "route_link_ids": []
+          }
+        ],
+        "team_summaries": [
+          {
+            "team_id": "team-east",
+            "assignment_count": 3,
+            "task_ids": [
+              "link:4060438807:h0",
+              "link:4050418600:h0",
+              "link:4050005521:h0"
+            ],
+            "travel_minutes": 41.197,
+            "service_minutes": 50.0,
+            "elapsed_minutes": 91.197,
+            "available_minutes": 120.0,
+            "remaining_minutes": 28.803
+          },
+          {
+            "team_id": "team-north",
+            "assignment_count": 3,
+            "task_ids": [
+              "link:4050484700:h0",
+              "link:4050484600:h0",
+              "link:4060024900:h0"
+            ],
+            "travel_minutes": 38.618,
+            "service_minutes": 45.0,
+            "elapsed_minutes": 83.618,
+            "available_minutes": 120.0,
+            "remaining_minutes": 36.382
+          },
+          {
+            "team_id": "team-west",
+            "assignment_count": 3,
+            "task_ids": [
+              "link:4050396600:h0",
+              "link:4050429802:h0",
+              "link:4050456800:h0"
+            ],
+            "travel_minutes": 10.352,
+            "service_minutes": 45.0,
+            "elapsed_minutes": 55.352,
+            "available_minutes": 120.0,
+            "remaining_minutes": 64.648
+          }
+        ],
+        "unassigned_tasks": [],
+        "constraint_violations": [],
+        "metrics": {
+          "candidate_task_count": 9,
+          "assigned_task_count": 9,
+          "unassigned_task_count": 0,
+          "assigned_priority_sum": 294.427,
+          "candidate_priority_sum": 294.427,
+          "risk_weighted_coverage_ratio": 1.0,
+          "high_priority_unassigned_count": 0,
+          "network_total_travel_minutes": 90.167,
+          "total_service_minutes": 140.0,
+          "maximum_team_elapsed_minutes": 91.197,
+          "workload_task_counts": {
+            "team-east": 3,
+            "team-north": 3,
+            "team-west": 3
+          },
+          "workload_count_range": 0,
+          "workload_count_variance": 0,
+          "elapsed_minutes_variance": 237.919114,
+          "constraint_violation_count": 0
+        }
+      },
+      {
+        "alternative_id": "balanced_operations",
+        "objective": "retain_at_least_0.950_of_safety_priority_then_minimize_maximum_team_elapsed_time",
+        "plan_fingerprint": "c6ae037420bfb174527c5e24875f55cd13568079e89833508dadb03e0504204d",
+        "assignments": [
+          {
+            "team_id": "team-east",
+            "sequence": 1,
+            "task_id": "link:4060438807:h0",
+            "link_id": "4060438807",
+            "road_name": "516로",
+            "priority_score": 22.199,
+            "mandatory": false,
+            "fixed_assignment": false,
+            "managing_agency_id": "jeju-province-road-management",
+            "road_jurisdiction": "jeju-provincial-road-1131",
+            "jurisdiction_basis": "국가표준링크 지방도 1131호·SGIS 서귀포시 남원읍; 읍면장 위임 중 가로등·가로수 외 현장대응은 도 운영기관 기준",
+            "dispatch_approval_required": true,
+            "dispatch_approver_id": "province-road-operator-designate",
+            "dispatch_approval_status": "pending",
+            "response_mode": "road_team_dispatch",
+            "handoff_actions": [],
+            "origin_id": "team-east",
+            "destination_task_id": "link:4060438807:h0",
+            "route_id": "cd0a91dc615742769febb6316ce4ad2017abc8dddd78787248a2742dbeb9c461",
+            "route_status": "ok",
+            "travel_minutes": 9.895,
+            "distance_km": 6.384,
+            "service_minutes": 15.0,
+            "cumulative_minutes": 24.895,
+            "route_link_ids": []
+          },
+          {
+            "team_id": "team-east",
+            "sequence": 2,
+            "task_id": "link:4050418600:h0",
+            "link_id": "4050418600",
+            "road_name": "516로",
+            "priority_score": 58.462,
+            "mandatory": false,
+            "fixed_assignment": true,
+            "managing_agency_id": "jeju-province-road-management",
+            "road_jurisdiction": "jeju-provincial-road-1131",
+            "jurisdiction_basis": "국가표준링크 지방도 1131호·SGIS 서귀포시 남원읍; 읍면장 위임 중 가로등·가로수 외 현장대응은 도 운영기관 기준",
+            "dispatch_approval_required": true,
+            "dispatch_approver_id": "province-road-operator-designate",
+            "dispatch_approval_status": "pending",
+            "response_mode": "joint_response",
+            "handoff_actions": [
+              {
+                "handoff_type": "police",
+                "level": "coordinate",
+                "channel_id": "jeju-police-traffic-coordination",
+                "target_agency_id": "jeju-police",
+                "target_agency_name": "제주경찰청",
+                "contact_method": "교통통제 협조 요청(긴급 112 / 민원 182)",
+                "automation_status": "manual_operator_handoff",
+                "status": "pending"
+              }
+            ],
+            "origin_id": "link:4060438807:h0",
+            "destination_task_id": "link:4050418600:h0",
+            "route_id": "7c6466e11fef93ea28ce8c2e70555d97a620c1a8983b81a21fd0ab7ae83cc7af",
+            "route_status": "ok",
+            "travel_minutes": 16.127,
+            "distance_km": 10.774,
+            "service_minutes": 20.0,
+            "cumulative_minutes": 61.022,
+            "route_link_ids": []
+          },
+          {
+            "team_id": "team-east",
+            "sequence": 3,
+            "task_id": "link:4050005521:h0",
+            "link_id": "4050005521",
+            "road_name": "중앙로",
+            "priority_score": 20.0,
+            "mandatory": false,
+            "fixed_assignment": false,
+            "managing_agency_id": "jeju-province-road-management",
+            "road_jurisdiction": "jeju-provincial-road-1131",
+            "jurisdiction_basis": "국가표준링크 지방도 1131호·SGIS 제주시 아라동; 동 지역 도시지역 위임 해당 여부는 출동 전 확인",
+            "dispatch_approval_required": true,
+            "dispatch_approver_id": "province-road-operator-designate",
+            "dispatch_approval_status": "pending",
+            "response_mode": "road_team_dispatch",
+            "handoff_actions": [],
+            "origin_id": "link:4050418600:h0",
+            "destination_task_id": "link:4050005521:h0",
+            "route_id": "930f5b80abbed4c412f9198ef1d8a08b2d943164a37128cb062d3f10fb920ac5",
+            "route_status": "ok",
+            "travel_minutes": 15.175,
+            "distance_km": 12.646,
+            "service_minutes": 15.0,
+            "cumulative_minutes": 91.197,
+            "route_link_ids": []
+          },
+          {
+            "team_id": "team-north",
+            "sequence": 1,
+            "task_id": "link:4050456800:h0",
+            "link_id": "4050456800",
+            "road_name": "평화로",
+            "priority_score": 23.999,
+            "mandatory": false,
+            "fixed_assignment": false,
+            "managing_agency_id": "jeju-province-road-management",
+            "road_jurisdiction": "jeju-provincial-road-1135",
+            "jurisdiction_basis": "국가표준링크 지방도 1135호·SGIS 제주시 애월읍; 읍면장 위임 중 가로등·가로수 외 현장대응은 도 운영기관 기준",
+            "dispatch_approval_required": true,
+            "dispatch_approver_id": "province-road-operator-designate",
+            "dispatch_approval_status": "pending",
+            "response_mode": "road_team_dispatch",
+            "handoff_actions": [],
+            "origin_id": "team-north",
+            "destination_task_id": "link:4050456800:h0",
+            "route_id": "f6fde772bd30b5724d91479f8515d5fa3734f2b39992bd724cb67223d47044ed",
+            "route_status": "ok",
+            "travel_minutes": 15.693,
+            "distance_km": 15.656,
+            "service_minutes": 15.0,
+            "cumulative_minutes": 30.693,
+            "route_link_ids": []
+          },
+          {
+            "team_id": "team-north",
+            "sequence": 2,
+            "task_id": "link:4050429802:h0",
+            "link_id": "4050429802",
+            "road_name": "평화로",
+            "priority_score": 30.882,
+            "mandatory": false,
+            "fixed_assignment": false,
+            "managing_agency_id": "jeju-province-road-management",
+            "road_jurisdiction": "jeju-provincial-road-1135",
+            "jurisdiction_basis": "국가표준링크 지방도 1135호·SGIS 제주시 애월읍; 읍면장 위임 중 가로등·가로수 외 현장대응은 도 운영기관 기준",
+            "dispatch_approval_required": true,
+            "dispatch_approver_id": "province-road-operator-designate",
+            "dispatch_approval_status": "pending",
+            "response_mode": "road_team_dispatch",
+            "handoff_actions": [],
+            "origin_id": "link:4050456800:h0",
+            "destination_task_id": "link:4050429802:h0",
+            "route_id": "cb321b1cccdbc1066645800b0e3519f43ef35800882a0188ae9993f953c1394a",
+            "route_status": "ok",
+            "travel_minutes": 4.545,
+            "distance_km": 5.296,
+            "service_minutes": 15.0,
+            "cumulative_minutes": 50.238,
+            "route_link_ids": []
+          },
+          {
+            "team_id": "team-north",
+            "sequence": 3,
+            "task_id": "link:4050396600:h0",
+            "link_id": "4050396600",
+            "road_name": "평화로",
+            "priority_score": 34.5,
+            "mandatory": false,
+            "fixed_assignment": false,
+            "managing_agency_id": "jeju-province-road-management",
+            "road_jurisdiction": "jeju-provincial-road-1135",
+            "jurisdiction_basis": "국가표준링크 지방도 1135호·SGIS 제주시 애월읍; 읍면장 위임 중 가로등·가로수 외 현장대응은 도 운영기관 기준",
+            "dispatch_approval_required": true,
+            "dispatch_approver_id": "province-road-operator-designate",
+            "dispatch_approval_status": "pending",
+            "response_mode": "road_team_dispatch",
+            "handoff_actions": [],
+            "origin_id": "link:4050429802:h0",
+            "destination_task_id": "link:4050396600:h0",
+            "route_id": "77e93b0b2a5eb782d090548a7dbc99f181b5428a0f6f941f99c8342d58ccd82a",
+            "route_status": "ok",
+            "travel_minutes": 5.699,
+            "distance_km": 7.598,
+            "service_minutes": 15.0,
+            "cumulative_minutes": 70.937,
+            "route_link_ids": []
+          },
+          {
+            "team_id": "team-west",
+            "sequence": 1,
+            "task_id": "link:4050484600:h0",
+            "link_id": "4050484600",
+            "road_name": "평화로",
+            "priority_score": 34.5,
+            "mandatory": false,
+            "fixed_assignment": false,
+            "managing_agency_id": "jeju-province-road-management",
+            "road_jurisdiction": "jeju-provincial-road-1135",
+            "jurisdiction_basis": "국가표준링크 지방도 1135호·SGIS 제주시 애월읍; 읍면장 위임 중 가로등·가로수 외 현장대응은 도 운영기관 기준",
+            "dispatch_approval_required": true,
+            "dispatch_approver_id": "province-road-operator-designate",
+            "dispatch_approval_status": "pending",
+            "response_mode": "road_team_dispatch",
+            "handoff_actions": [],
+            "origin_id": "team-west",
+            "destination_task_id": "link:4050484600:h0",
+            "route_id": "b9a30f94f523df659e007662c80330ad559656efdbd810dabaaacce78305f8c6",
+            "route_status": "ok",
+            "travel_minutes": 7.308,
+            "distance_km": 9.498,
+            "service_minutes": 15.0,
+            "cumulative_minutes": 22.308,
+            "route_link_ids": []
+          },
+          {
+            "team_id": "team-west",
+            "sequence": 2,
+            "task_id": "link:4050484700:h0",
+            "link_id": "4050484700",
+            "road_name": "평화로",
+            "priority_score": 34.5,
+            "mandatory": false,
+            "fixed_assignment": false,
+            "managing_agency_id": "jeju-province-road-management",
+            "road_jurisdiction": "jeju-provincial-road-1135",
+            "jurisdiction_basis": "국가표준링크 지방도 1135호·SGIS 제주시 애월읍; 읍면장 위임 중 가로등·가로수 외 현장대응은 도 운영기관 기준",
+            "dispatch_approval_required": true,
+            "dispatch_approver_id": "province-road-operator-designate",
+            "dispatch_approval_status": "pending",
+            "response_mode": "road_team_dispatch",
+            "handoff_actions": [],
+            "origin_id": "link:4050484600:h0",
+            "destination_task_id": "link:4050484700:h0",
+            "route_id": "c77b047e724c5cd118148188826c9d649a9394ae2a1ac57c161644e658ce0658",
+            "route_status": "ok",
+            "travel_minutes": 0.245,
+            "distance_km": 0.326,
+            "service_minutes": 15.0,
+            "cumulative_minutes": 37.553,
+            "route_link_ids": []
+          },
+          {
+            "team_id": "team-west",
+            "sequence": 3,
+            "task_id": "link:4060024900:h0",
+            "link_id": "4060024900",
+            "road_name": "1100로",
+            "priority_score": 35.385,
+            "mandatory": true,
+            "fixed_assignment": false,
+            "managing_agency_id": "jeju-province-road-management",
+            "road_jurisdiction": "jeju-provincial-road-1139",
+            "jurisdiction_basis": "국가표준링크 지방도 1139호·SGIS 서귀포시 예래동; 동 지역 도시지역 위임 해당 여부는 출동 전 확인",
+            "dispatch_approval_required": true,
+            "dispatch_approver_id": "province-road-operator-designate",
+            "dispatch_approval_status": "pending",
+            "response_mode": "road_team_dispatch",
+            "handoff_actions": [],
+            "origin_id": "link:4050484700:h0",
+            "destination_task_id": "link:4060024900:h0",
+            "route_id": "f332a940543e97794e0efc4f0f6efdd73eb59ae18093d1c0629b04c53e73b3f5",
+            "route_status": "ok",
+            "travel_minutes": 25.312,
+            "distance_km": 22.245,
+            "service_minutes": 15.0,
+            "cumulative_minutes": 77.865,
+            "route_link_ids": []
+          }
+        ],
+        "team_summaries": [
+          {
+            "team_id": "team-east",
+            "assignment_count": 3,
+            "task_ids": [
+              "link:4060438807:h0",
+              "link:4050418600:h0",
+              "link:4050005521:h0"
+            ],
+            "travel_minutes": 41.197,
+            "service_minutes": 50.0,
+            "elapsed_minutes": 91.197,
+            "available_minutes": 120.0,
+            "remaining_minutes": 28.803
+          },
+          {
+            "team_id": "team-north",
+            "assignment_count": 3,
+            "task_ids": [
+              "link:4050456800:h0",
+              "link:4050429802:h0",
+              "link:4050396600:h0"
+            ],
+            "travel_minutes": 25.937,
+            "service_minutes": 45.0,
+            "elapsed_minutes": 70.937,
+            "available_minutes": 120.0,
+            "remaining_minutes": 49.063
+          },
+          {
+            "team_id": "team-west",
+            "assignment_count": 3,
+            "task_ids": [
+              "link:4050484600:h0",
+              "link:4050484700:h0",
+              "link:4060024900:h0"
+            ],
+            "travel_minutes": 32.865,
+            "service_minutes": 45.0,
+            "elapsed_minutes": 77.865,
+            "available_minutes": 120.0,
+            "remaining_minutes": 42.135
+          }
+        ],
+        "unassigned_tasks": [],
+        "constraint_violations": [],
+        "metrics": {
+          "candidate_task_count": 9,
+          "assigned_task_count": 9,
+          "unassigned_task_count": 0,
+          "assigned_priority_sum": 294.427,
+          "candidate_priority_sum": 294.427,
+          "risk_weighted_coverage_ratio": 1.0,
+          "high_priority_unassigned_count": 0,
+          "network_total_travel_minutes": 99.999,
+          "total_service_minutes": 140.0,
+          "maximum_team_elapsed_minutes": 91.197,
+          "workload_task_counts": {
+            "team-east": 3,
+            "team-north": 3,
+            "team-west": 3
+          },
+          "workload_count_range": 0,
+          "workload_count_variance": 0,
+          "elapsed_minutes_variance": 70.689668,
+          "constraint_violation_count": 0
+        }
+      }
+    ],
+    "comparison": {
+      "safety_first": {
+        "candidate_task_count": 9,
+        "assigned_task_count": 9,
+        "unassigned_task_count": 0,
+        "assigned_priority_sum": 294.427,
+        "candidate_priority_sum": 294.427,
+        "risk_weighted_coverage_ratio": 1.0,
+        "high_priority_unassigned_count": 0,
+        "network_total_travel_minutes": 90.167,
+        "total_service_minutes": 140.0,
+        "maximum_team_elapsed_minutes": 91.197,
+        "workload_task_counts": {
+          "team-east": 3,
+          "team-north": 3,
+          "team-west": 3
+        },
+        "workload_count_range": 0,
+        "workload_count_variance": 0,
+        "elapsed_minutes_variance": 237.919114,
+        "constraint_violation_count": 0
+      },
+      "balanced_operations": {
+        "candidate_task_count": 9,
+        "assigned_task_count": 9,
+        "unassigned_task_count": 0,
+        "assigned_priority_sum": 294.427,
+        "candidate_priority_sum": 294.427,
+        "risk_weighted_coverage_ratio": 1.0,
+        "high_priority_unassigned_count": 0,
+        "network_total_travel_minutes": 99.999,
+        "total_service_minutes": 140.0,
+        "maximum_team_elapsed_minutes": 91.197,
+        "workload_task_counts": {
+          "team-east": 3,
+          "team-north": 3,
+          "team-west": 3
+        },
+        "workload_count_range": 0,
+        "workload_count_variance": 0,
+        "elapsed_minutes_variance": 70.689668,
+        "constraint_violation_count": 0
+      }
+    }
+  },
+  "validation_checks": [
+    {
+      "alternative_id": "safety_first",
+      "unique_task_assignments": true,
+      "hard_constraints_clear": true,
+      "team_shifts_clear": true,
+      "routes_available": true,
+      "passed": true
+    },
+    {
+      "alternative_id": "balanced_operations",
+      "unique_task_assignments": true,
+      "hard_constraints_clear": true,
+      "team_shifts_clear": true,
+      "routes_available": true,
+      "passed": true
+    }
+  ],
+  "tool_trace": [
+    {
+      "sequence": 1,
+      "tool_name": "request_interpreter",
+      "status": "pass",
+      "input_summary": {
+        "request_text": "팀 3개와 차량 3대로 2시간 안에 현재 위험 기준 순찰계획을 만들어줘. 안전 우선과 업무 균형을 비교해줘."
+      },
+      "output_summary": {
+        "normalized_request": "팀 3개와 차량 3대로 2시간 안에 현재 위험 기준 순찰계획을 만들어줘. 안전 우선과 업무 균형을 비교해줘.",
+        "team_count": 3,
+        "vehicle_count": 3,
+        "duration_hours": 2,
+        "horizon_hours": 0,
+        "requested_alternative_ids": [
+          "safety_first",
+          "balanced_operations"
+        ],
+        "manual_approval_required": true,
+        "parser_semantics": "deterministic_korean_demo_grammar_not_general_llm"
+      },
+      "limitations": [
+        "deterministic_korean_demo_grammar_not_general_llm"
+      ]
+    },
+    {
+      "sequence": 2,
+      "tool_name": "data_quality_gate",
+      "status": "pass_with_limitations",
+      "input_summary": {
+        "quality_report_ids": [
+          "integrated_events",
+          "risk_forecasts",
+          "travel_time_matrix"
+        ],
+        "execution_mode": "cached_demo"
+      },
+      "output_summary": {
+        "datasets": {
+          "resources": {
+            "status": "pass",
+            "error_count": 0,
+            "warning_count": 0
+          },
+          "integrated_events": {
+            "status": "pass_with_limitations",
+            "failed_checks": []
+          },
+          "risk_forecasts": {
+            "status": "pass_with_limitations",
+            "failed_checks": []
+          },
+          "travel_time_matrix": {
+            "status": "pass",
+            "failed_checks": []
+          }
+        },
+        "issue_count": 2
+      },
+      "limitations": [
+        "{'dataset': 'integrated_events', 'reason': 'source_quality_passed_with_limitations'}",
+        "{'dataset': 'risk_forecasts', 'reason': 'source_quality_passed_with_limitations'}"
+      ]
+    },
+    {
+      "sequence": 3,
+      "tool_name": "risk_task_builder",
+      "status": "pass",
+      "input_summary": {
+        "forecast_row_count": 88,
+        "integrated_event_row_count": 22,
+        "horizon_hours": 0
+      },
+      "output_summary": {
+        "horizon_hours": 0,
+        "horizon_forecast_row_count": 22,
+        "eligible_forecast_row_count": 14,
+        "field_task_count": 10,
+        "collapsed_duplicate_event_count": 4,
+        "missing_coordinate_task_count": 0,
+        "mandatory_links_missing_from_tasks": [],
+        "fixed_links_missing_from_tasks": [],
+        "institution_scoped_task_count": 10,
+        "approval_required_task_count": 10,
+        "handoff_action_count": 1,
+        "external_handoff_task_count": 0,
+        "official_authority_task_count": 10,
+        "delegation_review_task_count": 2,
+        "active_task_count": 9,
+        "excluded_task_count": 1,
+        "handoff_only_task_count": 0
+      },
+      "limitations": []
+    },
+    {
+      "sequence": 4,
+      "tool_name": "travel_time_gate",
+      "status": "pass",
+      "input_summary": {
+        "matrix_status": "pass",
+        "route_count": 108
+      },
+      "output_summary": {
+        "route_semantics": "free_flow_speed_limit_estimate_not_live_eta",
+        "active_task_count": 9,
+        "required_origin_count": 12,
+        "required_pair_count": 108,
+        "available_pair_count": 108,
+        "unavailable_route_count": 0,
+        "closed_link_count": 0
+      },
+      "limitations": []
+    },
+    {
+      "sequence": 5,
+      "tool_name": "allocation_optimizer",
+      "status": "pass",
+      "input_summary": {
+        "active_task_count": 9,
+        "team_count": 3,
+        "balanced_min_safety_ratio": 0.95
+      },
+      "output_summary": {
+        "alternative_ids": [
+          "safety_first",
+          "balanced_operations"
+        ],
+        "candidate_combination_count": 15755,
+        "failed_checks": []
+      },
+      "limitations": []
+    },
+    {
+      "sequence": 6,
+      "tool_name": "plan_validator",
+      "status": "pass",
+      "input_summary": {
+        "requested_alternative_ids": [
+          "safety_first",
+          "balanced_operations"
+        ]
+      },
+      "output_summary": {
+        "checks": [
+          {
+            "alternative_id": "safety_first",
+            "unique_task_assignments": true,
+            "hard_constraints_clear": true,
+            "team_shifts_clear": true,
+            "routes_available": true,
+            "passed": true
+          },
+          {
+            "alternative_id": "balanced_operations",
+            "unique_task_assignments": true,
+            "hard_constraints_clear": true,
+            "team_shifts_clear": true,
+            "routes_available": true,
+            "passed": true
+          }
+        ],
+        "failure_count": 0
+      },
+      "limitations": []
+    },
+    {
+      "sequence": 7,
+      "tool_name": "result_explainer",
+      "status": "pass",
+      "input_summary": {
+        "alternative_count": 2,
+        "quality_status": "pass_with_limitations"
+      },
+      "output_summary": {
+        "explained_alternative_count": 2,
+        "manual_approval_required": true,
+        "warning_count": 4
+      },
+      "limitations": [
+        "template_explanation_not_general_llm"
+      ]
+    }
+  ],
+  "final_response": {
+    "summary": "2개의 실행 가능한 순찰 대안을 생성했습니다.",
+    "requested_horizon_hours": 0,
+    "data_reference": {
+      "execution_mode": "cached_demo",
+      "forecast_target_times": [
+        "2026-11-12T22:00:00+09:00"
+      ],
+      "travel_time_semantics": "free_flow_speed_limit_estimate_not_live_eta",
+      "quality_status": "pass_with_limitations"
+    },
+    "alternatives": [
+      {
+        "alternative_id": "safety_first",
+        "objective": "maximize_risk_coverage_then_minimize_network_travel_time",
+        "assigned_task_count": 9,
+        "unassigned_task_count": 0,
+        "risk_weighted_coverage_ratio": 1.0,
+        "network_total_travel_minutes": 90.167,
+        "maximum_team_elapsed_minutes": 91.197,
+        "constraint_violation_count": 0,
+        "pending_dispatch_approval_count": 9,
+        "handoff_action_count": 1,
+        "team_routes": [
+          {
+            "team_id": "team-east",
+            "task_ids": [
+              "link:4060438807:h0",
+              "link:4050418600:h0",
+              "link:4050005521:h0"
+            ],
+            "elapsed_minutes": 91.197,
+            "remaining_minutes": 28.803
+          },
+          {
+            "team_id": "team-north",
+            "task_ids": [
+              "link:4050484700:h0",
+              "link:4050484600:h0",
+              "link:4060024900:h0"
+            ],
+            "elapsed_minutes": 83.618,
+            "remaining_minutes": 36.382
+          },
+          {
+            "team_id": "team-west",
+            "task_ids": [
+              "link:4050396600:h0",
+              "link:4050429802:h0",
+              "link:4050456800:h0"
+            ],
+            "elapsed_minutes": 55.352,
+            "remaining_minutes": 64.648
+          }
+        ]
+      },
+      {
+        "alternative_id": "balanced_operations",
+        "objective": "retain_at_least_0.950_of_safety_priority_then_minimize_maximum_team_elapsed_time",
+        "assigned_task_count": 9,
+        "unassigned_task_count": 0,
+        "risk_weighted_coverage_ratio": 1.0,
+        "network_total_travel_minutes": 99.999,
+        "maximum_team_elapsed_minutes": 91.197,
+        "constraint_violation_count": 0,
+        "pending_dispatch_approval_count": 9,
+        "handoff_action_count": 1,
+        "team_routes": [
+          {
+            "team_id": "team-east",
+            "task_ids": [
+              "link:4060438807:h0",
+              "link:4050418600:h0",
+              "link:4050005521:h0"
+            ],
+            "elapsed_minutes": 91.197,
+            "remaining_minutes": 28.803
+          },
+          {
+            "team_id": "team-north",
+            "task_ids": [
+              "link:4050456800:h0",
+              "link:4050429802:h0",
+              "link:4050396600:h0"
+            ],
+            "elapsed_minutes": 70.937,
+            "remaining_minutes": 49.063
+          },
+          {
+            "team_id": "team-west",
+            "task_ids": [
+              "link:4050484600:h0",
+              "link:4050484700:h0",
+              "link:4060024900:h0"
+            ],
+            "elapsed_minutes": 77.865,
+            "remaining_minutes": 42.135
+          }
+        ]
+      }
+    ],
+    "external_handoff_queue": [],
+    "suggested_review_order": [
+      "safety_first",
+      "balanced_operations"
+    ],
+    "quality_limitations": [
+      {
+        "dataset": "integrated_events",
+        "reason": "source_quality_passed_with_limitations"
+      },
+      {
+        "dataset": "risk_forecasts",
+        "reason": "source_quality_passed_with_limitations"
+      }
+    ],
+    "warnings": [
+      "저장된 데모 스냅샷을 사용했으며 현재 실시간 상태가 아닙니다.",
+      "도로 이동시간은 제한속도 기반 자유흐름 추정치이며 실시간 ETA가 아닙니다.",
+      "결과는 담당자 승인 전에는 현장 지시로 사용하지 않습니다.",
+      "일부 데이터가 제한사항과 함께 통과해 품질 상태를 함께 표시합니다."
+    ],
+    "manual_approval_required": true
+  },
+  "agent_contract": {
+    "contract_id": "roadops-agent-contract-v0.1",
+    "contract_sha256": "32a7eb0e050636b7ce2c89735affe6f7f0a45e13dc733cbbe391b7dcc8c65995",
+    "runtime_mode": "deterministic_python_tools_no_external_llm",
+    "contract_path": "config/agent/roadops_agent_contract_v0_1.json",
+    "expected_tool_ids": [
+      "request_interpreter",
+      "data_quality_gate",
+      "risk_task_builder",
+      "travel_time_gate",
+      "allocation_optimizer",
+      "plan_validator",
+      "result_explainer"
+    ],
+    "observed_tool_ids": [
+      "request_interpreter",
+      "data_quality_gate",
+      "risk_task_builder",
+      "travel_time_gate",
+      "allocation_optimizer",
+      "plan_validator",
+      "result_explainer"
+    ],
+    "execution_status": "pass"
+  },
+  "generated_at": "2026-11-20T03:45:30.406996+09:00"
+}

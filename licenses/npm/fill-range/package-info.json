@@ -1,0 +1,8 @@
+{
+  "name": "fill-range",
+  "version": "7.1.1",
+  "license": "MIT",
+  "repository": "jonschlinkert/fill-range",
+  "author": "Jon Schlinkert (https://github.com/jonschlinkert)",
+  "homepage": "https://github.com/jonschlinkert/fill-range"
+}

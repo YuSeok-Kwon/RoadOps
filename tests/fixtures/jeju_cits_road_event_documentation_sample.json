@@ -1,0 +1,27 @@
+{
+  "_metadata": {
+    "source": "https://jejuits.go.kr/open_api/open_apiView.do",
+    "sample_type": "official_documentation_example_not_live_data",
+    "captured_on": "2026-10-26"
+  },
+  "result": "success",
+  "info_cnt": 2,
+  "Info": [
+    {
+      "ocrr_id": "RA_8",
+      "latitude": 33.50473404,
+      "longitude": 126.6278539,
+      "heading": 100.0,
+      "link_id": "407037000",
+      "code": 13378
+    },
+    {
+      "ocrr_id": "RA_8",
+      "latitude": 33.50512543,
+      "longitude": 126.62813017,
+      "heading": 151.8,
+      "link_id": "4070082700",
+      "code": 13378
+    }
+  ]
+}

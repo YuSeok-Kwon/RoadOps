@@ -1,0 +1,7 @@
+{
+  "name": "hast-util-whitespace",
+  "version": "3.0.0",
+  "license": "MIT",
+  "repository": "syntax-tree/hast-util-whitespace",
+  "author": "Titus Wormer <tituswormer@gmail.com> (https://wooorm.com)"
+}

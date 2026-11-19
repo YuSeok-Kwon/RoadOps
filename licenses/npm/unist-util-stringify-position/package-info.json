@@ -1,0 +1,7 @@
+{
+  "name": "unist-util-stringify-position",
+  "version": "4.0.0",
+  "license": "MIT",
+  "repository": "syntax-tree/unist-util-stringify-position",
+  "author": "Titus Wormer <tituswormer@gmail.com> (https://wooorm.com)"
+}

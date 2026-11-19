@@ -1,0 +1,9 @@
+{
+  "name": "inline-style-parser",
+  "version": "0.2.7",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/remarkablemark/inline-style-parser.git"
+  }
+}

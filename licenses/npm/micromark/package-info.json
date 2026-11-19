@@ -1,0 +1,7 @@
+{
+  "name": "micromark",
+  "version": "4.0.2",
+  "license": "MIT",
+  "repository": "https://github.com/micromark/micromark/tree/main/packages/micromark",
+  "author": "Titus Wormer <tituswormer@gmail.com> (https://wooorm.com)"
+}

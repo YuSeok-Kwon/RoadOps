@@ -1,0 +1,7 @@
+{
+  "name": "mdast-util-mdx-jsx",
+  "version": "3.2.0",
+  "license": "MIT",
+  "repository": "syntax-tree/mdast-util-mdx-jsx",
+  "author": "Titus Wormer <tituswormer@gmail.com> (https://wooorm.com)"
+}

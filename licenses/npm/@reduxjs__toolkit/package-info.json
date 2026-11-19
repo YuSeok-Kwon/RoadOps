@@ -1,0 +1,11 @@
+{
+  "name": "@reduxjs/toolkit",
+  "version": "2.12.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/reduxjs/redux-toolkit.git"
+  },
+  "author": "Mark Erikson <mark@isquaredsoftware.com>",
+  "homepage": "https://redux-toolkit.js.org"
+}

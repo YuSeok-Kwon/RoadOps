@@ -1,0 +1,7 @@
+{
+  "name": "micromark-util-subtokenize",
+  "version": "2.1.0",
+  "license": "MIT",
+  "repository": "https://github.com/micromark/micromark/tree/main/packages/micromark-util-subtokenize",
+  "author": "Titus Wormer <tituswormer@gmail.com> (https://wooorm.com)"
+}

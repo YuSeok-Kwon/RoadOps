@@ -1,0 +1,7 @@
+{
+  "name": "hast-util-to-jsx-runtime",
+  "version": "2.3.6",
+  "license": "MIT",
+  "repository": "syntax-tree/hast-util-to-jsx-runtime",
+  "author": "Titus Wormer <tituswormer@gmail.com> (https://wooorm.com)"
+}

@@ -1,0 +1,7 @@
+{
+  "name": "unist-util-is",
+  "version": "6.0.1",
+  "license": "MIT",
+  "repository": "syntax-tree/unist-util-is",
+  "author": "Titus Wormer <tituswormer@gmail.com> (https://wooorm.com)"
+}

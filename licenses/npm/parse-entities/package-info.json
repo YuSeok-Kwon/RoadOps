@@ -1,0 +1,7 @@
+{
+  "name": "parse-entities",
+  "version": "4.0.2",
+  "license": "MIT",
+  "repository": "wooorm/parse-entities",
+  "author": "Titus Wormer <tituswormer@gmail.com> (https://wooorm.com)"
+}

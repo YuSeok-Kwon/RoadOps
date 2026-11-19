@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "demo_version": "roadops-cached-demo-v0.1",
+  "packaged_at": "2026-11-16T18:00:00+09:00",
+  "semantics": "frozen_reviewed_derived_demo_not_live_data",
+  "api_keys_required": false,
+  "raw_api_payloads_included": false,
+  "route_geometry_included": false,
+  "source_outputs": {
+    "risk_forecasts": "02_outputs/data/risk_forecasts_v0_1/risk_forecasts.csv",
+    "integrated_events": "02_outputs/data/integrated_field_events_v0_1/integrated_field_events.csv",
+    "travel_time_matrix": "02_outputs/data/travel_time_matrix_v0_1/travel_time_matrix.json"
+  },
+  "limitations": [
+    "This bundle is for reproducible offline demonstration only.",
+    "It is not current road status and must never be described as live data.",
+    "Submission redistribution terms for upstream derived data still require final review."
+  ],
+  "files": [
+    {
+      "path": "event_quality_report.json",
+      "bytes": 12008,
+      "sha256": "8460366df4087b074f37705bb38e1181ec19181b57ed75c2536627a6bdf2384c"
+    },
+    {
+      "path": "integrated_field_events.csv",
+      "bytes": 16012,
+      "sha256": "fd5c80b1c442bb8179582556744e1b1d29ea91960c17a41a5548055fabbb02b0"
+    },
+    {
+      "path": "risk_forecasts.csv",
+      "bytes": 75262,
+      "sha256": "e17f90bff5d1e501c5d7093823c0be1997ccecbe6f23b763c31d71ec927cf8e4"
+    },
+    {
+      "path": "risk_quality_report.json",
+      "bytes": 1503,
+      "sha256": "cd56bd72961772e2e693ed439db99f4f1578dd463a6705c7c1006c5d3d7c611f"
+    },
+    {
+      "path": "travel_quality_report.json",
+      "bytes": 4688,
+      "sha256": "9ef68f542ef20cd6e70d5d18c8231190ddefac25049f6ca9005357ef06535b6b"
+    },
+    {
+      "path": "travel_time_matrix.json",
+      "bytes": 57105,
+      "sha256": "87cd67b4df6092e4bb1876de625220bc3626c71d8a179edd750c31e55101a443"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "name": "tabbable",
+  "version": "6.5.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/focus-trap/tabbable.git"
+  },
+  "author": {
+    "name": "David Clark",
+    "url": "http://davidtheclark.com/"
+  },
+  "homepage": "https://github.com/focus-trap/tabbable#readme"
+}

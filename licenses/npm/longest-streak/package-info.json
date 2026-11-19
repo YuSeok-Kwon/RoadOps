@@ -1,0 +1,7 @@
+{
+  "name": "longest-streak",
+  "version": "3.1.0",
+  "license": "MIT",
+  "repository": "wooorm/longest-streak",
+  "author": "Titus Wormer <tituswormer@gmail.com> (https://wooorm.com)"
+}

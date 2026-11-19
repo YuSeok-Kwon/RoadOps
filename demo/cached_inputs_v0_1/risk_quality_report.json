@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "forecast_version": "roadops-priority-scenario-v0.1",
+  "status": "pass_with_limitations",
+  "generated_at": "2026-11-12T22:11:25.812412+09:00",
+  "horizons": [
+    0,
+    1,
+    3,
+    6
+  ],
+  "input_event_rows": 22,
+  "input_weather_rows": 52,
+  "expected_rows": 88,
+  "output_rows": 88,
+  "status_counts": {
+    "degraded": 38,
+    "hold": 50
+  },
+  "scored_rows_by_horizon": {
+    "0": 14,
+    "1": 8,
+    "3": 8,
+    "6": 8
+  },
+  "score_distributions_by_horizon": {
+    "0": {
+      "count": 14,
+      "minimum": 10.769,
+      "median": 34.5,
+      "maximum": 58.462
+    },
+    "1": {
+      "count": 8,
+      "minimum": 30.882,
+      "median": 30.882,
+      "maximum": 30.882
+    },
+    "3": {
+      "count": 8,
+      "minimum": 30.882,
+      "median": 30.882,
+      "maximum": 30.882
+    },
+    "6": {
+      "count": 8,
+      "minimum": 30.882,
+      "median": 30.882,
+      "maximum": 30.882
+    }
+  },
+  "duplicate_weather_rows": 0,
+  "gateway_inflow_status": "unavailable",
+  "forecast_semantics": "operational_priority_scenario_not_accident_probability",
+  "failed_checks": [],
+  "inputs": {
+    "integrated_events": "02_outputs/data/integrated_field_events_v0_1/integrated_field_events.csv",
+    "weather_timeline": "02_outputs/data/weather_timeline_v0_1/weather_timeline.csv"
+  },
+  "outputs": {
+    "risk_forecasts": "02_outputs/data/risk_forecasts_v0_1/risk_forecasts.csv",
+    "quality_report": "02_outputs/data/risk_forecasts_v0_1/quality_report.json"
+  }
+}

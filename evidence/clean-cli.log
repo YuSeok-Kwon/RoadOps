@@ -1,0 +1,141 @@
+{
+  "status": "pass_with_limitations",
+  "run_id": "97e5951cd9ed97a9cbf363aec362ad4de5db1a3695d1f014390e0343fa915e1c",
+  "request": "팀 3개와 차량 3대로 2시간 안에 현재 위험 기준 순찰계획을 만들어줘. 안전 우선과 업무 균형을 비교해줘.",
+  "completed_tool_count": 7,
+  "tool_statuses": {
+    "request_interpreter": "pass",
+    "data_quality_gate": "pass_with_limitations",
+    "risk_task_builder": "pass",
+    "travel_time_gate": "pass",
+    "allocation_optimizer": "pass",
+    "plan_validator": "pass",
+    "result_explainer": "pass"
+  },
+  "final_response": {
+    "summary": "2개의 실행 가능한 순찰 대안을 생성했습니다.",
+    "requested_horizon_hours": 0,
+    "data_reference": {
+      "execution_mode": "cached_demo",
+      "forecast_target_times": [
+        "2026-11-12T22:00:00+09:00"
+      ],
+      "travel_time_semantics": "free_flow_speed_limit_estimate_not_live_eta",
+      "quality_status": "pass_with_limitations"
+    },
+    "alternatives": [
+      {
+        "alternative_id": "safety_first",
+        "objective": "maximize_risk_coverage_then_minimize_network_travel_time",
+        "assigned_task_count": 9,
+        "unassigned_task_count": 0,
+        "risk_weighted_coverage_ratio": 1.0,
+        "network_total_travel_minutes": 90.167,
+        "maximum_team_elapsed_minutes": 91.197,
+        "constraint_violation_count": 0,
+        "pending_dispatch_approval_count": 9,
+        "handoff_action_count": 1,
+        "team_routes": [
+          {
+            "team_id": "team-east",
+            "task_ids": [
+              "link:4060438807:h0",
+              "link:4050418600:h0",
+              "link:4050005521:h0"
+            ],
+            "elapsed_minutes": 91.197,
+            "remaining_minutes": 28.803
+          },
+          {
+            "team_id": "team-north",
+            "task_ids": [
+              "link:4050484700:h0",
+              "link:4050484600:h0",
+              "link:4060024900:h0"
+            ],
+            "elapsed_minutes": 83.618,
+            "remaining_minutes": 36.382
+          },
+          {
+            "team_id": "team-west",
+            "task_ids": [
+              "link:4050396600:h0",
+              "link:4050429802:h0",
+              "link:4050456800:h0"
+            ],
+            "elapsed_minutes": 55.352,
+            "remaining_minutes": 64.648
+          }
+        ]
+      },
+      {
+        "alternative_id": "balanced_operations",
+        "objective": "retain_at_least_0.950_of_safety_priority_then_minimize_maximum_team_elapsed_time",
+        "assigned_task_count": 9,
+        "unassigned_task_count": 0,
+        "risk_weighted_coverage_ratio": 1.0,
+        "network_total_travel_minutes": 99.999,
+        "maximum_team_elapsed_minutes": 91.197,
+        "constraint_violation_count": 0,
+        "pending_dispatch_approval_count": 9,
+        "handoff_action_count": 1,
+        "team_routes": [
+          {
+            "team_id": "team-east",
+            "task_ids": [
+              "link:4060438807:h0",
+              "link:4050418600:h0",
+              "link:4050005521:h0"
+            ],
+            "elapsed_minutes": 91.197,
+            "remaining_minutes": 28.803
+          },
+          {
+            "team_id": "team-north",
+            "task_ids": [
+              "link:4050456800:h0",
+              "link:4050429802:h0",
+              "link:4050396600:h0"
+            ],
+            "elapsed_minutes": 70.937,
+            "remaining_minutes": 49.063
+          },
+          {
+            "team_id": "team-west",
+            "task_ids": [
+              "link:4050484600:h0",
+              "link:4050484700:h0",
+              "link:4060024900:h0"
+            ],
+            "elapsed_minutes": 77.865,
+            "remaining_minutes": 42.135
+          }
+        ]
+      }
+    ],
+    "external_handoff_queue": [],
+    "suggested_review_order": [
+      "safety_first",
+      "balanced_operations"
+    ],
+    "quality_limitations": [
+      {
+        "dataset": "integrated_events",
+        "reason": "source_quality_passed_with_limitations"
+      },
+      {
+        "dataset": "risk_forecasts",
+        "reason": "source_quality_passed_with_limitations"
+      }
+    ],
+    "warnings": [
+      "저장된 데모 스냅샷을 사용했으며 현재 실시간 상태가 아닙니다.",
+      "도로 이동시간은 제한속도 기반 자유흐름 추정치이며 실시간 ETA가 아닙니다.",
+      "결과는 담당자 승인 전에는 현장 지시로 사용하지 않습니다.",
+      "일부 데이터가 제한사항과 함께 통과해 품질 상태를 함께 표시합니다."
+    ],
+    "manual_approval_required": true
+  },
+  "failed_checks": [],
+  "output": "02_outputs/data/agent_flow_v0_1/agent_result.json"
+}

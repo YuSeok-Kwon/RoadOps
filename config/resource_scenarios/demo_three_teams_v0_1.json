@@ -1,0 +1,308 @@
+{
+  "schema_version": 1,
+  "scenario_id": "demo-three-teams-two-hours-v0.1",
+  "planning": {
+    "planning_start_at": "2026-11-12T22:11:25+09:00",
+    "horizon_hours": 0,
+    "default_service_minutes": 15,
+    "baseline_speed_kph": 40,
+    "max_tasks_per_team": 3
+  },
+  "governance": {
+    "effective_at": "2026-11-17",
+    "source_records": [
+      {
+        "source_id": "molit_nodelink_20261014",
+        "title": "국토교통부 국가표준 노드링크 2026-10-14",
+        "provider": "국토교통부",
+        "url": "https://nodelink.its.go.kr/",
+        "as_of": "2026-10-14",
+        "scope": "링크별 도로등급(106), 노선번호, 도로명",
+        "sha256": "ccddb655a96a4544cf71fbd91715aa4b2d0a617f92aa1b89a0cfc062118b70f3"
+      },
+      {
+        "source_id": "its_standard_link_spec",
+        "title": "도로구간(링크) 정보 설명자료",
+        "provider": "국가교통정보센터",
+        "url": "https://www.its.go.kr/file/opendata/traffic/traffic_road_section_info.pdf",
+        "as_of": "2024-09-01",
+        "scope": "도로등급 106=지방도, 도로번호·관리기관 필드 정의"
+      },
+      {
+        "source_id": "sgis_admin_boundary_20250630",
+        "title": "국가데이터처 SGIS 행정구역 통계 및 경계",
+        "provider": "국가데이터처",
+        "url": "https://www.data.go.kr/data/15129688/fileData.do",
+        "as_of": "2025-06-30",
+        "scope": "행정시·읍면동 경계와 링크 중심점 공간결합",
+        "sha256": "f1cf0f9de453ac7eaacb273f39cee52851183372b9ddfda428a967c3a670b2c6"
+      },
+      {
+        "source_id": "jeju_special_act_article_412",
+        "title": "제주특별자치도 설치 및 국제자유도시 조성을 위한 특별법 제412조",
+        "provider": "국가법령정보센터",
+        "url": "https://www.law.go.kr/lsLawLinkInfo.do?chrClsCd=010202&lsJoLnkSeq=1000902539",
+        "as_of": "2026-10-13",
+        "scope": "종전 일반국도의 도지사 이관·지방도 전환 근거"
+      },
+      {
+        "source_id": "jeju_delegation_ordinance_20260807",
+        "title": "제주특별자치도 사무위임 조례(별표 3·4)",
+        "provider": "자치법규정보시스템",
+        "url": "https://www.elis.go.kr/alrpop/alrDtlsPop?alrNo=50000020007150&histNo=154",
+        "as_of": "2026-08-07",
+        "scope": "행정시장·읍면장의 지방도 위임 범위"
+      },
+      {
+        "source_id": "jeju_provincial_org_current",
+        "title": "제주특별자치도 현행 행정기구 규정",
+        "provider": "자치법규정보시스템",
+        "url": "https://www.elis.go.kr/alrpop/alrDtlsPop?alrNo=50000020007143&histNo=068",
+        "as_of": "2026-08-21",
+        "scope": "도로관리과·행정시 도시건설국 조직"
+      },
+      {
+        "source_id": "seogwipo_road_management_2025",
+        "title": "서귀포시 건설과 도로 유지·보수 업무 공고",
+        "provider": "서귀포시",
+        "url": "https://www.seogwipo.go.kr/group/culture/publicMus/notice.htm?act=download&no=2&seq=147482575",
+        "as_of": "2025-03-01",
+        "scope": "건설과 도로 유지·보수·제설 업무"
+      },
+      {
+        "source_id": "jeju_police_traffic_control",
+        "title": "제주경찰청 교통통제상황",
+        "provider": "제주경찰청",
+        "url": "https://jjpolice.go.kr/jjpolice/notice/traffic.htm",
+        "as_of": "2026-02-11",
+        "scope": "1100도로·5.16도로·평화로 교통통제 협조"
+      },
+      {
+        "source_id": "jeju_fire_119",
+        "title": "제주 재난대응체계의 소방안전본부·119 연계",
+        "provider": "제주특별자치도",
+        "url": "https://bangjae.jeju.go.kr/ctrltower/mission/working.htm",
+        "as_of": "2026-11-17",
+        "scope": "재난 실무반의 소방안전본부 연계; 긴급신고 119"
+      },
+      {
+        "source_id": "jeju_snow_equipment_bases_2022",
+        "title": "제설장비 및 장비고 현황",
+        "provider": "제주특별자치도의회",
+        "url": "https://record.council.jeju.kr/CLRecords/Files/FileAppendix/a12/A038225.pdf",
+        "as_of": "2022-10-01",
+        "scope": "노형·교래 장비고와 용담 제설전진기지의 지번·시설·준공 현황"
+      },
+      {
+        "source_id": "jeju_nogyung_equipment_base_2018",
+        "title": "노형 장비고 신축사업 변경안",
+        "provider": "제주특별자치도의회",
+        "url": "https://record.council.jeju.kr/CLRecords/Files/FileAppendix/a11/A029157.pdf",
+        "as_of": "2018-10-01",
+        "scope": "노형 장비고의 도로관리과 서부지역 전진기지 활용 근거"
+      }
+    ],
+    "agencies": [
+      {
+        "agency_id": "jeju-province-road-management",
+        "agency_name": "제주특별자치도 도로관리과",
+        "department_name": "도시건설국 도로관리과",
+        "agency_type": "province",
+        "verification_status": "official_organization",
+        "official_source_ids": ["jeju_provincial_org_current", "jeju_delegation_ordinance_20260807"]
+      },
+      {
+        "agency_id": "jeju-city-road-management",
+        "agency_name": "제주시 건설과",
+        "department_name": "도시건설국 건설과",
+        "agency_type": "administrative_city",
+        "verification_status": "official_organization",
+        "official_source_ids": ["jeju_provincial_org_current", "jeju_delegation_ordinance_20260807"]
+      },
+      {
+        "agency_id": "seogwipo-city-road-management",
+        "agency_name": "서귀포시 건설과",
+        "department_name": "안전도시건설국 건설과",
+        "agency_type": "administrative_city",
+        "verification_status": "official_organization",
+        "official_source_ids": ["seogwipo_road_management_2025", "jeju_delegation_ordinance_20260807"]
+      },
+      {
+        "agency_id": "jeju-police",
+        "agency_name": "제주경찰청",
+        "agency_type": "police",
+        "verification_status": "official_channel",
+        "official_source_ids": ["jeju_police_traffic_control"]
+      },
+      {
+        "agency_id": "jeju-fire",
+        "agency_name": "제주소방안전본부 119종합상황실",
+        "agency_type": "fire",
+        "verification_status": "official_emergency_channel",
+        "official_source_ids": ["jeju_fire_119"]
+      }
+    ],
+    "approvers": [
+      {
+        "approver_id": "province-road-operator-designate",
+        "agency_id": "jeju-province-road-management",
+        "role": "도로관리과 운영기관 지정 승인권자",
+        "display_name": "운영기관 지정 필요",
+        "verification_status": "operator_configuration_required",
+        "active": true
+      }
+    ],
+    "handoff_channels": [
+      {
+        "channel_id": "jeju-police-traffic-coordination",
+        "handoff_type": "police",
+        "target_agency_id": "jeju-police",
+        "status": "active",
+        "contact_method": "교통통제 협조 요청(긴급 112 / 민원 182)",
+        "automation_status": "manual_operator_handoff",
+        "official_source_ids": ["jeju_police_traffic_control"]
+      },
+      {
+        "channel_id": "jeju-fire-119-coordination",
+        "handoff_type": "fire",
+        "target_agency_id": "jeju-fire",
+        "status": "active",
+        "contact_method": "119 긴급 신고·인계",
+        "automation_status": "manual_operator_handoff",
+        "official_source_ids": ["jeju_fire_119"]
+      }
+    ],
+    "authority_records": [
+      {"link_id": "4050005521", "road_rank": "106", "road_class": "지방도", "road_number": "1131", "road_name": "중앙로", "administrative_city_code": "39010", "administrative_city": "제주시", "administrative_unit_code": "39010630", "administrative_unit": "아라동", "administrative_unit_type": "동", "administrative_city_agency_id": "jeju-city-road-management", "managing_agency_id": "jeju-province-road-management", "road_jurisdiction": "jeju-provincial-road-1131", "jurisdiction_basis": "국가표준링크 지방도 1131호·SGIS 제주시 아라동; 동 지역 도시지역 위임 해당 여부는 출동 전 확인", "authority_status": "admin_city_delegation_review_required", "source_ids": ["molit_nodelink_20261014", "its_standard_link_spec", "sgis_admin_boundary_20250630", "jeju_special_act_article_412", "jeju_delegation_ordinance_20260807"]},
+      {"link_id": "4050396600", "road_rank": "106", "road_class": "지방도", "road_number": "1135", "road_name": "평화로", "administrative_city_code": "39010", "administrative_city": "제주시", "administrative_unit_code": "39010120", "administrative_unit": "애월읍", "administrative_unit_type": "읍", "administrative_city_agency_id": "jeju-city-road-management", "managing_agency_id": "jeju-province-road-management", "road_jurisdiction": "jeju-provincial-road-1135", "jurisdiction_basis": "국가표준링크 지방도 1135호·SGIS 제주시 애월읍; 읍면장 위임 중 가로등·가로수 외 현장대응은 도 운영기관 기준", "authority_status": "official_provincial_road_scope", "source_ids": ["molit_nodelink_20261014", "its_standard_link_spec", "sgis_admin_boundary_20250630", "jeju_special_act_article_412", "jeju_delegation_ordinance_20260807"]},
+      {"link_id": "4050418600", "road_rank": "106", "road_class": "지방도", "road_number": "1131", "road_name": "516로", "administrative_city_code": "39020", "administrative_city": "서귀포시", "administrative_unit_code": "39020120", "administrative_unit": "남원읍", "administrative_unit_type": "읍", "administrative_city_agency_id": "seogwipo-city-road-management", "managing_agency_id": "jeju-province-road-management", "road_jurisdiction": "jeju-provincial-road-1131", "jurisdiction_basis": "국가표준링크 지방도 1131호·SGIS 서귀포시 남원읍; 읍면장 위임 중 가로등·가로수 외 현장대응은 도 운영기관 기준", "authority_status": "official_provincial_road_scope", "source_ids": ["molit_nodelink_20261014", "its_standard_link_spec", "sgis_admin_boundary_20250630", "jeju_special_act_article_412", "jeju_delegation_ordinance_20260807"]},
+      {"link_id": "4050429802", "road_rank": "106", "road_class": "지방도", "road_number": "1135", "road_name": "평화로", "administrative_city_code": "39010", "administrative_city": "제주시", "administrative_unit_code": "39010120", "administrative_unit": "애월읍", "administrative_unit_type": "읍", "administrative_city_agency_id": "jeju-city-road-management", "managing_agency_id": "jeju-province-road-management", "road_jurisdiction": "jeju-provincial-road-1135", "jurisdiction_basis": "국가표준링크 지방도 1135호·SGIS 제주시 애월읍; 읍면장 위임 중 가로등·가로수 외 현장대응은 도 운영기관 기준", "authority_status": "official_provincial_road_scope", "source_ids": ["molit_nodelink_20261014", "its_standard_link_spec", "sgis_admin_boundary_20250630", "jeju_special_act_article_412", "jeju_delegation_ordinance_20260807"]},
+      {"link_id": "4050456800", "road_rank": "106", "road_class": "지방도", "road_number": "1135", "road_name": "평화로", "administrative_city_code": "39010", "administrative_city": "제주시", "administrative_unit_code": "39010120", "administrative_unit": "애월읍", "administrative_unit_type": "읍", "administrative_city_agency_id": "jeju-city-road-management", "managing_agency_id": "jeju-province-road-management", "road_jurisdiction": "jeju-provincial-road-1135", "jurisdiction_basis": "국가표준링크 지방도 1135호·SGIS 제주시 애월읍; 읍면장 위임 중 가로등·가로수 외 현장대응은 도 운영기관 기준", "authority_status": "official_provincial_road_scope", "source_ids": ["molit_nodelink_20261014", "its_standard_link_spec", "sgis_admin_boundary_20250630", "jeju_special_act_article_412", "jeju_delegation_ordinance_20260807"]},
+      {"link_id": "4050484600", "road_rank": "106", "road_class": "지방도", "road_number": "1135", "road_name": "평화로", "administrative_city_code": "39010", "administrative_city": "제주시", "administrative_unit_code": "39010120", "administrative_unit": "애월읍", "administrative_unit_type": "읍", "administrative_city_agency_id": "jeju-city-road-management", "managing_agency_id": "jeju-province-road-management", "road_jurisdiction": "jeju-provincial-road-1135", "jurisdiction_basis": "국가표준링크 지방도 1135호·SGIS 제주시 애월읍; 읍면장 위임 중 가로등·가로수 외 현장대응은 도 운영기관 기준", "authority_status": "official_provincial_road_scope", "source_ids": ["molit_nodelink_20261014", "its_standard_link_spec", "sgis_admin_boundary_20250630", "jeju_special_act_article_412", "jeju_delegation_ordinance_20260807"]},
+      {"link_id": "4050484700", "road_rank": "106", "road_class": "지방도", "road_number": "1135", "road_name": "평화로", "administrative_city_code": "39010", "administrative_city": "제주시", "administrative_unit_code": "39010120", "administrative_unit": "애월읍", "administrative_unit_type": "읍", "administrative_city_agency_id": "jeju-city-road-management", "managing_agency_id": "jeju-province-road-management", "road_jurisdiction": "jeju-provincial-road-1135", "jurisdiction_basis": "국가표준링크 지방도 1135호·SGIS 제주시 애월읍; 읍면장 위임 중 가로등·가로수 외 현장대응은 도 운영기관 기준", "authority_status": "official_provincial_road_scope", "source_ids": ["molit_nodelink_20261014", "its_standard_link_spec", "sgis_admin_boundary_20250630", "jeju_special_act_article_412", "jeju_delegation_ordinance_20260807"]},
+      {"link_id": "4060024900", "road_rank": "106", "road_class": "지방도", "road_number": "1139", "road_name": "1100로", "administrative_city_code": "39020", "administrative_city": "서귀포시", "administrative_unit_code": "39020620", "administrative_unit": "예래동", "administrative_unit_type": "동", "administrative_city_agency_id": "seogwipo-city-road-management", "managing_agency_id": "jeju-province-road-management", "road_jurisdiction": "jeju-provincial-road-1139", "jurisdiction_basis": "국가표준링크 지방도 1139호·SGIS 서귀포시 예래동; 동 지역 도시지역 위임 해당 여부는 출동 전 확인", "authority_status": "admin_city_delegation_review_required", "source_ids": ["molit_nodelink_20261014", "its_standard_link_spec", "sgis_admin_boundary_20250630", "jeju_special_act_article_412", "jeju_delegation_ordinance_20260807"]},
+      {"link_id": "4060438807", "road_rank": "106", "road_class": "지방도", "road_number": "1131", "road_name": "516로", "administrative_city_code": "39020", "administrative_city": "서귀포시", "administrative_unit_code": "39020120", "administrative_unit": "남원읍", "administrative_unit_type": "읍", "administrative_city_agency_id": "seogwipo-city-road-management", "managing_agency_id": "jeju-province-road-management", "road_jurisdiction": "jeju-provincial-road-1131", "jurisdiction_basis": "국가표준링크 지방도 1131호·SGIS 서귀포시 남원읍; 읍면장 위임 중 가로등·가로수 외 현장대응은 도 운영기관 기준", "authority_status": "official_provincial_road_scope", "source_ids": ["molit_nodelink_20261014", "its_standard_link_spec", "sgis_admin_boundary_20250630", "jeju_special_act_article_412", "jeju_delegation_ordinance_20260807"]},
+      {"link_id": "4060456800", "road_rank": "106", "road_class": "지방도", "road_number": "1135", "road_name": "평화로", "administrative_city_code": "39020", "administrative_city": "서귀포시", "administrative_unit_code": "39020310", "administrative_unit": "안덕면", "administrative_unit_type": "면", "administrative_city_agency_id": "seogwipo-city-road-management", "managing_agency_id": "jeju-province-road-management", "road_jurisdiction": "jeju-provincial-road-1135", "jurisdiction_basis": "국가표준링크 지방도 1135호·SGIS 서귀포시 안덕면; 읍면장 위임 중 가로등·가로수 외 현장대응은 도 운영기관 기준", "authority_status": "official_provincial_road_scope", "source_ids": ["molit_nodelink_20261014", "its_standard_link_spec", "sgis_admin_boundary_20250630", "jeju_special_act_article_412", "jeju_delegation_ordinance_20260807"]}
+    ],
+    "defaults": {
+      "managing_agency_id": "jeju-province-road-management",
+      "road_jurisdiction": "jeju-provincial-road-unresolved",
+      "jurisdiction_basis": "국가표준링크 도로등급·노선번호와 사무위임 범위를 출동 전 확인",
+      "dispatch_approval_required": true,
+      "dispatch_approver_id": "province-road-operator-designate",
+      "police_handoff_level": "none",
+      "police_handoff_channel_id": "jeju-police-traffic-coordination",
+      "fire_handoff_level": "none",
+      "fire_handoff_channel_id": "jeju-fire-119-coordination"
+    }
+  },
+  "vehicles": [
+    {
+      "vehicle_id": "patrol-east-01",
+      "vehicle_type": "patrol_car",
+      "personnel_capacity": 2,
+      "status": "available",
+      "equipment": ["traffic_cones", "road_weather_kit"]
+    },
+    {
+      "vehicle_id": "patrol-north-01",
+      "vehicle_type": "patrol_car",
+      "personnel_capacity": 2,
+      "status": "available",
+      "equipment": ["traffic_cones"]
+    },
+    {
+      "vehicle_id": "patrol-west-01",
+      "vehicle_type": "patrol_car",
+      "personnel_capacity": 2,
+      "status": "available",
+      "equipment": ["traffic_cones"]
+    }
+  ],
+  "teams": [
+    {
+      "team_id": "team-east",
+      "team_name": "교래 장비고 출동팀",
+      "personnel_count": 2,
+      "vehicle_id": "patrol-east-01",
+      "start_latitude": 33.4360203,
+      "start_longitude": 126.6896226,
+      "start_location_name": "교래 장비고",
+      "start_location_address": "제주시 조천읍 교래리 165",
+      "start_location_kind": "도로관리·제설 장비고",
+      "start_location_source_ids": ["jeju_snow_equipment_bases_2022"],
+      "start_coordinate_method": "공개 지번 주소 좌표 변환",
+      "start_coordinate_precision": "건물 주소 지점",
+      "shift_start_at": "2026-11-12T22:00:00+09:00",
+      "shift_end_at": "2026-11-13T00:11:25+09:00",
+      "skills": ["general_patrol"],
+      "equipment": [],
+      "managing_agency_id": "jeju-province-road-management",
+      "support_agency_ids": [],
+      "authorized_road_jurisdictions": ["jeju-provincial-road-1131", "jeju-provincial-road-1135", "jeju-provincial-road-1139"]
+    },
+    {
+      "team_id": "team-north",
+      "team_name": "용담 제설전진기지 출동팀",
+      "personnel_count": 2,
+      "vehicle_id": "patrol-north-01",
+      "start_latitude": 33.5146684,
+      "start_longitude": 126.4980536,
+      "start_location_name": "용담 제설전진기지",
+      "start_location_address": "제주시 용담이동 881-4",
+      "start_location_kind": "제설전진기지",
+      "start_location_source_ids": ["jeju_snow_equipment_bases_2022"],
+      "start_coordinate_method": "공개 지번 주소 좌표 변환",
+      "start_coordinate_precision": "필지 인근",
+      "shift_start_at": "2026-11-12T22:00:00+09:00",
+      "shift_end_at": "2026-11-13T00:11:25+09:00",
+      "skills": ["general_patrol"],
+      "equipment": [],
+      "managing_agency_id": "jeju-province-road-management",
+      "support_agency_ids": [],
+      "authorized_road_jurisdictions": ["jeju-provincial-road-1131", "jeju-provincial-road-1135", "jeju-provincial-road-1139"]
+    },
+    {
+      "team_id": "team-west",
+      "team_name": "노형 장비고 출동팀",
+      "personnel_count": 2,
+      "vehicle_id": "patrol-west-01",
+      "start_latitude": 33.4466785,
+      "start_longitude": 126.4826755,
+      "start_location_name": "노형 장비고",
+      "start_location_address": "제주시 노형동 산9-2·산9-4 일원",
+      "start_location_kind": "도로관리·제설 장비고",
+      "start_location_source_ids": ["jeju_snow_equipment_bases_2022", "jeju_nogyung_equipment_base_2018"],
+      "start_coordinate_method": "공개 지번 주소 좌표 변환",
+      "start_coordinate_precision": "건물 주소 지점",
+      "shift_start_at": "2026-11-12T22:00:00+09:00",
+      "shift_end_at": "2026-11-13T00:11:25+09:00",
+      "skills": ["general_patrol"],
+      "equipment": [],
+      "managing_agency_id": "jeju-province-road-management",
+      "support_agency_ids": [],
+      "authorized_road_jurisdictions": ["jeju-provincial-road-1131", "jeju-provincial-road-1135", "jeju-provincial-road-1139"]
+    }
+  ],
+  "constraints": {
+    "mandatory_link_ids": ["4060024900"],
+    "excluded_link_ids": ["4060456800"],
+    "fixed_assignments": [
+      {
+        "team_id": "team-east",
+        "link_id": "4050418600"
+      }
+    ],
+    "task_overrides": [
+      {
+        "link_id": "4050418600",
+        "service_minutes": 20,
+        "required_skills": ["general_patrol"],
+        "required_equipment": ["road_weather_kit"],
+        "police_handoff_level": "coordinate",
+        "police_handoff_channel_id": "jeju-police-traffic-coordination",
+        "fire_handoff_level": "none"
+      }
+    ]
+  }
+}

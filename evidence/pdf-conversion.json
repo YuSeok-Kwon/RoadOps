@@ -1,0 +1,14 @@
+{
+  "source_sha256": "4a769941d63cf201776bc2414a08c5fc94deb5ec9d099febde412882d700c9c0",
+  "output_sha256": "2f3aa5a137f73e2223e8211d8bbf3aea72d3b86f17ad1ea783e356898c453430",
+  "pages": 15,
+  "raster_dimensions": [
+    2880,
+    1620
+  ],
+  "encoding": "RGB JPEG, quality 95, PDF 1.4, one image per page",
+  "text_selectable": false,
+  "source_unchanged": true,
+  "bytes": 12399311,
+  "renderer": "Poppler pdftoppm"
+}

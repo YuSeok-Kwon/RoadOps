@@ -1,0 +1,14 @@
+{
+  "status": "pass",
+  "freshUserFlow": true,
+  "savedDataLabel": true,
+  "surfaceMetrics": [
+    7218,
+    226,
+    3.13
+  ],
+  "inspectionApplied": true,
+  "hazardRows": 58,
+  "hubHotspotRows": 36,
+  "pageErrors": []
+}

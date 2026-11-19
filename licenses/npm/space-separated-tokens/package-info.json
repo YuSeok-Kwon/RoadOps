@@ -1,0 +1,7 @@
+{
+  "name": "space-separated-tokens",
+  "version": "2.0.2",
+  "license": "MIT",
+  "repository": "wooorm/space-separated-tokens",
+  "author": "Titus Wormer <tituswormer@gmail.com> (https://wooorm.com)"
+}

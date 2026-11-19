@@ -1,0 +1,24 @@
+# 공개 시연 및 제출 링크
+
+- 웹 시연: https://yuseok-kwon.github.io/RoadOps/
+- GitHub 소스 코드: https://github.com/YuSeok-Kwon/RoadOps
+- 기획서 호환본: https://yuseok-kwon.github.io/RoadOps/proposal.pdf
+
+GitHub Pages에서 `gh-pages` 브랜치의 정적 파일을 제공합니다. `main` 브랜치에는 제출 소스, 매뉴얼, 검증 기록과 `web/` 실행본이 있습니다. AWS 계정, DuckDNS 설정, 서버 API 키 또는 방문자의 로그인이 필요하지 않습니다.
+
+두 실행본은 저장 자료를 사용합니다. 공개 주소에서도 자동 수집은 수행하지 않으며, 계산은 브라우저에서 실행합니다. 배경 지도는 OpenStreetMap 타일 서버에서 불러옵니다. 웹의 발표 사례와 최종 기능 실행본은 기준시점이 다르므로 서로의 수치를 직접 비교하지 않습니다.
+
+## 기획서 PDF 호환본
+
+제출 사이트 미리보기에서 사진이 표시되지 않는 문제를 줄이기 위해 원본의 각 페이지를 2880×1620 픽셀 RGB 이미지로 렌더링하고, PDF 1.4 형식으로 다시 묶었습니다. 페이지 수와 배치는 동일합니다. 원본 PDF에는 사진이 포함되어 있으며, 로컬 렌더링에서 정상 표시를 확인했습니다. 제출 사이트의 구체적인 렌더링 오류 원인은 확인되지 않았습니다.
+
+호환본은 텍스트 선택과 문서 내 하이퍼링크를 지원하지 않습니다. 텍스트 선택 및 링크 사용이 필요하면 ZIP에 포함된 원본 `RoadOps_기획서_권유석.pdf`를 사용합니다. 호환본의 생성 기준과 해시는 `evidence/pdf-conversion.json`에 기록합니다.
+
+## 제출란에 입력할 링크
+
+```text
+시연 링크: https://yuseok-kwon.github.io/RoadOps/
+Git 저장소: https://github.com/YuSeok-Kwon/RoadOps
+```
+
+문서 첨부에는 별도로 제공한 `RoadOps_기획서_권유석_호환본.pdf`를 사용합니다. 전체 코드와 실행환경을 요구하는 최종 결과물 첨부에는 `RoadOps_최종결과물_권유석.zip`을 사용합니다.

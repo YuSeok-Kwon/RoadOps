@@ -1,0 +1,7 @@
+{
+  "name": "mdast-util-phrasing",
+  "version": "4.1.0",
+  "license": "MIT",
+  "repository": "syntax-tree/mdast-util-phrasing",
+  "author": "Victor Felder <victor@draft.li> (https://draft.li)"
+}

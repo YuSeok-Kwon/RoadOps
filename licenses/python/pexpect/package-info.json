@@ -1,0 +1,7 @@
+{
+  "name": "pexpect",
+  "version": "4.9.0",
+  "license": "ISC license",
+  "license_expression": null,
+  "home_page": "https://pexpect.readthedocs.io/"
+}

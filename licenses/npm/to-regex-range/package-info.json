@@ -1,0 +1,8 @@
+{
+  "name": "to-regex-range",
+  "version": "5.0.1",
+  "license": "MIT",
+  "repository": "micromatch/to-regex-range",
+  "author": "Jon Schlinkert (https://github.com/jonschlinkert)",
+  "homepage": "https://github.com/micromatch/to-regex-range"
+}

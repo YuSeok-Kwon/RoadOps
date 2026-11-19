@@ -1,0 +1,539 @@
+#!/usr/bin/env python3
+"""Build the reviewed data snapshot used by the RoadOps map dashboard."""
+
+from __future__ import annotations
+
+import argparse
+import csv
+from datetime import datetime
+import json
+from pathlib import Path
+import sys
+from typing import Any
+from zoneinfo import ZoneInfo
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+SOURCE_ROOT = PROJECT_ROOT / "05_src"
+if str(SOURCE_ROOT) not in sys.path:
+    sys.path.insert(0, str(SOURCE_ROOT))
+
+from roadops.map_snapshot import build_map_snapshot  # noqa: E402
+
+
+DEFAULT_APP_DIR = PROJECT_ROOT / "08_dashboard/roadops_map_v0_1"
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--risk-forecasts",
+        type=Path,
+        default=PROJECT_ROOT
+        / "02_outputs/data/risk_forecasts_v0_1/risk_forecasts.csv",
+    )
+    parser.add_argument(
+        "--weather-timeline",
+        type=Path,
+        default=PROJECT_ROOT
+        / "02_outputs/data/weather_timeline_v0_1/weather_timeline.csv",
+    )
+    parser.add_argument(
+        "--optimized-allocation",
+        type=Path,
+        default=PROJECT_ROOT
+        / "02_outputs/data/optimized_allocation_v0_1/optimized_allocation.json",
+    )
+    parser.add_argument(
+        "--replanning",
+        type=Path,
+        default=PROJECT_ROOT
+        / "02_outputs/data/partial_replanning_v0_1/replanning_scenarios.json",
+    )
+    parser.add_argument(
+        "--resources",
+        type=Path,
+        default=PROJECT_ROOT
+        / "config/resource_scenarios/demo_three_teams_v0_1.json",
+    )
+    parser.add_argument(
+        "--allocation",
+        type=Path,
+        default=PROJECT_ROOT
+        / "02_outputs/data/allocation_baselines_v0_1/allocation_baselines.json",
+    )
+    parser.add_argument(
+        "--road-links",
+        type=Path,
+        default=PROJECT_ROOT
+        / "02_outputs/interim/molit_nodelink_jeju_20261014/jeju_links.csv",
+    )
+    parser.add_argument(
+        "--travel-time",
+        type=Path,
+        default=PROJECT_ROOT
+        / "02_outputs/data/travel_time_matrix_v0_1/travel_time_matrix.json",
+    )
+    parser.add_argument(
+        "--accident-hotspots",
+        type=Path,
+        default=PROJECT_ROOT
+        / "02_outputs/data/accident_hotspots_v0_1/accident_hotspots.json",
+    )
+    parser.add_argument(
+        "--historical-similarity",
+        type=Path,
+        default=PROJECT_ROOT
+        / "02_outputs/data/historical_similarity_v0_1/similar_incidents.json",
+    )
+    parser.add_argument(
+        "--crime-statistics",
+        type=Path,
+        default=PROJECT_ROOT
+        / "02_outputs/data/crime_statistics_v0_1/crime_statistics.json",
+    )
+    parser.add_argument(
+        "--complaint-hotspots",
+        type=Path,
+        default=PROJECT_ROOT
+        / "02_outputs/data/complaint_hotspots_v0_1/complaint_hotspots.json",
+    )
+    parser.add_argument(
+        "--crime-caution-overlay",
+        type=Path,
+        default=PROJECT_ROOT / "02_outputs/data/safemap_crime_v0_1/crime_caution_overlay.json",
+    )
+    parser.add_argument(
+        "--emergency-facilities",
+        type=Path,
+        default=PROJECT_ROOT
+        / "02_outputs/data/safemap_response_layers_v0_1/emergency_facilities.json",
+    )
+    parser.add_argument(
+        "--traffic-accident-overlay",
+        type=Path,
+        default=PROJECT_ROOT
+        / "02_outputs/data/safemap_response_layers_v0_1/traffic_accident_overlay.json",
+    )
+    parser.add_argument(
+        "--reverse-geocode",
+        type=Path,
+        default=PROJECT_ROOT
+        / "02_outputs/data/reverse_geocode_v0_1/link_locations.json",
+    )
+    parser.add_argument(
+        "--gateway-audit",
+        type=Path,
+        default=PROJECT_ROOT / "02_outputs/data/gateway_api_audit_v0_1/quality_report.json",
+    )
+    parser.add_argument(
+        "--forecast-validation",
+        type=Path,
+        default=PROJECT_ROOT
+        / "02_outputs/data/forecast_validation_v0_1/quality_report.json",
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=PROJECT_ROOT / "02_outputs/data/map_snapshot_v0_1",
+    )
+    parser.add_argument(
+        "--app-data",
+        type=Path,
+        default=DEFAULT_APP_DIR / "src/data.json",
+    )
+    parser.add_argument(
+        "--build-status",
+        choices=["creating", "updating", "complete", "paused"],
+        default="creating",
+    )
+    parser.add_argument(
+        "--generated-at",
+        help="Timezone-aware ISO timestamp. Defaults to current Asia/Seoul time.",
+    )
+    return parser.parse_args()
+
+
+def read_json(path: Path) -> dict[str, Any]:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def read_csv(path: Path) -> list[dict[str, str]]:
+    with path.open(encoding="utf-8-sig", newline="") as handle:
+        return list(csv.DictReader(handle))
+
+
+def relative(path: Path) -> str:
+    try:
+        return path.resolve().relative_to(PROJECT_ROOT).as_posix()
+    except ValueError:
+        return str(path.resolve())
+
+
+def source(
+    label: str,
+    paths: list[Path],
+    component_ids: list[str],
+    caveats: list[str],
+) -> dict[str, Any]:
+    return {
+        "label": label,
+        "caveats": caveats,
+        "tables": [relative(path) for path in paths],
+        "metricDefinitions": [
+            {
+                "label": label,
+                "definition": (
+                    "Repository-local reviewed snapshot generated deterministically "
+                    "from the listed source artifacts."
+                ),
+                "componentIds": component_ids,
+                "sourceLineage": [{"tables": [relative(path) for path in paths]}],
+            }
+        ],
+    }
+
+
+def build_data_app_snapshot(
+    queries: dict[str, list[dict[str, Any]]],
+    *,
+    generated_at: str,
+    build_status: str,
+    inputs: dict[str, Path],
+) -> dict[str, Any]:
+    travel_time = read_json(inputs["travel_time"])
+    live_eta = (
+        travel_time.get("route_semantics")
+        == "its_live_speed_eta_with_speed_limit_fallback"
+    )
+    shared_caveats = [
+        "This is a repository-local snapshot, not a continuously refreshed live feed.",
+        "Risk values are operational priority scenarios, not accident probabilities.",
+        (
+            "Travel time uses fresh Jeju ITS speeds with speed-limit fallback on unobserved links."
+            if live_eta
+            else "Travel time is a road-network free-flow estimate, not a live ETA."
+        ),
+        "Replanning layers are What-if scenarios and require operator approval.",
+    ]
+    query_sources = {
+        "depot_weather": source(
+            "기상청 거점별 격자 관측·예보",
+            [inputs["weather_timeline"], inputs["resources"]],
+            ["jeju-inspection-evidence"],
+            ["거점 좌표에 해당하는 기상청 격자를 일치시킵니다. 다른 격자의 값으로 대체하지 않습니다.",
+             "현재는 관측 우선, 관측 불가 시 예보를 사용하며 미래 시점은 예보를 사용합니다.",
+             "예상 노면은 점검 준비를 위한 규칙 기반 추정이며 도로의 실제 노면 관측이 아닙니다."],
+        ),
+        "map_metadata": source(
+            "Map snapshot metadata",
+            [inputs["risk_forecasts"]],
+            ["map-status"],
+            shared_caveats,
+        ),
+        "weather_forecast": source(
+            "KMA short-term weather forecast ranges",
+            [inputs["weather_timeline"]],
+            ["weather-forecast-strip"],
+            [
+                "Temperature and humidity are shown as ranges across the reviewed Jeju forecast grids.",
+                "Maximum wind speed is the largest value among usable grid forecasts, not a single-site observation.",
+                "Rainfall is the one-hour amount range across reviewed grids; current uses observations when available and future horizons use forecasts.",
+            ],
+        ),
+        "forecast_validation": source(
+            "RoadOps replay forecast validation",
+            [inputs["forecast_validation"]],
+            ["weather-forecast-strip"],
+            [
+                "The score is an operational priority scenario, not an accident probability.",
+                "Performance is not claimed until at least 20 matched points across 3 target times are available.",
+                "The required baseline is the same-link score persisted from forecast creation time.",
+            ],
+        ),
+        "accident_hotspots": source(
+            "KoROAD local-government frequent-accident areas",
+            [inputs["accident_hotspots"]],
+            ["roadops-map"],
+            [
+                "The layer is an official annual hotspot selection, not a current accident feed.",
+                "It is displayed independently and is not added again to the operational priority score.",
+            ],
+        ),
+        "historical_similarity": source(
+            "RoadOps archived C-ITS road-weather similarity search",
+            [inputs["historical_similarity"]],
+            ["historical-similarity"],
+            [
+                "Similarity uses only archived C-ITS snapshots stored by this project.",
+                "Provider observation timestamps are unavailable, so ingestion timestamps are displayed.",
+                "Co-observed road events are correlations and do not establish causality.",
+            ],
+        ),
+        "crime_statistics": source(
+            "National Police Agency 2025 crime statistics by region",
+            [inputs["crime_statistics"]],
+            ["crime-context"],
+            [
+                "Counts are annual, non-identifying statistics at administrative-city grain.",
+                "They are context only and are not treated as road-level crime hotspots or risk-score inputs.",
+                "Detailed crime caution zones require separate Safety Map authorization.",
+            ],
+        ),
+        "complaint_hotspots": source(
+            "Sanitized Jeju road-complaint administrative export",
+            [inputs["complaint_hotspots"]],
+            ["roadops-map"],
+            [
+                "The layer remains empty until an authorized Jeju 120, Saeol, or Safety Report export is supplied.",
+                "Reporter information, free text, complaint IDs, and exact input coordinates are never published.",
+                "Only coarse cells with at least three complaints are displayed and the layer is not added to the risk score.",
+            ],
+        ),
+        "crime_caution_overlay": source(
+            "Safety Map 2025 crime-caution WMS",
+            [inputs["crime_caution_overlay"]],
+            ["roadops-map"],
+            [
+                "The layer is displayed only after provider authorization and remains separate from the RoadOps risk score.",
+                "It is an annual police density-analysis image, not a real-time crime feed or an exact incident location map.",
+                "Korea Open Government License Type 4 applies: attribution, no commercial use, and no modification.",
+            ],
+        ),
+        "emergency_facilities": source(
+            "Safety Map police and fire response facilities",
+            [inputs["emergency_facilities"]],
+            ["roadops-map"],
+            [
+                "The facilities support operator handoff decisions and do not change the RoadOps risk score.",
+                "Locations are converted from the provider's EPSG:3857 coordinates to WGS84.",
+                "The operator must still confirm availability and the correct emergency contact before dispatch.",
+            ],
+        ),
+        "traffic_accident_overlay": source(
+            "Safety Map 2025 traffic-accident hotspot WMS",
+            [inputs["traffic_accident_overlay"]],
+            ["roadops-map"],
+            [
+                "The annual image is a visual cross-check layer and is not added to the RoadOps risk score.",
+                "It may overlap the KoROAD hotspot geometry already shown on the map.",
+                "Korea Open Government License Type 4 applies: attribution, no commercial use, and no modification.",
+            ],
+        ),
+        "road_background": source(
+            "MOLIT Jeju standard road-link geometry",
+            [inputs["road_links"]],
+            ["roadops-map"],
+            ["Only selected major named roads are used as visual context."],
+        ),
+        "risk_links": source(
+            "RoadOps explainable risk forecasts",
+            [inputs["risk_forecasts"], inputs["road_links"], inputs["reverse_geocode"], inputs["accident_hotspots"], inputs["historical_similarity"], inputs["crime_statistics"]],
+            ["roadops-map", "risk-detail", "priority-road-score"],
+            shared_caveats + [
+                "Each link uses the highest individual event score at the selected horizon. "
+                "score_basis_drivers explains that event; risk_drivers contains drivers across all events. "
+                "Operator-selected weights and missing-evidence rules are recorded in scoring_policy_json. "
+                "priority_candidates retains every event input so a changed weighting can select a new representative. "
+                "City safety is an administrative-city workload proxy, not a road crime probability. "
+                "Legacy rows may retain only leading contributions. Browser settings apply to both manual and AI modes and are stored locally."
+            ],
+        ),
+        "field_tasks": source(
+            "RoadOps field-task candidates",
+            [inputs["allocation"], inputs["resources"], inputs["reverse_geocode"]],
+            ["roadops-map", "task-queue", "authority-detail"],
+            [
+                "Excluded tasks are shown as constraints and are not dispatch recommendations.",
+                "Named approvers must be configured by the operating institution before dispatch.",
+            ],
+        ),
+        "governance_authorities": source(
+            "Official road authority and administrative-area registry",
+            [inputs["resources"], inputs["road_links"]],
+            ["authority-detail", "operations-workflow"],
+            [
+                "Road class and route numbers come from the national standard link archive.",
+                "Administrative city and eup/myeon/dong are derived from the official SGIS 2025-06-30 boundary snapshot documented in the resource registry.",
+                "Segments in dong areas retain an explicit delegation-review status until the urban-area scope is confirmed.",
+            ],
+        ),
+        "teams": source(
+            "Patrol resource scenario with official agency scope",
+            [inputs["resources"]],
+            ["roadops-map", "operations-workflow"],
+            ["Team locations and shifts are demonstrative scenario inputs."],
+        ),
+        "plan_routes": source(
+            "Constraint-based allocation routes",
+            [inputs["optimized_allocation"], inputs["road_links"]],
+            ["roadops-map"],
+            shared_caveats,
+        ),
+        "plan_metrics": source(
+            "Constraint-based allocation metrics",
+            [inputs["optimized_allocation"]],
+            ["allocation-kpis", "plan-comparison"],
+            shared_caveats,
+        ),
+        "travel_route_options": source(
+            "Reviewed full travel-time matrix for interactive allocation",
+            [inputs["travel_time"]],
+            ["operations-workflow", "roadops-map"],
+            [
+                *shared_caveats,
+                "The browser solver is limited to the reviewed small-instance matrix included in this snapshot.",
+            ],
+        ),
+        "travel_route_links": source(
+            "National standard-link geometries used by interactive routes",
+            [inputs["travel_time"], inputs["road_links"]],
+            ["operations-workflow", "roadops-map"],
+            shared_caveats,
+        ),
+        "replan_routes": source(
+            "Partial replanning route comparison",
+            [inputs["replanning"], inputs["road_links"]],
+            ["roadops-map", "replan-summary"],
+            shared_caveats,
+        ),
+        "scenario_summary": source(
+            "Partial replanning explanations",
+            [inputs["replanning"]],
+            ["replan-summary"],
+            shared_caveats,
+        ),
+        "scenario_impacts": source(
+            "What-if closure and heavy-rain impact links",
+            [inputs["replanning"], inputs["road_links"]],
+            ["roadops-map"],
+            shared_caveats,
+        ),
+        "data_availability": source(
+            "External layer availability",
+            [inputs["risk_forecasts"], inputs["gateway_audit"]],
+            ["gateway-availability"],
+            ["Unavailable evidence remains missing and contributes no score."],
+        ),
+    }
+    # Persist supplemental evidence through every operational refresh. The 863
+    # historical selection is kept separate from recent TAAS scoring evidence.
+    from roadops.jeju_inspection_evidence import merge_hotspots
+    evidence_path = PROJECT_ROOT / "demo/jeju_inspection_evidence_v0_1.json"
+    if evidence_path.exists():
+        evidence = read_json(evidence_path)
+        queries = dict(queries)
+        for key, label, dataset_ids in (
+            ("surface_accidents", "제주데이터허브 노면 상태별 교통사고 통계", "891"),
+            ("designated_hazards", "제주데이터허브 연결 제주시 재해위험지구·급경사지", "435,436"),
+            ("hub_accident_hotspots", "제주데이터허브 사고다발지역 공개 CSV", "863"),
+        ):
+            queries[key] = evidence[key]
+            query_sources[key] = source(label, [evidence_path], ["jeju-inspection-evidence"], [
+                f"Jeju Data Hub datasets {dataset_ids}; provenance and dates are retained per row.",
+                "Historical aggregates are not accident probabilities. Administrative locations are not exact hazard boundaries.",
+            ])
+        queries["accident_hotspots"] = merge_hotspots(queries.get("accident_hotspots", []), evidence["hub_accident_hotspots"])
+        query_sources["accident_hotspots"] = source("TAAS + 제주데이터허브 863 사고다발지역", [inputs["accident_hotspots"], evidence_path], ["roadops-map", "jeju-inspection-evidence"], [
+            "Filter by analysis year; years and repeated sources are never summed.",
+            "Hub public CSV covers 2017–2022 and is not the complete 42-row API result. Recent TAAS data remains the scoring source.",
+        ])
+    return {
+        "id": "roadops:jeju-field-operations-map:v0.1",
+        "title": "RoadOps 제주 현장 운영 워크벤치",
+        "generatedAt": generated_at,
+        "status": "reviewed_local_snapshot",
+        "surface": "dashboard",
+        "filters": [],
+        "queries": {
+            query_id: {"rows": rows, "source": query_sources[query_id]}
+            for query_id, rows in queries.items()
+        },
+        "buildStatus": build_status,
+        "exportPreferences": {"selected": None, "destinations": []},
+    }
+
+
+def main() -> int:
+    args = parse_args()
+    generated_at = args.generated_at or datetime.now(ZoneInfo("Asia/Seoul")).isoformat()
+    inputs = {
+        "risk_forecasts": args.risk_forecasts,
+        "weather_timeline": args.weather_timeline,
+        "optimized_allocation": args.optimized_allocation,
+        "replanning": args.replanning,
+        "resources": args.resources,
+        "allocation": args.allocation,
+        "road_links": args.road_links,
+        "travel_time": args.travel_time,
+        "accident_hotspots": args.accident_hotspots,
+        "historical_similarity": args.historical_similarity,
+        "crime_statistics": args.crime_statistics,
+        "complaint_hotspots": args.complaint_hotspots,
+        "crime_caution_overlay": args.crime_caution_overlay,
+        "emergency_facilities": args.emergency_facilities,
+        "traffic_accident_overlay": args.traffic_accident_overlay,
+        "reverse_geocode": args.reverse_geocode,
+        "gateway_audit": args.gateway_audit,
+        "forecast_validation": args.forecast_validation,
+    }
+    for name, path in inputs.items():
+        if not path.exists():
+            raise FileNotFoundError(f"{name}: {path}")
+
+    queries, quality = build_map_snapshot(
+        risk_rows=read_csv(args.risk_forecasts),
+        weather_rows=read_csv(args.weather_timeline),
+        optimized=read_json(args.optimized_allocation),
+        replanning=read_json(args.replanning),
+        resources=read_json(args.resources),
+        allocation=read_json(args.allocation),
+        travel_time=read_json(args.travel_time),
+        accident_rows=read_json(args.accident_hotspots).get("records", []),
+        historical_similarity_rows=read_json(args.historical_similarity).get("records", []),
+        crime_statistic_rows=read_json(args.crime_statistics).get("records", []),
+        complaint_hotspot_rows=read_json(args.complaint_hotspots).get("records", []),
+        crime_caution_overlay_rows=read_json(args.crime_caution_overlay).get("records", []),
+        emergency_facility_rows=read_json(args.emergency_facilities).get("records", []),
+        traffic_accident_overlay_rows=read_json(args.traffic_accident_overlay).get("records", []),
+        reverse_geocode_rows=read_json(args.reverse_geocode).get("records", []),
+        gateway_quality=read_json(args.gateway_audit),
+        forecast_validation_rows=read_json(args.forecast_validation).get("metrics", []),
+        link_rows=read_csv(args.road_links),
+        generated_at=generated_at,
+    )
+    app_snapshot = build_data_app_snapshot(
+        queries,
+        generated_at=generated_at,
+        build_status=args.build_status,
+        inputs=inputs,
+    )
+    # Export the same evidence arrays as the UI, so offline consumers and the
+    # quality report describe the actual shipped snapshot.
+    queries = {key: value["rows"] for key, value in app_snapshot["queries"].items()}
+    for query, count_key in (("accident_hotspots", "accident_hotspot_count"),
+                             ("hub_accident_hotspots", "hub_accident_hotspot_count"),
+                             ("surface_accidents", "surface_accident_row_count"),
+                             ("designated_hazards", "designated_hazard_count")):
+        if query in queries:
+            quality["counts"][count_key] = len(queries[query])
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    args.app_data.parent.mkdir(parents=True, exist_ok=True)
+    (args.output_dir / "map_snapshot.json").write_text(
+        json.dumps(queries, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    (args.output_dir / "quality_report.json").write_text(
+        json.dumps(quality, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    args.app_data.write_text(
+        json.dumps(app_snapshot, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    print(json.dumps(quality, ensure_ascii=False, indent=2))
+    return 0 if quality["status"] == "pass" else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

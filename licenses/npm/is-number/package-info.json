@@ -1,0 +1,8 @@
+{
+  "name": "is-number",
+  "version": "7.0.0",
+  "license": "MIT",
+  "repository": "jonschlinkert/is-number",
+  "author": "Jon Schlinkert (https://github.com/jonschlinkert)",
+  "homepage": "https://github.com/jonschlinkert/is-number"
+}
