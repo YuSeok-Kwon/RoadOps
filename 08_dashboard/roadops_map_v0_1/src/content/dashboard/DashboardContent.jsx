@@ -7,6 +7,7 @@ import {
   useDashboardTabs,
 } from "../../data-app-public.jsx";
 import { WorkflowPanel } from "./WorkflowPanel.jsx";
+import { ClosureReplanPanel } from "./ClosureReplanPanel.jsx";
 import {
   buildManualRoutes,
   historicalPlaces,
@@ -576,6 +577,7 @@ function WeatherMapView({ backgroundRows, weatherRows, radarRows, selectedWeathe
 }
 
 function MapLegend({
+  showClosures = false,
   showScenario,
   showAccidentHotspots,
   showTrafficAccidents,
@@ -616,6 +618,7 @@ function MapLegend({
       <span title="점검 제외 조건 적용"><i className="legend-point legend-excluded">제</i>제외</span>
       {showScenario && <span><i className="legend-before" />변경 전</span>}
       {showScenario && <span><i className="legend-after" />변경 후</span>}
+      {showClosures && <span>통제 구간: 검은 점선</span>}
     </div>
   </div>;
 }
@@ -659,6 +662,7 @@ function RouteDetail({ route, routeRows, taskRows, teamRows, onClose }) {
 }
 
 function RoadMap({
+  closedRoads = [],
   backgroundRows,
   riskRows,
   taskRows,
@@ -705,6 +709,7 @@ function RoadMap({
   const crimeOverlay = crimeCautionRows.find((row) => row.layer_id === focusTarget?.layerId)
     || crimeCautionRows.find((row) => !row.region_id);
   const maximumZoom = showCrimeCaution ? 20 : 5;
+  const routeViewKey = routeRows.map((row) => row.route_id).join("|");
 
   useEffect(() => {
     if (Number.isFinite(focusLongitude) && Number.isFinite(focusLatitude)) {
@@ -721,11 +726,22 @@ function RoadMap({
       setMapView({ zoom: 1, centerX: width / 2, centerY: height / 2 });
       return;
     }
+    if (mode === "ai-result" && routeRows.length) {
+      const points = routeRows.flatMap((row) => geometry(row.geometry_json).flat()).map(([lon, lat]) => project(lon, lat));
+      if (points.length) {
+        const xs = points.map((point) => point[0]); const ys = points.map((point) => point[1]);
+        const left = Math.min(...xs); const right = Math.max(...xs);
+        const top = Math.min(...ys); const bottom = Math.max(...ys);
+        setMapView({ centerX: (left + right) / 2, centerY: (top + bottom) / 2,
+          zoom: Math.max(1, Math.min(maximumZoom, width / Math.max(100, (right - left) * 1.3), height / Math.max(100, (bottom - top) * 1.3))) });
+        return;
+      }
+    }
     const [centerX, centerY] = project(selectedDepot.start_longitude, selectedDepot.start_latitude);
     const zoom = mode === "manual" || mode === "ai-result" ? 2.5 : 1.8;
     setMapView({ zoom, centerX, centerY });
   }, [focusTarget?.key, focusLongitude, focusLatitude,
-    selectedDepot?.team_id, selectedDepot?.start_longitude, selectedDepot?.start_latitude, mode]);
+    selectedDepot?.team_id, selectedDepot?.start_longitude, selectedDepot?.start_latitude, mode, routeViewKey]);
 
   const focusPoint = Number.isFinite(focusLongitude) && Number.isFinite(focusLatitude)
     ? project(focusLongitude, focusLatitude)
@@ -882,6 +898,11 @@ function RoadMap({
           d={pathFor(geometry(row.geometry_json), project)} />)}
       </g>}
 
+      <g className="scenario-impact" data-reviewed-rows="computed_closures">
+        {closedRoads.map((row) => <path key={row.link_id} className="impact-closure"
+          d={pathFor(geometry(row.geometry_json), project)}><title>통제 구간 {row.link_id}</title></path>)}
+      </g>
+
       <g className="risk-links" data-reviewed-rows="risk_links">
         {riskRows.map((row) => {
           const selected = selectedRisk?.link_id === row.link_id;
@@ -999,7 +1020,7 @@ function RoadMap({
       teamRows={teamRows} onClose={onCloseRoute} />
     <a className="map-attribution" href="https://www.openstreetmap.org/copyright"
       target="_blank" rel="noopener">© OpenStreetMap contributors</a>
-    <MapLegend showScenario={scenarioActive} showAccidentHotspots={showAccidentHotspots}
+    <MapLegend showScenario={scenarioActive} showClosures={closedRoads.length > 0} showAccidentHotspots={showAccidentHotspots}
       showTrafficAccidents={showTrafficAccidents}
       showComplaintHotspots={showComplaintHotspots} showCrimeCaution={showCrimeCaution}
       showPoliceFacilities={showPoliceFacilities} showFireFacilities={showFireFacilities} />
@@ -1449,14 +1470,15 @@ function ManualRoutePanel({ depot, candidates, selectedTaskIds, onToggle, routes
   </DataComponent>;
 }
 
-function AiResultPanel({ depot, routes, tasks, selectedRouteKey, onSelectRoute, onBack, onConfirm }) {
+function AiResultPanel({ depot, routes, tasks, selectedRouteKey, onSelectRoute, onBack, onConfirm, replanResult = null }) {
   const summary = routeSummary(routes);
   return <DataComponent variant="plain" id="ai-route-result" queryId="plan_routes" kind="custom"
-    title="AI 추천 순찰코스" description={`${depot?.start_location_name || "선택 거점"} 출발 기준으로 위험도와 이동시간을 함께 비교했습니다.`}
+    title={replanResult ? "통제 반영 순찰코스" : "AI 추천 순찰코스"}
+    description={replanResult ? "완료한 점검은 유지하고, 마지막 완료 지점부터 남은 방문 경로를 다시 계산합니다." : `${depot?.start_location_name || "선택 거점"} 출발 기준으로 위험도와 이동시간을 함께 비교했습니다.`}
     sourceRows={routes} displayRows={routes} className="ai-result-panel">
     <div className="ai-result-summary">
       <span><b>{routes.length}</b>곳 점검</span><span><b>{number(summary.travelMinutes)}</b>분 이동</span>
-      <span><b>{number(summary.travelMinutes + summary.serviceMinutes)}</b>분 예상</span>
+      <span><b>{number(replanResult?.totalMinutes ?? summary.travelMinutes + summary.serviceMinutes)}</b>분 예상</span>
     </div>
     <ol className="ai-stop-list">
       {[...routes].sort((left, right) => Number(left.sequence) - Number(right.sequence)).map((route, index) => {
@@ -1464,7 +1486,7 @@ function AiResultPanel({ depot, routes, tasks, selectedRouteKey, onSelectRoute, 
         const selected = routeKey(route) === selectedRouteKey;
         return <li key={routeKey(route)} data-selected={selected || undefined}>
           <button type="button" onClick={() => onSelectRoute(route)}>
-            <b>{index + 1}</b><span><strong>{locationLabel(task || route)}</strong><small>{number(route.travel_minutes)}분 이동 · {number(route.service_minutes, 0)}분 점검</small></span>
+            <b>{index + 1}</b><span><strong>{locationLabel(task || route)}</strong><small>{route.replan_status === "completed_preserved" ? "완료 · 기존 기록 유지" : `${number(route.travel_minutes)}분 이동 · ${number(route.service_minutes, 0)}분 점검`}</small></span>
           </button>
           {selected && <p><strong>선정 이유</strong>{priorityReasons(task || route).slice(0, 2).join(" · ")}</p>}
         </li>;
@@ -1472,7 +1494,7 @@ function AiResultPanel({ depot, routes, tasks, selectedRouteKey, onSelectRoute, 
     </ol>
     <div className="operation-actions">
       <button type="button" className="secondary-action" onClick={onBack}>조건 수정</button>
-      <button type="button" className="primary-action" disabled={!routes.length} onClick={onConfirm}>계획 확정</button>
+      <button type="button" className="primary-action" disabled={!routes.length || Boolean(replanResult && replanResult.status !== "pass")} onClick={onConfirm}>{replanResult ? "변경안 확정" : "계획 확정"}</button>
     </div>
   </DataComponent>;
 }
@@ -1928,6 +1950,7 @@ export function DashboardContent() {
   const [selectedRouteKey, setSelectedRouteKey] = useState(initialOperation.selectedRouteKey);
   const [workflowState, setWorkflowState] = useState(null);
   const [workflowPlan, setWorkflowPlan] = useState(null);
+  const [closurePlan, setClosurePlan] = useState(null);
   const [mapExpanded, setMapExpanded] = useState(initialOperation.mapExpanded);
   const [surfaceView, setSurfaceView] = useState(initialOperation.surfaceView);
   const [confirmedMessage, setConfirmedMessage] = useState("");
@@ -2061,23 +2084,28 @@ export function DashboardContent() {
   });
   const aiRoutes = plannedRoutes.filter((row) => row.team_id === selectedDepotId)
     .sort((left, right) => Number(left.sequence) - Number(right.sequence));
+  const closureContext = JSON.stringify([selectedDepotId, selectedPlan, metadata.generated_at, workflowState,
+    aiRoutes.map((row) => [row.task_id, row.route_id, row.cumulative_minutes])]);
+  const activeClosure = closurePlan?.context === closureContext ? closurePlan.result : null;
+  const resultRoutes = activeClosure ? activeClosure.status === "pass" ? activeClosure.routes : [] : aiRoutes;
   const visibleRoutes = phase === "manual" || phase === "manual-review"
     ? manualRoutes
-    : phase === "ai-result" ? aiRoutes : [];
+    : phase === "ai-result" ? resultRoutes : [];
   const visibleTasks = selectedDepot ? candidates : [];
   const selectedRoute = visibleRoutes.find((row) => routeKey(row) === selectedRouteKey) ?? null;
   const nearbyAccidents = nearbyRows(selectedDepot, rows("accident_hotspots"), 3);
   const similarHistory = historicalPlaces(rows("historical_similarity"), effectiveTaskRows, 3);
-  const replanRows = phase === "ai-result"
+  const replanRows = phase === "ai-result" && !activeClosure
     ? rows("replan_routes").filter((row) => row.scenario_id === scenarioId && row.team_id === selectedDepotId)
     : [];
-  const impactRows = phase === "ai-result" ? rows("scenario_impacts").filter((row) => row.scenario_id === scenarioId) : [];
+  const impactRows = phase === "ai-result" && !activeClosure ? rows("scenario_impacts").filter((row) => row.scenario_id === scenarioId) : [];
   const mapQueryIds = ["risk_links", "road_background", "accident_hotspots", "complaint_hotspots", "crime_caution_overlay", "field_tasks", "teams", "plan_routes", "travel_route_options", "travel_route_links", "replan_routes", "scenario_impacts"];
   const viewQueryIds = [...mapQueryIds, "weather_forecast"];
   const sourceRowsByQuery = Object.fromEntries(viewQueryIds.map((queryId) => [queryId, rows(queryId)]));
 
   const invalidatePlan = () => {
     setWorkflowPlan(null);
+    setClosurePlan(null);
     setPhase((current) => current === "ai-result" ? "ai-config" : current === "manual-review" ? "manual" : current);
   };
   const applyScoring = (draft) => {
@@ -2098,6 +2126,7 @@ export function DashboardContent() {
     setSelectedRouteKey(null);
     setMapFocus(null);
     setWorkflowPlan(null);
+    setClosurePlan(null);
     setWorkflowState(null);
     setConfirmedMessage("");
     setPhase("review");
@@ -2134,6 +2163,7 @@ export function DashboardContent() {
     setSelectedRouteKey(null);
     setWorkflowState(null);
     setWorkflowPlan(null);
+    setClosurePlan(null);
     setMapExpanded(false);
     setMapFocus(null);
   };
@@ -2208,6 +2238,7 @@ export function DashboardContent() {
     </div>}
     {surfaceView === "map" ? <RoadMap backgroundRows={rows("road_background")} riskRows={riskRows}
       taskRows={visibleTasks} teamRows={effectiveTeamRows} routeRows={visibleRoutes}
+      closedRoads={activeClosure?.closedRoads || []}
       replanRows={replanRows} impactRows={impactRows} selectedRisk={selectedRisk}
       accidentRows={rows("accident_hotspots")} showAccidentHotspots={mapLayers.accidentHotspots}
       complaintRows={rows("complaint_hotspots")} showComplaintHotspots={mapLayers.complaintHotspots}
@@ -2216,7 +2247,7 @@ export function DashboardContent() {
       showPoliceFacilities={false} showFireFacilities={false} showTrafficAccidents={false}
       selectedRoute={selectedRoute} onSelectRisk={(row) => setSelectedRiskId(row.link_id)}
       onSelectTask={selectTask} onSelectRoute={selectRoute} onCloseRoute={() => setSelectedRouteKey(null)}
-      scenarioId={phase === "ai-result" ? scenarioId : "none"} horizon={horizon}
+      scenarioId={phase === "ai-result" && !activeClosure ? scenarioId : "none"} horizon={horizon}
       mode={phase === "manual" || phase === "manual-review" ? "manual" : phase}
       selectedDepotId={selectedDepotId} manualTaskIds={manualTaskIds} focusTarget={mapFocus} />
       : <WeatherMapView backgroundRows={rows("road_background")} weatherRows={weatherRows} radarRows={radarRows}
@@ -2322,10 +2353,13 @@ export function DashboardContent() {
     {phase === "ai-result" && <section className="operation-stage operation-stage-plan">
       <section className="operation-map-slot">{mapPanel}</section>
       <section className="operation-plan-slot">
-        <AiResultPanel depot={selectedDepot} routes={aiRoutes} tasks={effectiveTaskRows}
+        <AiResultPanel depot={selectedDepot} routes={resultRoutes} replanResult={activeClosure} tasks={effectiveTaskRows}
           selectedRouteKey={selectedRouteKey} onSelectRoute={selectRoute}
-          onBack={() => setPhase("ai-config")}
-          onConfirm={() => resetOperation(`${selectedDepot?.start_location_name} AI 순찰계획을 확정했습니다.`)} />
+          onBack={() => { setClosurePlan(null); setPhase("ai-config"); }}
+          onConfirm={() => resetOperation(`${selectedDepot?.start_location_name} ${activeClosure ? "통제 반영 변경안" : "AI 순찰계획"}을 확정했습니다.`)} />
+        <ClosureReplanPanel key={closureContext} state={workflowState} baseRoutes={aiRoutes}
+          taskRows={effectiveTaskRows} taskLabel={locationLabel} depot={selectedDepot} result={activeClosure}
+          onChange={(result) => { setSelectedRouteKey(null); setClosurePlan(result ? { context: closureContext, result } : null); }} />
       </section>
     </section>}
 

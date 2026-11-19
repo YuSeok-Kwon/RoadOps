@@ -199,6 +199,10 @@ function serializeAlternative(candidateValue, alternativeId, objective, tasks, t
         service_minutes: Number(leg.service.toFixed(3)),
         cumulative_minutes: Number(leg.cumulativeMinutes.toFixed(3)),
         route_id: leg.route.route_id,
+        origin_id: leg.route.origin_id,
+        destination_task_id: leg.route.destination_task_id,
+        route_link_ids: leg.route.route_link_ids || [],
+        route_semantics: leg.route.route_semantics,
         route_link_count: (leg.route.route_link_ids || []).length,
         geometry_json: JSON.stringify(routeGeometry(leg.route, geometries)),
       };
