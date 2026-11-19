@@ -10,5 +10,10 @@
   "text_selectable": false,
   "source_unchanged": true,
   "bytes": 12399311,
-  "renderer": "Poppler pdftoppm"
+  "renderer": "Poppler pdftoppm",
+  "additional_verification": {
+    "engine": "PDF.js 5.6.205",
+    "pages_rendered": 15,
+    "visual_review": "All 15 pages retain photographs, screenshots, maps and layout. Original also renders correctly in PDF.js; DAKER-specific cause not established."
+  }
 }

@@ -1,0 +1,117 @@
+{
+  "version": "5.6.205",
+  "results": [
+    {
+      "tag": "original",
+      "page": 1,
+      "coloredPixels": 84320,
+      "width": 720,
+      "height": 405
+    },
+    {
+      "tag": "compatible",
+      "page": 1,
+      "coloredPixels": 94635,
+      "width": 720,
+      "height": 405
+    },
+    {
+      "tag": "compatible",
+      "page": 2,
+      "coloredPixels": 151520,
+      "width": 720,
+      "height": 405
+    },
+    {
+      "tag": "compatible",
+      "page": 3,
+      "coloredPixels": 9431,
+      "width": 720,
+      "height": 405
+    },
+    {
+      "tag": "compatible",
+      "page": 4,
+      "coloredPixels": 10317,
+      "width": 720,
+      "height": 405
+    },
+    {
+      "tag": "compatible",
+      "page": 5,
+      "coloredPixels": 12101,
+      "width": 720,
+      "height": 405
+    },
+    {
+      "tag": "compatible",
+      "page": 6,
+      "coloredPixels": 10296,
+      "width": 720,
+      "height": 405
+    },
+    {
+      "tag": "compatible",
+      "page": 7,
+      "coloredPixels": 13593,
+      "width": 720,
+      "height": 405
+    },
+    {
+      "tag": "compatible",
+      "page": 8,
+      "coloredPixels": 7870,
+      "width": 720,
+      "height": 405
+    },
+    {
+      "tag": "compatible",
+      "page": 9,
+      "coloredPixels": 9905,
+      "width": 720,
+      "height": 405
+    },
+    {
+      "tag": "compatible",
+      "page": 10,
+      "coloredPixels": 60374,
+      "width": 720,
+      "height": 405
+    },
+    {
+      "tag": "compatible",
+      "page": 11,
+      "coloredPixels": 73576,
+      "width": 720,
+      "height": 405
+    },
+    {
+      "tag": "compatible",
+      "page": 12,
+      "coloredPixels": 68659,
+      "width": 720,
+      "height": 405
+    },
+    {
+      "tag": "compatible",
+      "page": 13,
+      "coloredPixels": 14149,
+      "width": 720,
+      "height": 405
+    },
+    {
+      "tag": "compatible",
+      "page": 14,
+      "coloredPixels": 6749,
+      "width": 720,
+      "height": 405
+    },
+    {
+      "tag": "compatible",
+      "page": 15,
+      "coloredPixels": 140053,
+      "width": 720,
+      "height": 405
+    }
+  ]
+}

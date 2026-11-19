@@ -1,0 +1,61 @@
+{
+  "status": "pass",
+  "verifiedAt": "2026-11-19T19:03:59.255Z",
+  "site": "https://yuseok-kwon.github.io/RoadOps/",
+  "anonymousFreshBrowser": true,
+  "assetChecks": [
+    {
+      "path": "index.html",
+      "bytes": 3258,
+      "sha256": "c0b9bcbbfda9ef1172e3f56bf26658f82ca475a2f865bde3827b9e63eeec706c"
+    },
+    {
+      "path": "proposal.pdf",
+      "bytes": 12399311,
+      "sha256": "2f3aa5a137f73e2223e8211d8bbf3aea72d3b86f17ad1ea783e356898c453430"
+    },
+    {
+      "path": "presentation/index.html",
+      "bytes": 13779756,
+      "sha256": "4376c1fb13d3812e326acaa02b813d43a7f01c90a22fa5479d10c78548a372a7"
+    },
+    {
+      "path": "latest/index.html",
+      "bytes": 13779756,
+      "sha256": "89b08d141c63cf5e2d26405e6438d843ea21cbd4d517bc3af282e7494fe9eb6e"
+    },
+    {
+      "path": "presentation/snapshot.b29d687f4882d4339cd71b4b97349190d9886916dc562e5e3db1262ad33f28bf.json",
+      "bytes": 4405376,
+      "sha256": "b29d687f4882d4339cd71b4b97349190d9886916dc562e5e3db1262ad33f28bf"
+    },
+    {
+      "path": "latest/snapshot.d97b8720cdc751bb24988660b41ab3d9461cde02a0b19d079ce697da5a253a92.json",
+      "bytes": 3913200,
+      "sha256": "d97b8720cdc751bb24988660b41ab3d9461cde02a0b19d079ce697da5a253a92"
+    }
+  ],
+  "closure": {
+    "beforeMinutes": 100.6,
+    "afterMinutes": 125.6,
+    "overtimeMinutes": 5.6,
+    "changedLegs": [
+      false,
+      false,
+      true
+    ],
+    "budgetOverrideBlocked": true,
+    "result": "같은 기준으로 계산한 통제 전후\n\n통제 전 100.6분 / 통제 후 125.6분\n\n추가 예상 시간 25.0분 · 이동 경로 변경 1구간\n\n통제 전 경로 보기\n통제 후 경로 보기\n완료 1곳 유지 · 남은 방문 2곳 · 보류 0곳\n\n사용한 시간 39.8분 + 남은 이동·점검 85.8분 = 총 125.6분\n\n가용 120.0분보다 5.6분 초과 예상\n\n방문을 모두 유지할 때의 검토용 예상치입니다. 담당자가 시간 연장이나 지원 투입 여부를 판단한 뒤 출동 조건을 조정하세요."
+  },
+  "latest": {
+    "surfaceMetrics": [
+      7218,
+      226,
+      3.13
+    ],
+    "hazardRows": 58,
+    "inspectionApplied": true
+  },
+  "pageErrors": [],
+  "failedLocalAssetRequests": []
+}
