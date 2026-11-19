@@ -1,0 +1,142 @@
+{
+  "captured_on": "2026-11-19",
+  "timezone": "Asia/Seoul",
+  "screenshots": [
+    {
+      "file": "01_거점_주변현황_전체.png",
+      "pixels": [
+        3200,
+        2400
+      ],
+      "sha256": "e118a5b78fc5a8f3489aeb94677837a87964dda3124a3ee164a20635fac27da7"
+    },
+    {
+      "file": "02_점수_항목과_배점_설정.png",
+      "pixels": [
+        3170,
+        1124
+      ],
+      "sha256": "4e4d714c676b82a1617a69dfeeb6e6cc27c20cbb46674a8ac40ffa1e69d31490"
+    },
+    {
+      "file": "03_도로별_점수_산정근거.png",
+      "pixels": [
+        1396,
+        1386
+      ],
+      "sha256": "a85d1f435bd79ff85a11119feca175dbcedcdd1be56debffa20321e9a9966dbe"
+    },
+    {
+      "file": "04_교통사고다발지역_상세.png",
+      "pixels": [
+        1396,
+        338
+      ],
+      "sha256": "527a0a882a86bc142da44d1756890e98afce55ed3d40b6171dac185cf258b101"
+    },
+    {
+      "file": "05_과거_유사상황_사건장소.png",
+      "pixels": [
+        1798,
+        574
+      ],
+      "sha256": "9caaf1594d6f29913eac821825d3ef2836c4a030e72f414ecfadf2aba7e16c2b"
+    },
+    {
+      "file": "06_생활안전_자료설명.png",
+      "pixels": [
+        1798,
+        368
+      ],
+      "sha256": "7f8b945f487086f886b07533ba6eeb3a9cacd10bf86f9b56fd40eb823249b01d"
+    },
+    {
+      "file": "07_제주시_범죄주의_상세지도.png",
+      "pixels": [
+        1858,
+        1284
+      ],
+      "sha256": "842774f51e0629255e9b9176ae029bf9f1d0f1daaf7e93f062cceca00bf28f97"
+    },
+    {
+      "file": "08a_기상_현재관측.png",
+      "pixels": [
+        1858,
+        1672
+      ],
+      "sha256": "22d21a10d2c6f3020c17d6744455d89d09ccb46f195f0f68ce568892bc6c66e1"
+    },
+    {
+      "file": "08b_기상_1시간후.png",
+      "pixels": [
+        1858,
+        1672
+      ],
+      "sha256": "1cb7c19b687076cfe950b6d624fb0901d51ddd554e874b054918b2680c70642f"
+    },
+    {
+      "file": "08c_기상_3시간후.png",
+      "pixels": [
+        1858,
+        1672
+      ],
+      "sha256": "35d5bcdddf7e9be737970aea8ebde98c86a401fd67e27ab2de09b1a6007da3f1"
+    },
+    {
+      "file": "08d_기상_6시간후.png",
+      "pixels": [
+        1858,
+        1672
+      ],
+      "sha256": "4d2686a2959a1f578c247c404d2da71cf07e0074d47ab7a3cc0e1317ddd77bdd"
+    },
+    {
+      "file": "09_AI_출동인원과_가용시간.png",
+      "pixels": [
+        1776,
+        312
+      ],
+      "sha256": "cfcc6dd974f7e04f39fee5f39384d84adeb245072a343229aaa46984523f0c46"
+    },
+    {
+      "file": "10_AI_도로별_배정조건.png",
+      "pixels": [
+        1770,
+        228
+      ],
+      "sha256": "54568f6b59e7de720fbffa24fdf3ef35f9cad85a0b7d687d3b25a46961a33f53"
+    },
+    {
+      "file": "11_AI_추천경로와_방문순서.png",
+      "pixels": [
+        3170,
+        1936
+      ],
+      "sha256": "19c8f33bf06853d18f082e55b423741810c8b54e06be224eb58870af6d47d2fc"
+    },
+    {
+      "file": "12_계획확정_검토항목.png",
+      "pixels": [
+        1776,
+        194
+      ],
+      "sha256": "80fa87e06a4620210bacd0a08b65a68b07e2287a615e3aa9eca095e944cf75f0"
+    },
+    {
+      "file": "13_담당자_확정완료_시연.png",
+      "pixels": [
+        1776,
+        994
+      ],
+      "sha256": "6fb237174e8a6a7aad6a7ae751dd1fb95d3448bcee4b125a89f7016e4c4333a3"
+    },
+    {
+      "file": "14_계획변경_처리기록.png",
+      "pixels": [
+        2362,
+        2336
+      ],
+      "sha256": "df31899e51099819a2d0c32c99a2342e34bfce640feab3bf2d11f6c9282147cc"
+    }
+  ]
+}

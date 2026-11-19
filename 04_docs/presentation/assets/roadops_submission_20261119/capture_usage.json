@@ -1,0 +1,51 @@
+{
+  "captures": {
+    "4": "01_거점_주변현황_전체.png",
+    "5": "02_점수_항목과_배점_설정.png",
+    "6": "11_AI_추천경로와_방문순서.png",
+    "7": "02_점수_항목과_배점_설정.png",
+    "8": "05_과거_유사상황_사건장소.png",
+    "9": "07_제주시_범죄주의_상세지도.png",
+    "11": "08d_기상_6시간후.png",
+    "15": "13_담당자_확정완료_시연.png",
+    "score": "03_도로별_점수_산정근거.png",
+    "resource": "09_AI_출동인원과_가용시간.png",
+    "conditions": "10_AI_도로별_배정조건.png",
+    "approvalLog": "14_계획변경_처리기록.png",
+    "weather_now": "08a_기상_현재관측.png",
+    "weather_1h": "08b_기상_1시간후.png",
+    "weather_3h": "08c_기상_3시간후.png",
+    "hotspot": "04_교통사고다발지역_상세.png",
+    "city_stats": "06_생활안전_자료설명.png",
+    "approval_check": "12_계획확정_검토항목.png"
+  },
+  "data_snapshot_at": "2026-11-19T17:40:14+09:00",
+  "crime_overlay_refetched_at": "2026-11-19T17:48:55+09:00",
+  "screenshot_score": {
+    "road_name": "평화로",
+    "score_display": 46.1,
+    "coverage_percent_display": 93,
+    "contributions_display": {
+      "event": 22.6,
+      "structural": 6.0,
+      "weather_road": 8.6,
+      "traffic": 3.8,
+      "accident_hotspot": 0.0,
+      "similar_history": 5.2
+    },
+    "unavailable": [
+      "gateway",
+      "city_safety"
+    ],
+    "precision_note": "UI-rounded values. Do not reconstruct an exact total by summing the rounded labels."
+  },
+  "plan_display": {
+    "team": "용담 제설전진기지 출동팀",
+    "people": 2,
+    "available_minutes": 120,
+    "visits": 3,
+    "travel_minutes": 56.2,
+    "total_minutes": 101.2,
+    "excluded_unassigned_tasks": 3
+  }
+}
