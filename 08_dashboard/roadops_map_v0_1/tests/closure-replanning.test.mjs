@@ -51,6 +51,41 @@ test("unknown closure does not silently reuse the original route", () => {
   assert.match(result.message, /없는 통제 구간/);
 });
 
+test("same-basis comparison reveals a real 1100-road detour and warns about overtime", () => {
+  const result = replanClosure({ ...input(), closedLinkIds: ["4050000302"], elapsedMinutes: 39.8, preserveVisitOrder: true });
+  assert.equal(result.status, "pass");
+  assert.equal(result.comparison.beforeTotalMinutes, 100.57);
+  assert.equal(result.totalMinutes, 125.613);
+  assert.equal(result.comparison.additionalMinutes, 25.043);
+  assert.equal(result.overtimeMinutes, 5.613);
+  assert.equal(result.remainingMinutes, 85.813);
+  assert.equal(result.comparison.changedLegCount, 1);
+  assert.equal(result.previewOnly, true);
+  assert.equal(result.approvalStatus, "review_required");
+  assert.deepEqual(result.routes.map(row => row.task_id), fixture.base.assignments.map(row => row.task_id));
+  assert.deepEqual(result.routes[0], result.comparison.beforeRoutes[0]);
+  assert.ok(result.comparison.beforeRoutes[2].route_link_ids.includes("4050000302"));
+  assert.ok(result.routes.slice(1).every(row => !row.route_link_ids.includes("4050000302")));
+  result.routes.slice(1).forEach((row, i) => assert.equal(row.service_minutes, result.comparison.beforeRoutes[i + 1].service_minutes));
+});
+
+test("comparison does not attribute an unchanged route to an irrelevant closure", () => {
+  const result = replanClosure({ ...input(), preserveVisitOrder: true });
+  assert.equal(result.status, "pass");
+  assert.equal(result.comparison.additionalMinutes, 0);
+  assert.equal(result.comparison.changedLegCount, 0);
+  assert.equal(result.totalMinutes, result.comparison.beforeTotalMinutes);
+});
+
+test("visit-preserving preview never fabricates access to a closed destination", () => {
+  const result = replanClosure({ ...input(), preserveVisitOrder: true, closedLinkIds: ["4060024900"] });
+  assert.equal(result.status, "fail");
+  assert.deepEqual(result.routes, []);
+  assert.match(result.message, /대상 도로 자체가 통제/);
+  const args = input(); args.baseRoutes[1].service_minutes = null;
+  assert.equal(replanClosure({ ...args, preserveVisitOrder: true }).status, "fail");
+});
+
 test("closed destination is withheld while the required Yerae visit remains", () => {
   const result = replanClosure({ ...input(), closedLinkIds: [...fixture.closedLinkIds, "4050429802"] });
   assert.equal(result.status, "pass");

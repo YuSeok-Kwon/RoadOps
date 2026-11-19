@@ -9,6 +9,7 @@ export function ClosureReplanPanel({ state, baseRoutes, taskRows, depot, result,
   const [closedText, setClosedText] = useState("");
   const [completedCount, setCompletedCount] = useState(0);
   const [elapsed, setElapsed] = useState("");
+  const [preserveVisitOrder, setPreserveVisitOrder] = useState(false);
   const worker = useRef(null);
   const request = useRef(0);
   const timer = useRef(null);
@@ -42,7 +43,7 @@ export function ClosureReplanPanel({ state, baseRoutes, taskRows, depot, result,
     if (!worker.current) { onChange({ status: "fail", routes: [], message: "계산기를 사용할 수 없습니다. 화면을 다시 열어 주세요." }); return; }
     const requestId = ++request.current;
     onChange({ status: "calculating", routes: [] });
-    worker.current.postMessage({ requestId, input: { state, baseRoutes, taskRows, depot, completedCount, closedLinkIds, elapsedMinutes: elapsed.trim() ? Number(elapsed) : null } });
+    worker.current.postMessage({ requestId, input: { state, baseRoutes, taskRows, depot, completedCount, closedLinkIds, elapsedMinutes: elapsed.trim() ? Number(elapsed) : null, preserveVisitOrder } });
     timer.current = setTimeout(() => {
       if (request.current !== requestId) return;
       request.current += 1;
@@ -66,18 +67,34 @@ export function ClosureReplanPanel({ state, baseRoutes, taskRows, depot, result,
         placeholder={`미입력 시 기존 예상 ${minutes(estimatedSpent)}분`}
         onChange={(event) => { setElapsed(event.target.value); invalidate(); }} /></label>
     </div>
+    <label className="closure-keep-visits"><input type="checkbox" checked={preserveVisitOrder}
+      onChange={(event) => { setPreserveVisitOrder(event.target.checked); invalidate(); }} />방문 대상·순서를 유지하고 통제 전후 필요 시간 비교</label>
+    {preserveVisitOrder && <p className="closure-replan-note">가용 시간을 넘더라도 모든 방문에 필요한 시간을 보여줍니다. 시간 연장이나 지원 여부를 검토하기 위한 계산이며, 출동계획 확정과는 구분합니다.</p>}
     <div className="operation-actions">
-      <button type="button" className="secondary-action" onClick={() => { setClosedText(""); setCompletedCount(0); setElapsed(""); request.current += 1; clearTimeout(timer.current); onChange(null); }}>통제 입력 초기화</button>
+      <button type="button" className="secondary-action" onClick={() => { setClosedText(""); setCompletedCount(0); setElapsed(""); setPreserveVisitOrder(false); request.current += 1; clearTimeout(timer.current); onChange(null); }}>통제 입력 초기화</button>
       <button type="button" className="primary-action" disabled={result?.status === "calculating" || !baseRoutes.length} onClick={calculate}>대체 경로 자동 계산</button>
     </div>
     {result?.status === "calculating" && <p role="status">통제 구간을 피하는 도로와 남은 방문 순서를 계산하고 있습니다.</p>}
     {result?.message && <p role={result.status === "fail" ? "alert" : "status"}>{result.message}</p>}
     {result?.status === "pass" && <div className="closure-replan-result" role="status" data-reviewed-rows="detour-result">
+      {result.comparison && <div className="closure-comparison">
+        <strong>같은 기준으로 계산한 통제 전후</strong>
+        <p>통제 전 {minutes(result.comparison.beforeTotalMinutes)}분 / 통제 후 {minutes(result.totalMinutes)}분</p>
+        <p>추가 예상 시간 {minutes(result.comparison.additionalMinutes)}분 · 이동 경로 변경 {result.comparison.changedLegCount}구간</p>
+        <div className="operation-actions">
+          <button type="button" className="secondary-action" aria-pressed={result.mapStage === "before"}
+            onClick={() => onChange({ ...result, mapStage: "before" })}>통제 전 경로 보기</button>
+          <button type="button" className="secondary-action" aria-pressed={result.mapStage !== "before"}
+            onClick={() => onChange({ ...result, mapStage: "after" })}>통제 후 경로 보기</button>
+        </div>
+      </div>}
       <strong>완료 {result.completedCount}곳 유지 · 남은 방문 {result.routes.length - result.completedCount}곳 · 보류 {result.unassigned.length}곳</strong>
       <p>사용한 시간 {minutes(result.spentMinutes)}분 + 남은 이동·점검 {minutes(result.remainingMinutes)}분 = 총 {minutes(result.totalMinutes)}분</p>
-      <p>가용 {minutes(result.availableMinutes)}분 중 {minutes(result.spareMinutes)}분 여유</p>
+      <p className={result.overtimeMinutes > 0 ? "closure-overtime" : undefined}>{result.overtimeMinutes > 0
+        ? `가용 ${minutes(result.availableMinutes)}분보다 ${minutes(result.overtimeMinutes)}분 초과 예상`
+        : `가용 ${minutes(result.availableMinutes)}분 중 ${minutes(result.spareMinutes)}분 여유`}</p>
       {result.unassigned.map((row) => <p key={row.task_id}><b>{taskLabel(taskRows.find((t) => t.task_id === row.task_id))} 보류</b> — {row.reason}</p>)}
-      <p>지도와 위 코스에 대체 경로를 반영했습니다. 현장 상황을 확인한 뒤 변경안을 확정하세요.</p>
+      <p>{result.previewOnly ? "방문을 모두 유지할 때의 검토용 예상치입니다. 담당자가 시간 연장이나 지원 투입 여부를 판단한 뒤 출동 조건을 조정하세요." : "지도와 위 코스에 대체 경로를 반영했습니다. 현장 상황을 확인한 뒤 변경안을 확정하세요."}</p>
     </div>}
     <small className="closure-replan-note">2026.10.14 표준노드링크 도로망 · 새 경로 시간은 제한속도 기반 추정이며 실시간 혼잡·회전 제한은 미반영입니다. 실제 통행 가능 여부는 출발 전 확인하세요.</small>
   </DataComponent>;

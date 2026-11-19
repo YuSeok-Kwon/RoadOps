@@ -1088,6 +1088,12 @@
 .roadops-operation-page .closure-replan-result { padding: 14px; margin: 16px 0; border: 1px solid var(--border); border-radius: 8px; background: var(--muted); font-size: 13px; line-height: 1.6; }
 .roadops-operation-page .closure-replan-result p { margin: 8px 0 0; }
 .roadops-operation-page .closure-replan-note { display: block; margin-top: 12px; color: var(--secondary); font-size: 12px; line-height: 1.6; }
+.roadops-operation-page .closure-keep-visits { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; line-height: 1.6; }
+.roadops-operation-page .closure-keep-visits input { margin-top: 4px; }
+.roadops-operation-page .closure-comparison { padding-bottom: 14px; margin-bottom: 14px; border-bottom: 1px solid var(--border); }
+.roadops-operation-page .closure-comparison .operation-actions { justify-content: flex-start; margin-top: 12px; }
+.roadops-operation-page .closure-comparison button[aria-pressed="true"] { outline: 2px solid var(--text); outline-offset: 1px; }
+.roadops-operation-page .closure-overtime { font-weight: 700; color: var(--text); line-height: 1.6; }
 /* 제주 허브 통계와 점검계획의 연결. Existing operational layout is retained. */
 .jeju-inspection-panel { margin: 24px 0; padding: 24px; border: 1px solid var(--border); border-radius: 12px; background: var(--card, var(--background)); color: var(--text); }
 .jeju-inspection-panel select { max-width: 100%; padding: 8px 12px; background: var(--background); color: var(--text); border: 1px solid var(--border); border-radius: 6px; }
