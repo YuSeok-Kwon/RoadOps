@@ -18,6 +18,8 @@ import {
 import radarSnapshot from "../assets/kma-radar.json";
 import { prioritySummary, scoreExplanation, priorityResult } from "./score-explanation.js";
 import { ScoringPolicyPanel } from "./ScoringPolicyPanel.jsx";
+import { JejuInspectionPanel } from "./JejuInspectionPanel.jsx";
+import { latestHotspotYear, hotspotsForYear } from "./jeju-inspection.js";
 import { DEFAULT_POLICY, POLICY_STORAGE_KEY, applyPriorityPolicy, parsePolicy, policyFingerprint } from "./priority-policy.js";
 import "./dashboard.css";
 
@@ -594,7 +596,7 @@ function MapLegend({
       <span><i data-priority="normal">일반</i>일반 순서</span>
     </div>
     {showAccidentHotspots && <div className="legend-group">
-      <span title="한국도로교통공단 선정 교통사고 다발지역"><i className="legend-accident" />교통사고 다발</span>
+      <span title="TAAS와 제주데이터허브의 연도별 교통사고 다발지역"><i className="legend-accident" />교통사고 다발</span>
     </div>}
     {showTrafficAccidents && <div className="legend-group">
       <span title="생활안전지도 연간 교통사고 다발구역"><i className="legend-traffic-overlay" />교통사고 비교</span>
@@ -856,10 +858,15 @@ function RoadMap({
       </g>
 
       {showAccidentHotspots && <g className="accident-hotspots" data-reviewed-rows="accident_hotspots">
-        {accidentRows.map((row) => <path key={row.hotspot_id}
-          d={pathFor(geometry(row.geometry_json), project)}>
-          <title>{`${row.location_name} · ${row.analysis_year}년 사고 ${row.accident_count}건·사상 ${row.casualty_count}명`}</title>
-        </path>)}
+        {accidentRows.map((row) => {
+          const shape = geometry(row.geometry_json);
+          const title = `${row.location_name} · ${row.analysis_year}년 사고 ${row.accident_count}건·사상 ${row.casualty_count}명`;
+          if (shape.length) return <path key={row.hotspot_id} d={pathFor(shape, project)}><title>{title}</title></path>;
+          const [x, y] = project(row.longitude, row.latitude);
+          return <circle key={row.hotspot_id} cx={x} cy={y} r={5 * markerScale} fill="#BC6519" stroke="white" strokeWidth={markerScale}>
+            <title>{title} · 공개 중심좌표 (위험구역 경계 아님)</title>
+          </circle>;
+        })}
       </g>}
 
       {showComplaintHotspots && <g className="complaint-hotspots" data-reviewed-rows="complaint_hotspots">
@@ -1336,7 +1343,7 @@ function DepotEvidence({
     </section>
     <section className="evidence-section evidence-compact-grid">
       <div>
-        <div className="evidence-section-head"><strong>주변 교통사고 다발지역</strong><span>한국도로교통공단</span></div>
+        <div className="evidence-section-head"><strong>주변 교통사고 다발지역</strong><span>TAAS + 제주데이터허브</span></div>
         {accidents.slice(0, 2).map((row) => {
           const key = `accident:${row.hotspot_id}`;
           const expanded = expandedEvidence === key;
@@ -1489,6 +1496,7 @@ function AiResultPanel({ depot, routes, tasks, selectedRouteKey, onSelectRoute, 
             <b>{index + 1}</b><span><strong>{locationLabel(task || route)}</strong><small>{route.replan_status === "completed_preserved" ? "완료 · 기존 기록 유지" : `${number(route.travel_minutes)}분 이동 · ${number(route.service_minutes, 0)}분 점검`}</small></span>
           </button>
           {selected && <p><strong>선정 이유</strong>{priorityReasons(task || route).slice(0, 2).join(" · ")}</p>}
+          {task?.inspection_plan?.actions?.length > 0 && <div className="route-inspection-items"><strong>데이터 기반 점검 항목</strong><ul>{task.inspection_plan.actions.map(item=><li key={item}>{item}</li>)}</ul></div>}
         </li>;
       })}
     </ol>
@@ -1810,7 +1818,7 @@ function LegacyDashboardContent() {
           ]} className="roadops-map-card">
           <div className="map-layer-controls" role="group" aria-label="지도 계층 선택">
             <span className="map-layer-heading"><LayerIcon type="layers" />표시</span>
-            <label title="한국도로교통공단 선정 교통사고 다발지역"><input type="checkbox" checked={mapLayers.accidentHotspots}
+            <label title="TAAS와 제주데이터허브의 연도별 교통사고 다발지역"><input type="checkbox" checked={mapLayers.accidentHotspots}
               onChange={(event) => setMapLayers((current) => ({ ...current, accidentHotspots: event.target.checked }))} />
               <LayerIcon type="accident" />교통사고 다발
               <LayerStatus available={rows("accident_hotspots").length > 0} value={rows("accident_hotspots").length}
@@ -1940,6 +1948,8 @@ export function DashboardContent() {
   const { queries, snapshot, appTitle, setAppTitle } = useDataApp();
   const rows = (queryId) => queries[queryId]?.rows ?? [];
   const [initialOperation] = useState(readOperationSession);
+  const [inspectionPlans, setInspectionPlans] = useState(initialOperation.inspectionPlans || {});
+  const [hotspotYear, setHotspotYear] = useState(() => latestHotspotYear(rows("accident_hotspots")));
   const [phase, setPhase] = useState(initialOperation.phase === "ai-result" ? "ai-config" : initialOperation.phase);
   const [selectedDepotId, setSelectedDepotId] = useState(initialOperation.selectedDepotId);
   const [manualTaskIds, setManualTaskIds] = useState(initialOperation.manualTaskIds);
@@ -2001,9 +2011,10 @@ export function DashboardContent() {
       mapExpanded,
       surfaceView,
       mapLayers,
+      inspectionPlans,
     }));
   }, [phase, selectedDepotId, manualTaskIds, horizonIndex, selectedPlan, scenarioId,
-    selectedRiskId, selectedRouteKey, mapExpanded, surfaceView, mapLayers]);
+    selectedRiskId, selectedRouteKey, mapExpanded, surfaceView, mapLayers, inspectionPlans]);
 
   useEffect(() => {
     setSelectedRiskId(null);
@@ -2038,15 +2049,17 @@ export function DashboardContent() {
       event_count: risk.event_count,
       location_label: risk.location_label || row.location_label,
     } : row;
+    const inspection = inspectionPlans[String(row.link_id)];
+    const withInspection = { ...synchronized, inspection_plan: inspection || null };
     const decision = workflowTasks.get(String(row.task_id));
     return decision ? {
-      ...synchronized,
+      ...withInspection,
       excluded: decision.excluded,
       assigned_team_id: decision.assignedTeamId,
       manual_priority_level: decision.manualPriorityLevel,
       manual_priority_reason: decision.priorityReason,
       effective_priority_level: decision.manualPriorityLevel || decision.suggestedPriorityLevel,
-    } : synchronized;
+    } : withInspection;
   });
   const effectiveTeamRows = rows("teams").map((row) => ({
     ...row,
@@ -2093,7 +2106,8 @@ export function DashboardContent() {
     : phase === "ai-result" ? resultRoutes : [];
   const visibleTasks = selectedDepot ? candidates : [];
   const selectedRoute = visibleRoutes.find((row) => routeKey(row) === selectedRouteKey) ?? null;
-  const nearbyAccidents = nearbyRows(selectedDepot, rows("accident_hotspots"), 3);
+  const visibleHotspots = hotspotsForYear(rows("accident_hotspots"), hotspotYear);
+  const nearbyAccidents = nearbyRows(selectedDepot, visibleHotspots, 3);
   const similarHistory = historicalPlaces(rows("historical_similarity"), effectiveTaskRows, 3);
   const replanRows = phase === "ai-result" && !activeClosure
     ? rows("replan_routes").filter((row) => row.scenario_id === scenarioId && row.team_id === selectedDepotId)
@@ -2155,6 +2169,13 @@ export function DashboardContent() {
   };
 
   const resetOperation = (message = "") => {
+    if (message && visibleRoutes.length) {
+      const visited = new Set(visibleRoutes.map(route => String(route.task_id)));
+      const record = { confirmedAt: new Date().toISOString(), scope: "local_demo_confirmation",
+        teamId: selectedDepotId, routes: visibleRoutes.map(route => ({ taskId: route.task_id, sequence: route.sequence, travelMinutes: route.travel_minutes })),
+        inspectionPlans: effectiveTaskRows.filter(task => visited.has(String(task.task_id)) && task.inspection_plan).map(task => task.inspection_plan) };
+      try { sessionStorage.setItem("roadops-inspection-last-confirmation-v1", JSON.stringify(record)); } catch { /* The on-screen review remains available if storage is disabled. */ }
+    }
     setConfirmedMessage(message);
     setPhase("select");
     setSelectedDepotId(null);
@@ -2206,7 +2227,7 @@ export function DashboardContent() {
       </div>
       <div className="operation-map-tools">
         {surfaceView === "map" && <div className="operation-layer-buttons" role="group" aria-label="지도 참고 계층">
-          <label title="한국도로교통공단 교통사고 다발지역"><input type="checkbox" checked={mapLayers.accidentHotspots}
+          <label title="선택 분석연도의 TAAS·제주데이터허브 교통사고 다발지역"><input type="checkbox" checked={mapLayers.accidentHotspots}
             onChange={(event) => setMapLayers((current) => ({ ...current, accidentHotspots: event.target.checked }))} />
             <LayerIcon type="accident" />교통사고 다발</label>
           <label title="경찰청 범죄주의 밀도 계층"><input type="checkbox" checked={mapLayers.crimeCaution}
@@ -2240,7 +2261,7 @@ export function DashboardContent() {
       taskRows={visibleTasks} teamRows={effectiveTeamRows} routeRows={visibleRoutes}
       closedRoads={activeClosure?.closedRoads || []}
       replanRows={replanRows} impactRows={impactRows} selectedRisk={selectedRisk}
-      accidentRows={rows("accident_hotspots")} showAccidentHotspots={mapLayers.accidentHotspots}
+      accidentRows={visibleHotspots} showAccidentHotspots={mapLayers.accidentHotspots}
       complaintRows={rows("complaint_hotspots")} showComplaintHotspots={mapLayers.complaintHotspots}
       crimeCautionRows={rows("crime_caution_overlay")} showCrimeCaution={mapLayers.crimeCaution}
       emergencyFacilityRows={[]} trafficAccidentOverlayRows={[]}
@@ -2326,7 +2347,7 @@ export function DashboardContent() {
       </header>
       {!aiCandidates.length && <p className="priority-score-unavailable">현재 점수 기준으로 산정 가능한 도로가 없습니다. 점수 설정이나 누락 자료를 확인하세요.</p>}
       {workflowPlan?.optimizationStatus === "ready" && aiCandidates.length > 0 && <PlanComparison rows={planMetrics} selectedPlan={selectedPlan} onSelect={setSelectedPlan} />}
-      {aiCandidates.length > 0 && <WorkflowPanel key={`${selectedDepotId}:${horizon}:${scoringKey}:${metadata.generated_at}`} teams={effectiveTeamRows.filter((team) => team.team_id === selectedDepotId)}
+      {aiCandidates.length > 0 && <WorkflowPanel key={`${selectedDepotId}:${horizon}:${scoringKey}:${metadata.generated_at}:${JSON.stringify(inspectionPlans)}`} teams={effectiveTeamRows.filter((team) => team.team_id === selectedDepotId)}
         tasks={aiCandidates} governanceRows={rows("governance_authorities")}
         routes={rows("plan_routes").filter((route) => route.team_id === selectedDepotId)}
         planMetrics={basePlanMetrics} metadata={metadata}
@@ -2363,6 +2384,16 @@ export function DashboardContent() {
       </section>
     </section>}
 
+    {selectedDepot && rows("surface_accidents").length > 0 && <JejuInspectionPanel
+      tasks={effectiveTaskRows} selectedLinkId={selectedRiskId || candidates[0]?.link_id}
+      surfaceRows={rows("surface_accidents")} hazardRows={rows("designated_hazards")}
+      hotspotRows={rows("accident_hotspots")} hotspotYear={hotspotYear} onYear={setHotspotYear}
+      onSelectTask={setSelectedRiskId} plans={inspectionPlans}
+      onShowHotspot={(row) => showEvidenceOnMap(evidenceMapTarget("accident", `accident:${row.hotspot_id}`, row.location_name, row))}
+      onApply={(plan) => {
+        setInspectionPlans(current => ({ ...current, [plan.linkId]: plan }));
+        setWorkflowState(current => current ? { ...current, tasks: current.tasks.map(task => task.linkId === plan.linkId ? { ...task, inspectionPlan: plan } : task) } : current);
+      }} />}
     <footer className="roadops-disclaimer">
       운영 우선순위 시나리오이며 사고확률이 아닙니다. 모든 경로는 현장 지시 전 담당자의 확인과 확정이 필요합니다.
     </footer>

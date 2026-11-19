@@ -67,6 +67,7 @@ export function createWorkflowState({ teams = [], tasks = [], routes = [], planI
       return {
         taskId: String(task.task_id),
         linkId: String(task.link_id),
+        inspectionPlan: task.inspection_plan || null,
         roadName: String(task.road_name || "도로명 미상"),
         priorityScore: numeric(task.priority_score),
         suggestedPriorityLevel: suggestedPriorityLevel(task.risk_level),
@@ -396,6 +397,7 @@ export function createApprovalRecord(state, scenarioId, at) {
     scenarioId,
     scoringPolicy: state.scoringPolicy ?? null,
     workflowFingerprint: workflowFingerprint(state, scenarioId),
+    inspectionPlans: state.tasks.filter(task => !task.excluded && task.inspectionPlan).map(task => task.inspectionPlan),
     status: "approved_for_demo_dispatch",
   };
 }

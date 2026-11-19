@@ -408,6 +408,28 @@ def build_data_app_snapshot(
             ["Unavailable evidence remains missing and contributes no score."],
         ),
     }
+    # Persist supplemental evidence through every operational refresh. The 863
+    # historical selection is kept separate from recent TAAS scoring evidence.
+    from roadops.jeju_inspection_evidence import merge_hotspots
+    evidence_path = PROJECT_ROOT / "demo/jeju_inspection_evidence_v0_1.json"
+    if evidence_path.exists():
+        evidence = read_json(evidence_path)
+        queries = dict(queries)
+        for key, label, dataset_ids in (
+            ("surface_accidents", "제주데이터허브 노면 상태별 교통사고 통계", "891"),
+            ("designated_hazards", "제주데이터허브 연결 제주시 재해위험지구·급경사지", "435,436"),
+            ("hub_accident_hotspots", "제주데이터허브 사고다발지역 공개 CSV", "863"),
+        ):
+            queries[key] = evidence[key]
+            query_sources[key] = source(label, [evidence_path], ["jeju-inspection-evidence"], [
+                f"Jeju Data Hub datasets {dataset_ids}; provenance and dates are retained per row.",
+                "Historical aggregates are not accident probabilities. Administrative locations are not exact hazard boundaries.",
+            ])
+        queries["accident_hotspots"] = merge_hotspots(queries.get("accident_hotspots", []), evidence["hub_accident_hotspots"])
+        query_sources["accident_hotspots"] = source("TAAS + 제주데이터허브 863 사고다발지역", [inputs["accident_hotspots"], evidence_path], ["roadops-map", "jeju-inspection-evidence"], [
+            "Filter by analysis year; years and repeated sources are never summed.",
+            "Hub public CSV covers 2017–2022 and is not the complete 42-row API result. Recent TAAS data remains the scoring source.",
+        ])
     return {
         "id": "roadops:jeju-field-operations-map:v0.1",
         "title": "RoadOps 제주 현장 운영 워크벤치",
@@ -478,6 +500,15 @@ def main() -> int:
         build_status=args.build_status,
         inputs=inputs,
     )
+    # Export the same evidence arrays as the UI, so offline consumers and the
+    # quality report describe the actual shipped snapshot.
+    queries = {key: value["rows"] for key, value in app_snapshot["queries"].items()}
+    for query, count_key in (("accident_hotspots", "accident_hotspot_count"),
+                             ("hub_accident_hotspots", "hub_accident_hotspot_count"),
+                             ("surface_accidents", "surface_accident_row_count"),
+                             ("designated_hazards", "designated_hazard_count")):
+        if query in queries:
+            quality["counts"][count_key] = len(queries[query])
     args.output_dir.mkdir(parents=True, exist_ok=True)
     args.app_data.parent.mkdir(parents=True, exist_ok=True)
     (args.output_dir / "map_snapshot.json").write_text(

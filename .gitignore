@@ -48,6 +48,7 @@ config/secrets.*
 
 # Committed offline demonstration inputs / 커밋된 오프라인 데모 입력
 !demo/
+!demo/jeju_inspection_evidence_v0_1.json
 !demo/cached_inputs_v0_1/
 !demo/cached_inputs_v0_1/*.csv
 !demo/cached_inputs_v0_1/*.json
