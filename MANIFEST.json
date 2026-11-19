@@ -18,7 +18,7 @@
     "04_docs/submission_20261120/START_WEB.command": "7de5afe67a1141ede99ef2183974d8e97ed1ce08e1611da410bc04990ae542f7",
     "04_docs/submission_20261120/THIRD_PARTY_NOTICES.md": "9827505ccd90198370dc8290b90f91163800c020f36cd5b0b317dafecba92a61",
     "04_docs/submission_20261120/USER_MANUAL.md": "bd62909b15797568d47d9098272f624b895573af2c85f1dbcdb8999e293dff60",
-    "04_docs/submission_20261120/launch.html": "c0b9bcbbfda9ef1172e3f56bf26658f82ca475a2f865bde3827b9e63eeec706c",
+    "04_docs/submission_20261120/launch.html": "decbddda0e2488613517b3a2b79432e6b49f9138b3364a23f2c1331347a987b6",
     "04_docs/submission_20261120/requirements-runtime.txt": "108a1537c3951e670bae2c389a05906330899526472067252357eba398d54d1f",
     "04_docs/submission_20261120/run_web.py": "0ee614d1d2d7c5ccddd8e2bb20ff41103c0dc9c1cbe8940984b5d3a8ee4791fa",
     "04_docs/submission_20261120/verify_detour.py": "5642c156a1cf34aff0957cdcb4d82baf40ba460403ebcf3b97a14872fcb047c2",
@@ -1157,7 +1157,7 @@
     "verify_detour.py": "5642c156a1cf34aff0957cdcb4d82baf40ba460403ebcf3b97a14872fcb047c2",
     "verify_package.py": "897b54437a718800f161dce907e8ab1f5a6a1b2827ec5ad4012a20f0c75905a8",
     "web/.nojekyll": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "web/index.html": "c0b9bcbbfda9ef1172e3f56bf26658f82ca475a2f865bde3827b9e63eeec706c",
+    "web/index.html": "decbddda0e2488613517b3a2b79432e6b49f9138b3364a23f2c1331347a987b6",
     "web/latest/.openai/hosting.json": "9bea32a0cd9e771b2a91f1279ebda9ec9b7a14c266501070c6051bb52f3ea43c",
     "web/latest/data-app-build.json": "39dd24b065c6d24b18797d9a30be5f97be4d979cb9e2883d174073d3f79809be",
     "web/latest/index.html": "89b08d141c63cf5e2d26405e6438d843ea21cbd4d517bc3af282e7494fe9eb6e",
@@ -1168,5 +1168,5 @@
     "web/presentation/snapshot.b29d687f4882d4339cd71b4b97349190d9886916dc562e5e3db1262ad33f28bf.json": "b29d687f4882d4339cd71b4b97349190d9886916dc562e5e3db1262ad33f28bf",
     "web/proposal.pdf": "2f3aa5a137f73e2223e8211d8bbf3aea72d3b86f17ad1ea783e356898c453430"
   },
-  "repository_documentation_note": "The public repository README adds links to the original 117-commit development history. All other submitted assets are unchanged."
+  "repository_documentation_note": "The public repository adds development history links to README and a development blog link to the launcher. All other submitted assets are unchanged."
 }
