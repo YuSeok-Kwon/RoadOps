@@ -391,7 +391,7 @@
     "08_dashboard/roadops_map_v0_1/tests/workflow-policy.test.mjs": "681d149a71a56ee7348031c50f4d5cea9ea909b1622f5bb8f310c501eb03dbea",
     "08_dashboard/roadops_map_v0_1/vite.config.js": "da62d7d91fbf0e75f234a3f8e6d5adf91914babe53926972eeff6ac0f9544e1b",
     "AGENTS.md": "87c489d518aac9a9b7f4515d0962c6426049a4a5fa4cacdf3317c0887c08bf2c",
-    "README.md": "005352f3b50378909e2c95d15cfd8e7dc2fa57e75bb7c832299af62cd8b78bc6",
+    "README.md": "f34137ff9c5f447696bdb7eb7cdcaad244dc7fac4272d24ffb6ba0cf9e6d32a9",
     "RoadOps_기획서_권유석.pdf": "4a769941d63cf201776bc2414a08c5fc94deb5ec9d099febde412882d700c9c0",
     "START_WEB.cmd": "94f96bcad7772c600c31b7c6b663375b3a711b9453e046d1f172a05ef5186329",
     "START_WEB.command": "7de5afe67a1141ede99ef2183974d8e97ed1ce08e1611da410bc04990ae542f7",
@@ -1167,5 +1167,6 @@
     "web/presentation/index.html": "4376c1fb13d3812e326acaa02b813d43a7f01c90a22fa5479d10c78548a372a7",
     "web/presentation/snapshot.b29d687f4882d4339cd71b4b97349190d9886916dc562e5e3db1262ad33f28bf.json": "b29d687f4882d4339cd71b4b97349190d9886916dc562e5e3db1262ad33f28bf",
     "web/proposal.pdf": "2f3aa5a137f73e2223e8211d8bbf3aea72d3b86f17ad1ea783e356898c453430"
-  }
+  },
+  "repository_documentation_note": "The public repository README adds links to the original 117-commit development history. All other submitted assets are unchanged."
 }
