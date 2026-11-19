@@ -167,11 +167,11 @@ export async function writeRoadOpsStory({presentation:p,input}){
   note(s,'17장 개정본. 담당자가 항목 포함 여부·배점·자료 부족 처리 방식을 정한다. 수동·AI 모드에 동일하게 적용되며 AI가 기준을 임의로 바꾸지 않는다. 사진은 실제 운영 실적이 아닌 생성 이미지다. 표지에는 공통 도로 장식을 적용하지 않았다.',ROOT+'priority-policy.js','04_docs/presentation/assets/roadops_submission_20261118/generated_visuals.json');break;
  case 2:
   s=page(p,a,n,'비가 쏟아지면, 무엇을 기준으로 판단할까요?');
-  scene(s,a+'/12_roadops_control_room_v1.png','가상의 도로관리 상황실 담당자. AI 생성 장면으로 실제 기관·인물·RoadOps 화면이 아닙니다.',{left:64,top:215,width:565,height:414});
+  scene(s,input.controlRoomImage||a+'/12_roadops_control_room_v1.png','여러 담당자가 뒷모습으로 대형 관제 화면을 바라보는 가상의 재난안전 상황실. AI 생성 장면으로 실제 기관·인물·RoadOps 화면이 아닙니다.',{left:64,top:215,width:565,height:414});
   txt(s,'같은 상황에서도\n업무의 기준은 다릅니다.',682,252,527,133,39,C.black,true);
   txt(s,'담당자가 중요하게 볼 근거를 정하면,\nRoadOps가 점검 우선순위와\n현장계획으로 연결합니다.',684,455,523,146,27,C.blue,true);
   src(s,'AI 생성 · 상황 재현 이미지 · 실제 기관·인물·운영 화면이 아닙니다.');
-  note(s,'현장 업무를 시작하는 담당자 중심 장면. 기준 설정의 주체는 사람이며 AI는 입력 기준과 가용 자원에 따라 작업안을 제안한다. 기준을 자동 학습하거나 자동 변경한다고 주장하지 않는다.',ROOT+'ScoringPolicyPanel.jsx');break;
+  note(s,'여러 담당자가 대형 관제 화면을 바라보는 가상의 재난안전 상황실이다. 얼굴이 보이지 않는 뒷모습으로 구성했다. 기준 설정의 주체는 사람이며 AI는 입력 기준과 가용 자원에 따라 작업안을 제안한다. 실제 기관이나 운영 실적을 촬영한 사진이 아니다.',ROOT+'ScoringPolicyPanel.jsx','04_docs/presentation/assets/roadops_submission_20261119/control_room_team_generation.json');break;
  case 3:
   s=page(p,a,n,'담당자는 기준과 자원을 정하고 계획을 검토합니다','폭우가 예보된 날의 점검 계획을 따라가는 운영 시뮬레이션입니다.');
   txt(s,'판단 기준 설정 → 근거 확인\nAI 계획 제안 → 담당자 확정',76,234,665,114,34,C.black,true);

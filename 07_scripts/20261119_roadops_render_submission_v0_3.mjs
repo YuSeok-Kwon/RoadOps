@@ -29,13 +29,14 @@ const evidence=JSON.parse(await fs.readFile(path.join(root,'04_docs/presentation
 const captureConfig=captureFile?JSON.parse(await fs.readFile(captureFile,'utf8')):{};
 const captures=captureConfig.captures?Object.fromEntries(Object.entries(captureConfig.captures).map(([key,name])=>[key,path.resolve(path.dirname(captureFile),'captures',name)])):captureConfig;
 const assetDir=path.join(root,'04_docs/presentation/assets/roadops_submission_20261118');
-const imagePaths=[...['09_jeju_road_original_cover_v1.png','12_roadops_control_room_v1.png','13_jeju_road_closure_v1.png','14_roadops_route_background_v2.png','15_roadops_planning_illustration_v1.png'].map(name=>path.join(assetDir,name)),...Object.values(captures)];
+const controlRoomImage=path.join(root,'04_docs/presentation/assets/roadops_submission_20261119/16_roadops_control_room_team_v2.png');
+const imagePaths=[...['09_jeju_road_original_cover_v1.png','13_jeju_road_closure_v1.png','14_roadops_route_background_v2.png','15_roadops_planning_illustration_v1.png'].map(name=>path.join(assetDir,name)),controlRoomImage,...Object.values(captures)];
 const imageSources={};
 for(const imagePath of new Set(imagePaths)){
  const type=/\.jpe?g$/i.test(imagePath)?'image/jpeg':/\.webp$/i.test(imagePath)?'image/webp':'image/png';
  imageSources[imagePath]=`data:${type};base64,${(await fs.readFile(imagePath)).toString('base64')}`;
 }
-const result=await writeRoadOpsStory({presentation:p,input:{slides:Array.from({length:17},(_,i)=>i+1),assetDir,evidence,captures,imageSources}});
+const result=await writeRoadOpsStory({presentation:p,input:{slides:Array.from({length:17},(_,i)=>i+1),assetDir,controlRoomImage,evidence,captures,imageSources}});
 console.log(JSON.stringify(result));
 const after=await p.inspect({kind:'slide,textbox,shape,image,table,chart,notes',maxChars:400000});
 await fs.writeFile(path.join(build,'final-inspection.json'),JSON.stringify(after,null,2));

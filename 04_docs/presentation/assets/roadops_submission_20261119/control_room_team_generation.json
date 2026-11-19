@@ -1,0 +1,12 @@
+{
+  "created_on": "2026-11-19",
+  "slide": 2,
+  "generation_mode": "built-in image_gen image edit",
+  "reference_image": "04_docs/presentation/assets/roadops_submission_20261118/12_roadops_control_room_v1.png",
+  "generated_image": "/Users/yu_seok/.codex/generated_images/01a1ee98-e748-7c72-a967-57b82a117f20/exec-ac27f93f-a9e2-4fd2-8275-33c7efdb4ab4.png",
+  "workspace_image": "04_docs/presentation/assets/roadops_submission_20261119/16_roadops_control_room_team_v2.png",
+  "disclosure": "AI 생성 상황 재현 이미지. 실제 기관, 인물, 운영 실적 또는 RoadOps 화면을 촬영한 기록이 아닙니다.",
+  "requested_change": "얼굴이 보이지 않는 여러 담당자의 뒷모습과 재난안전본부 분위기",
+  "prompt": "Use case: precise-object-edit. Edit target: the attached control-room photo used on slide 2 of a RoadOps presentation. Replace the single-person side-profile composition with a realistic regional disaster safety headquarters operations room occupied by six adult staff, ALL seen exclusively from behind. Camera is behind the entire group, looking over backs and shoulders toward the large shared wall of monitoring screens. Absolutely no faces, side profiles, eyes, or faces reflected in glass or screens; every person's head faces straight away from the camera. Arrange four seated operators at two rows of practical workstations and two standing staff reviewing the front wall, without blocking the wall. Make the room feel like a credible South Korean public-sector disaster response coordination center, not an ordinary individual office and not a futuristic command bunker. Wall screens show plausible generic Jeju island road maps, blue-green weather radar and rainy road CCTV imagery. Keep the original's photorealistic editorial quality, rainy-day atmosphere, restrained charcoal and navy workwear, desaturated steel-blue light, subtle green map accents, and natural overcast window light. Show a coherent scene with depth, real desks, a few documents and keyboards. Moderate wide-angle rear view, balanced 4:3 landscape crop suitable for the 565-by-414 image area of a slide; people and the shared display wall should remain clearly readable in that crop. No added title, logos, watermarks, official seals, readable organization names, banners, or fake UI copy. This is a fictional situation-recreation image, not a record of a real agency or event.",
+  "asset_sha256": "34da367ee501f07daf7680338375ef383010f68942ba614937f47f91d1e77a3d"
+}
